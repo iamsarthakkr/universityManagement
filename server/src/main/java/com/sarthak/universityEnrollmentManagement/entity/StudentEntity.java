@@ -35,25 +35,25 @@ public class StudentEntity {
     @JoinColumn(name = "user_id")
     private UserEntity user;
 
-    @Column(name = "firstName", length = 50)
+    @Column(name = "firstName", length = 50, nullable = false)
     private String firstName;
 
     @Column(name = "lastName", length = 50)
     private String lastName;
     
-    @Column(name = "phoneNumber", length = 10)
+    @Column(name = "phoneNumber", length = 10, nullable = false)
     private String phoneNumber;
     
-    @Column(name = "dateOfBirth")
+    @Column(name = "dateOfBirth", nullable = false)
     private LocalDate dateOfBirth;
     
-    @Column(name = "address", length = 100)
+    @Column(name = "address", length = 100, nullable = false)
     private String address;
     
-    @Column(name = "fatherName", length = 50)
+    @Column(name = "fatherName", length = 50, nullable = false)
     private String fatherName;
     
-    @Column(name = "motherName", length = 50)
+    @Column(name = "motherName", length = 50, nullable = false)
     private String motherName;
-
+    
 }
