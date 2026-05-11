@@ -1,0 +1,69 @@
+# =========================
+# Build outputs
+# =========================
+/target/
+/build/
+out/
+
+# =========================
+# Logs
+# =========================
+*.log
+
+# =========================
+# OS files
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# IntelliJ IDEA
+# =========================
+.idea/
+*.iml
+
+# (Optional: keep project-level settings if team project)
+#.idea/codeStyles/
+#.idea/runConfigurations/
+
+# =========================
+# VS Code (if used)
+# =========================
+.vscode/
+
+# =========================
+# Environment & secrets
+# =========================
+.env
+.env.*
+application-local.properties
+application-dev.properties
+
+# =========================
+# Spring Boot specific
+# =========================
+*.pid
+*.seed
+
+# =========================
+# Database files (H2, etc.)
+# =========================
+*.mv.db
+*.trace.db
+
+# =========================
+# Test outputs
+# =========================
+/test-output/
+
+# =========================
+# Node (if frontend later)
+# =========================
+node_modules/
+
+# =========================
+# Misc
+# =========================
+*.swp
+*.swo
+*~
