@@ -1,24 +1,20 @@
 package com.sarthak.universityEnrollmentManagement.mapper;
 
-import com.sarthak.universityEnrollmentManagement.dto.request.StudentRequest;
-import com.sarthak.universityEnrollmentManagement.dto.response.StudentResponse;
 import com.sarthak.universityEnrollmentManagement.entity.StudentEntity;
+import com.sarthak.universityEnrollmentManagement.entity.StudentRegistrationEntity;
 
 public class StudentMapper {
-    public static StudentEntity toEntity(StudentRequest studentRequest) {
-        return StudentEntity.builder()
-            .firstName(studentRequest.getFirstName())
-            .lastName((studentRequest.getLastName()))
-            .email(studentRequest.getEmail())
-            .build();
-    }
     
-    public static StudentResponse toResponse(StudentEntity student) {
-        return StudentResponse.builder()
-            .id(student.getId())
-            .firstName(student.getFirstName())
-            .lastName(student.getLastName())
-            .email(student.getEmail())
+    public static StudentEntity toEntityFromStudentRegistration(StudentRegistrationEntity entity) {
+        return StudentEntity
+            .builder()
+            .firstName(entity.getFirstName())
+            .lastName(entity.getLastName())
+            .phoneNumber(entity.getPhoneNumber())
+            .dateOfBirth(entity.getDateOfBirth())
+            .address(entity.getAddress())
+            .fatherName(entity.getFatherName())
+            .motherName(entity.getMotherName())
             .build();
     }
 }

@@ -19,4 +19,6 @@ public interface StudentRepo extends JpaRepository<StudentEntity, Integer> {
     List<StudentEntity> findByFirstNameAndLastName(final String firstName, final String lastName);
     
     boolean existsByEmail(String email);
+    
+    boolean existsByUserId(Integer userId);
 }

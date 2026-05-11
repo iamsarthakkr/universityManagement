@@ -37,4 +37,5 @@ public class StudentRegistrationMapper {
             .status(entity.getRegistrationStatus())
             .build();
     }
+    
 }
