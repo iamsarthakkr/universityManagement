@@ -30,11 +30,11 @@ public class RegistrationValidator {
     
     public void validateUserNameAvailable(String username) {
         if(studentRegistrationRepo.existsByUsername(username)) {
-            throw new ConflictException("Registration request already present for student with email " + username);
+            throw new ConflictException("Registration request already present for student with username " + username);
         }
         
         if(instructorRegistrationRepo.existsByUsername(username)) {
-            throw new ConflictException("Registration request already present for instructor with email " + username);
+            throw new ConflictException("Registration request already present for instructor with username " + username);
         }
         
         if(userRepo.existsByUsername(username)) {

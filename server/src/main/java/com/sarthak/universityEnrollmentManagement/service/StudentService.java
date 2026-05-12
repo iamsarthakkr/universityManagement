@@ -28,6 +28,7 @@ public class StudentService {
         }
         
         StudentEntity newStudent = StudentMapper.toEntityFromStudentRegistration(registration);
+        newStudent.setUser(user);
         return studentRepo.save(newStudent);
     }
 

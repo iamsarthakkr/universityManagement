@@ -25,6 +25,7 @@ public class UserService {
         }
         
         UserEntity newUser = UserMapper.toEntityFromStudentRegistration(registration);
+        newUser.setActive(true);
         return userRepo.save(newUser);
     }
 }

@@ -2,7 +2,6 @@ package com.sarthak.universityEnrollmentManagement.service;
 
 import com.sarthak.universityEnrollmentManagement.dto.request.StudentRegistrationRequest;
 import com.sarthak.universityEnrollmentManagement.dto.response.StudentRegistrationResponse;
-import com.sarthak.universityEnrollmentManagement.entity.StudentEntity;
 import com.sarthak.universityEnrollmentManagement.entity.StudentRegistrationEntity;
 import com.sarthak.universityEnrollmentManagement.entity.UserEntity;
 import com.sarthak.universityEnrollmentManagement.entity.types.RegistrationStatus;
@@ -53,10 +52,7 @@ public class StudentRegistrationService {
         UserEntity user = userService.createUserForRegistration(registration);
         
         // create associated student
-        StudentEntity student = studentService.createStudentForUser(user, registration);
-        
-        // set user
-        student.setUser(user);
+        studentService.createStudentForUser(user, registration);
         
         // approve registration
         registration.setRegistrationStatus(RegistrationStatus.APPROVED);
@@ -68,6 +64,8 @@ public class StudentRegistrationService {
     public void rejectRegistration(int registrationId) {
         StudentRegistrationEntity registration = getPendingRegistrationOrThrow(registrationId);
         registration.setRegistrationStatus(RegistrationStatus.REJECTED);
+        registration.setReviewedAt(Instant.now());
+        registration.setReviewedBy(null); // TODO: need to set once security is done
     }
     
     private StudentRegistrationEntity getPendingRegistrationOrThrow(int registrationId) {
