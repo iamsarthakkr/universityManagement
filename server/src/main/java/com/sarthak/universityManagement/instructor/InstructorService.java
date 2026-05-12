@@ -20,7 +20,7 @@ public class InstructorService {
             throw new ConflictException("Instructor already exists for user with id " + user.getId());
         }
         if(user.getRole() != Role.INSTRUCTOR) {
-            throw new BadRequestException("User must have STUDENT role");
+            throw new BadRequestException("User must have INSTRUCTOR role");
         }
         
         InstructorEntity newInstructor = InstructorMapper.toEntity(createInstructorCommand);
