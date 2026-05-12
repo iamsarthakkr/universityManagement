@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.sarthak</groupId>
-	<artifactId>universityEnrollmentManagement</artifactId>
+	<artifactId>universityManagement</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name/>
 	<description/>
