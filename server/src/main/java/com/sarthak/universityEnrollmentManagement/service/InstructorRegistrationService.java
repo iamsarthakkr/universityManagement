@@ -51,7 +51,7 @@ public class InstructorRegistrationService {
         // create user
         UserEntity user = userService.createUserForRegistration(InstructorRegistrationMapper.toCreateUserCommand(registration));
         
-        // create associated student
+        // create associated instructor
         instructorService.createInstructorForUser(InstructorRegistrationMapper.toCreateInstructorCommand(registration), user);
         
         // approve registration

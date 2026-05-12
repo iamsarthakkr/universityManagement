@@ -2,7 +2,6 @@ package com.sarthak.universityEnrollmentManagement.service;
 
 import com.sarthak.universityEnrollmentManagement.dto.internal.CreateInstructorCommand;
 import com.sarthak.universityEnrollmentManagement.entity.InstructorEntity;
-import com.sarthak.universityEnrollmentManagement.entity.StudentEntity;
 import com.sarthak.universityEnrollmentManagement.entity.UserEntity;
 import com.sarthak.universityEnrollmentManagement.entity.types.Role;
 import com.sarthak.universityEnrollmentManagement.exceptions.BadRequestException;
@@ -21,9 +20,9 @@ public class InstructorService {
     @Transactional
     public InstructorEntity createInstructorForUser(CreateInstructorCommand createInstructorCommand, UserEntity user) {
         if(instructorRepo.existsByUserId(user.getId())) {
-            throw new ConflictException("Student already exists for user with id " + user.getId());
+            throw new ConflictException("Instructor already exists for user with id " + user.getId());
         }
-        if(user.getRole() != Role.STUDENT) {
+        if(user.getRole() != Role.INSTRUCTOR) {
             throw new BadRequestException("User must have STUDENT role");
         }
         
