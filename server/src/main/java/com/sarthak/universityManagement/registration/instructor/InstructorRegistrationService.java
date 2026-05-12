@@ -10,6 +10,7 @@ import com.sarthak.universityManagement.common.exceptions.ResourceNotFoundExcept
 import com.sarthak.universityManagement.user.UserService;
 import com.sarthak.universityManagement.registration.validators.RegistrationValidator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +24,7 @@ public class InstructorRegistrationService {
     private final RegistrationValidator registrationValidator;
     private final UserService userService;
     private final InstructorService instructorService;
+    private final PasswordEncoder passwordEncoder;
     
     @Transactional
     public void createRegistration(InstructorRegistrationRequest instructorRegistrationRequest) {
@@ -30,7 +32,9 @@ public class InstructorRegistrationService {
         registrationValidator.validateEmailAvailable(instructorRegistrationRequest.email());
         
         InstructorRegistrationEntity toSave = InstructorRegistrationMapper.toEntity(instructorRegistrationRequest);
+        toSave.setPassword(passwordEncoder.encode(instructorRegistrationRequest.password()));
         toSave.setRegistrationStatus(RegistrationStatus.PENDING);
+        
         instructorRegistrationRepo.save(toSave);
     }
     

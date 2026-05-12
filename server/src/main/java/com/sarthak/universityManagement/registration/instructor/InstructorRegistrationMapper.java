@@ -11,7 +11,6 @@ public class InstructorRegistrationMapper {
         return InstructorRegistrationEntity
             .builder()
             .username(request.username())
-            .password(request.password())
             .firstName(request.firstName())
             .lastName(request.lastName())
             .email(request.email())
