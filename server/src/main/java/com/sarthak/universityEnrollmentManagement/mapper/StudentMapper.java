@@ -1,20 +1,20 @@
 package com.sarthak.universityEnrollmentManagement.mapper;
 
+import com.sarthak.universityEnrollmentManagement.dto.internal.CreateStudentCommand;
 import com.sarthak.universityEnrollmentManagement.entity.StudentEntity;
-import com.sarthak.universityEnrollmentManagement.entity.StudentRegistrationEntity;
 
 public class StudentMapper {
     
-    public static StudentEntity toEntityFromStudentRegistration(StudentRegistrationEntity entity) {
+    public static StudentEntity toEntity(CreateStudentCommand createStudentCommand) {
         return StudentEntity
             .builder()
-            .firstName(entity.getFirstName())
-            .lastName(entity.getLastName())
-            .phoneNumber(entity.getPhoneNumber())
-            .dateOfBirth(entity.getDateOfBirth())
-            .address(entity.getAddress())
-            .fatherName(entity.getFatherName())
-            .motherName(entity.getMotherName())
+            .firstName(createStudentCommand.firstName())
+            .lastName(createStudentCommand.lastName())
+            .phoneNumber(createStudentCommand.phoneNumber())
+            .dateOfBirth(createStudentCommand.dateOfBirth())
+            .address(createStudentCommand.address())
+            .fatherName(createStudentCommand.fatherName())
+            .motherName(createStudentCommand.motherName())
             .build();
     }
 }

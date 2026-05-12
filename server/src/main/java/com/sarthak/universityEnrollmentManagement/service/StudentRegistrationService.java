@@ -49,10 +49,10 @@ public class StudentRegistrationService {
         StudentRegistrationEntity registration = getPendingRegistrationOrThrow(registrationId);
         
         // create user
-        UserEntity user = userService.createUserForRegistration(registration);
+        UserEntity user = userService.createUserForRegistration(StudentRegistrationMapper.toCreateUserCommand(registration));
         
         // create associated student
-        studentService.createStudentForUser(user, registration);
+        studentService.createStudentForUser(StudentRegistrationMapper.toCreateStudentCommand(registration), user);
         
         // approve registration
         registration.setRegistrationStatus(RegistrationStatus.APPROVED);

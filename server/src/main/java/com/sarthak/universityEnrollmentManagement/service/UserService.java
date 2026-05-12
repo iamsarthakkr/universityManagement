@@ -1,6 +1,6 @@
 package com.sarthak.universityEnrollmentManagement.service;
 
-import com.sarthak.universityEnrollmentManagement.entity.StudentRegistrationEntity;
+import com.sarthak.universityEnrollmentManagement.dto.internal.CreateUserCommand;
 import com.sarthak.universityEnrollmentManagement.entity.UserEntity;
 import com.sarthak.universityEnrollmentManagement.exceptions.ConflictException;
 import com.sarthak.universityEnrollmentManagement.mapper.UserMapper;
@@ -15,16 +15,16 @@ public class UserService {
     private final UserRepo userRepo;
     
     @Transactional
-    public UserEntity createUserForRegistration(StudentRegistrationEntity registration) {
-        if(userRepo.existsByUsername(registration.getUsername())) {
-            throw new ConflictException("User already present with username " + registration.getUsername());
+    public UserEntity createUserForRegistration(CreateUserCommand createUserCommand) {
+        if(userRepo.existsByUsername(createUserCommand.username())) {
+            throw new ConflictException("User already present with username " + createUserCommand.username());
         }
         
-        if(userRepo.existsByEmail(registration.getEmail())) {
-            throw new ConflictException("User already present with email " + registration.getEmail());
+        if(userRepo.existsByEmail(createUserCommand.email())) {
+            throw new ConflictException("User already present with email " + createUserCommand.email());
         }
         
-        UserEntity newUser = UserMapper.toEntityFromStudentRegistration(registration);
+        UserEntity newUser = UserMapper.toEntity(createUserCommand);
         newUser.setActive(true);
         return userRepo.save(newUser);
     }

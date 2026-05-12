@@ -1,18 +1,16 @@
 package com.sarthak.universityEnrollmentManagement.mapper;
 
-import com.sarthak.universityEnrollmentManagement.entity.StudentRegistrationEntity;
+import com.sarthak.universityEnrollmentManagement.dto.internal.CreateUserCommand;
 import com.sarthak.universityEnrollmentManagement.entity.UserEntity;
-import com.sarthak.universityEnrollmentManagement.entity.types.Role;
 
 public class UserMapper {
-    public static UserEntity toEntityFromStudentRegistration(StudentRegistrationEntity entity) {
+    public static UserEntity toEntity(CreateUserCommand createUserCommand) {
         return UserEntity
             .builder()
-            .username(entity.getUsername())
-            .password(entity.getPassword())
-            .email(entity.getEmail())
-            .role(Role.STUDENT)
+            .username(createUserCommand.username())
+            .password(createUserCommand.hashedPassword())
+            .email(createUserCommand.email())
+            .role(createUserCommand.role())
             .build();
     }
-    
 }
