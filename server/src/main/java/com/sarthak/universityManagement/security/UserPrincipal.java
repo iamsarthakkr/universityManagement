@@ -45,6 +45,10 @@ public class UserPrincipal implements UserDetails {
         return this.enabled;
     }
     
+    public Role getRole() {
+        return role;
+    }
+    
     public Integer getUserId() {
         return this.userId;
     }
