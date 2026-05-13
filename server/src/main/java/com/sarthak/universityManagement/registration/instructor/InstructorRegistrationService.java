@@ -27,7 +27,7 @@ public class InstructorRegistrationService {
     private final PasswordEncoder passwordEncoder;
     
     @Transactional
-    public void createRegistration(InstructorRegistrationRequest instructorRegistrationRequest) {
+    public InstructorRegistrationResponse createRegistration(InstructorRegistrationRequest instructorRegistrationRequest) {
         registrationValidator.validateUserNameAvailable(instructorRegistrationRequest.username());
         registrationValidator.validateEmailAvailable(instructorRegistrationRequest.email());
         
@@ -35,7 +35,8 @@ public class InstructorRegistrationService {
         toSave.setPassword(passwordEncoder.encode(instructorRegistrationRequest.password()));
         toSave.setRegistrationStatus(RegistrationStatus.PENDING);
         
-        instructorRegistrationRepo.save(toSave);
+        InstructorRegistrationEntity saved = instructorRegistrationRepo.save(toSave);
+        return InstructorRegistrationMapper.toResponse(saved);
     }
     
     @Transactional(readOnly = true)

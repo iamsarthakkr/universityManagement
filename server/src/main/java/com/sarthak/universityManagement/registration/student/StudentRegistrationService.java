@@ -27,14 +27,16 @@ public class StudentRegistrationService {
     private final PasswordEncoder passwordEncoder;
     
     @Transactional
-    public void createRegistration(StudentRegistrationRequest studentRegistrationRequest) {
+    public StudentRegistrationResponse createRegistration(StudentRegistrationRequest studentRegistrationRequest) {
         registrationValidator.validateUserNameAvailable(studentRegistrationRequest.username());
         registrationValidator.validateEmailAvailable(studentRegistrationRequest.email());
         
         StudentRegistrationEntity toSave = StudentRegistrationMapper.toEntity(studentRegistrationRequest);
         toSave.setPassword(passwordEncoder.encode(studentRegistrationRequest.password()));
         toSave.setRegistrationStatus(RegistrationStatus.PENDING);
-        studentRegistrationRepo.save(toSave);
+        
+        StudentRegistrationEntity saved = studentRegistrationRepo.save(toSave);
+        return StudentRegistrationMapper.toResponse(saved);
     }
     
     @Transactional(readOnly = true)
