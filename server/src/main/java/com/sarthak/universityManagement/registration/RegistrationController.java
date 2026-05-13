@@ -28,7 +28,7 @@ public class RegistrationController {
         @RequestBody StudentRegistrationRequest studentRegistrationRequest
     ) {
         StudentRegistrationResponse res = studentRegistrationService.createRegistration(studentRegistrationRequest);
-        return Res.success(SuccessCode.CREATED, null,  res);
+        return Res.success(SuccessCode.CREATED, res);
     }
     
     @PostMapping("/instructor")
@@ -36,6 +36,6 @@ public class RegistrationController {
         @RequestBody InstructorRegistrationRequest instructorRegistrationRequest
     ) {
         InstructorRegistrationResponse res = instructorRegistrationService.createRegistration(instructorRegistrationRequest);
-        return Res.success(SuccessCode.CREATED, null,  res);
+        return Res.success(SuccessCode.CREATED, res);
     }
 }

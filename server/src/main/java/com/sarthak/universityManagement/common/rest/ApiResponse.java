@@ -2,37 +2,32 @@ package com.sarthak.universityManagement.common.rest;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+import java.time.Instant;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public record ApiResponse<T>(
-    @JsonProperty("message") String message,
-    @JsonProperty("data") T body,
-    @JsonProperty("isSuccess") boolean isSuccess
-) {
+@AllArgsConstructor
+public class ApiResponse<T> {
+    @JsonProperty("message")
+    private String message;
+    
+    @JsonProperty("data")
+    private T body;
+    
+    @JsonProperty("isSuccess")
+    private boolean isSuccess;
+    
+    @JsonProperty("timestamp")
+    private final Instant timestamp = Instant.now();
+    
     private static final String SUCCESS_MESSAGE = "Success";
-    private static final String ERROR_MESSAGE = "Error";
     
-    public static ApiResponse<Void> success() {
-        return success(SUCCESS_MESSAGE, null);
-    }
-    
-    public static <T> ApiResponse<T> success(T body) {
-        return success(SUCCESS_MESSAGE, body);
-    }
-    
+    public static ApiResponse<Void> success() { return success(SUCCESS_MESSAGE, null); }
+    public static <T> ApiResponse<T> success(T body) { return success(SUCCESS_MESSAGE, body); }
+    public static ApiResponse<Void> successMessage(String message) { return success(message, null); }
     public static <T> ApiResponse<T> success(String message, T body) {
-        return new ApiResponse<>(message, body, true);
-    }
-    
-    public static ApiResponse<Void> error() {
-        return error(ERROR_MESSAGE, null);
-    }
-    
-    public static <T> ApiResponse<T> error(T body) {
-        return error("Success", body);
-    }
-    
-    public static <T> ApiResponse<T> error(String message, T body) {
         return new ApiResponse<>(message, body, true);
     }
     
