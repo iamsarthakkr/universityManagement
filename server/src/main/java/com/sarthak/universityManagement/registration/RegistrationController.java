@@ -9,6 +9,7 @@ import com.sarthak.universityManagement.registration.instructor.dto.InstructorRe
 import com.sarthak.universityManagement.registration.student.StudentRegistrationService;
 import com.sarthak.universityManagement.registration.student.dto.StudentRegistrationRequest;
 import com.sarthak.universityManagement.registration.student.dto.StudentRegistrationResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,7 +26,7 @@ public class RegistrationController {
     
     @PostMapping("/student")
     public ResponseEntity<ApiResponse<StudentRegistrationResponse>> createStudentRegistration(
-        @RequestBody StudentRegistrationRequest studentRegistrationRequest
+        @Valid @RequestBody StudentRegistrationRequest studentRegistrationRequest
     ) {
         StudentRegistrationResponse res = studentRegistrationService.createRegistration(studentRegistrationRequest);
         return Res.success(SuccessCode.CREATED, res);
@@ -33,7 +34,7 @@ public class RegistrationController {
     
     @PostMapping("/instructor")
     public ResponseEntity<ApiResponse<InstructorRegistrationResponse>> createInstructorRegistration(
-        @RequestBody InstructorRegistrationRequest instructorRegistrationRequest
+        @Valid @RequestBody InstructorRegistrationRequest instructorRegistrationRequest
     ) {
         InstructorRegistrationResponse res = instructorRegistrationService.createRegistration(instructorRegistrationRequest);
         return Res.success(SuccessCode.CREATED, res);

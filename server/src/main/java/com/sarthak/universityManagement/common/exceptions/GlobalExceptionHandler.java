@@ -7,8 +7,12 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -42,5 +46,20 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiErrorResponse<Void>> handleGenericException(Exception ex) {
         LOG.error(ex.getMessage(), ex);
         return Res.errorMessage("Something went wrong");
+    }
+    
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiErrorResponse<Map<String, String>>> handleValidationException(MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult()
+            .getFieldErrors()
+            .forEach(error ->
+                errors.put(
+                    error.getField(),
+                    error.getDefaultMessage()
+                )
+            );
+        LOG.error(ex.getMessage(), ex);
+        return Res.error(ErrorCode.VALIDATION_FAILED, "Invalid request", errors);
     }
 }
