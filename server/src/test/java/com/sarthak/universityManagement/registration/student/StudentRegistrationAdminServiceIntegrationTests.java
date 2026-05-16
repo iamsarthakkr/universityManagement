@@ -78,6 +78,8 @@ public class StudentRegistrationAdminServiceIntegrationTests {
         
         assertFalse(userRepo.existsByUsername("student1"));
         assertFalse(userRepo.existsByEmail("student1@example.com"));
+        
+        assertEquals(0, userRepo.count());
         assertEquals(0, studentRepo.count());
     }
     
@@ -119,4 +121,15 @@ public class StudentRegistrationAdminServiceIntegrationTests {
         assertThrows(ConflictException.class, () -> service.rejectRegistration(saved.getId()));
     }
     
+    @Test
+    void shouldCopyRegistrationDetailsToStudentWhenApproved() {
+        var saved = setup.savedStudentRegistration("student6", "student6@example.com");
+        service.approveRegistration(saved.getId());
+        
+        var user = userRepo.findByUsername("student6").orElseThrow();
+        var student = studentRepo.findByUserId(user.getId()).orElseThrow();
+        
+        assertEquals(saved.getFirstName(), student.getFirstName());
+        assertEquals(saved.getLastName(), student.getLastName());
+    }
 }
