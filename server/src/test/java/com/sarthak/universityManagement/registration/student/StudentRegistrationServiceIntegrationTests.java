@@ -25,7 +25,7 @@ public class StudentRegistrationServiceIntegrationTests {
     private StudentRegistrationService service;
     @Autowired
     private StudentRegistrationRepo studentRegistrationRepo;
-   @Autowired
+    @Autowired
     private InstructorRegistrationRepo instructorRegistrationRepo;
     @Autowired
     private UserRepo userRepo;
