@@ -7,6 +7,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -46,6 +47,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiErrorResponse<Void>> handleGenericException(Exception ex) {
         LOG.error(ex.getMessage(), ex);
         return Res.errorMessage("Something went wrong");
+    }
+    
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ApiErrorResponse<Void>> handleAuthException(AuthenticationException ex) {
+        LOG.error(ex.getMessage(), ex);
+        return Res.error(ErrorCode.UNAUTHORIZED, "Login failed");
     }
     
     @ExceptionHandler(MethodArgumentNotValidException.class)

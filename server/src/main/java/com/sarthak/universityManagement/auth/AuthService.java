@@ -21,7 +21,7 @@ public class AuthService {
     
     @Transactional
     public LoginResponse login(LoginRequest loginRequest) {
-        Authentication authentication = authenticationManager .authenticate(
+        Authentication authentication = authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(loginRequest.username(), loginRequest.password())
         );
         
