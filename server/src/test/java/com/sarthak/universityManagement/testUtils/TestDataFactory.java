@@ -7,6 +7,7 @@ import com.sarthak.universityManagement.registration.instructor.InstructorRegist
 import com.sarthak.universityManagement.registration.instructor.dto.InstructorRegistrationRequest;
 import com.sarthak.universityManagement.registration.student.StudentRegistrationEntity;
 import com.sarthak.universityManagement.registration.student.dto.StudentRegistrationRequest;
+import com.sarthak.universityManagement.security.UserPrincipal;
 import com.sarthak.universityManagement.user.UserEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
@@ -17,6 +18,7 @@ import java.time.LocalDate;
 @Import(AppSecurityBeansConfig.class)
 public final class TestDataFactory {
     private final PasswordEncoder passwordEncoder;
+    private final String defaultEmail = "test@abc.com";
     private final String defaultPassword = "secret";
     
     @Autowired
@@ -34,6 +36,14 @@ public final class TestDataFactory {
         user.setActive(true);
         return user;
     }
+    
+    public UserPrincipal userPrincipal(String username,  String password) {
+        return userPrincipal(username, defaultEmail, Role.ADMIN, password);
+    }
+    public UserPrincipal userPrincipal(String username, String email, Role role, String password) {
+        return new UserPrincipal(1, username, getEncodedPassword(password), role, true);
+    }
+    
     public StudentRegistrationRequest studentRegistrationRequest(String username, String email) { return studentRegistrationRequest(username, email, defaultPassword); }
     public StudentRegistrationRequest studentRegistrationRequest(String username, String email, String password) {
         return new StudentRegistrationRequest(

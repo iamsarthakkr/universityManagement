@@ -28,17 +28,21 @@ public class JwtService {
     private final String ROLE = "ROLE";
     
     public String generateToken(UserPrincipal authenticatedUser) {
+        return generateToken(authenticatedUser, expirationMs);
+    }
+    
+    String generateToken(UserPrincipal authenticatedUser, long exp) {
         Instant now = Instant.now();
         
-        Map<String, String> claims = new HashMap<>();
-        claims.put(USER_ID, authenticatedUser.getUserId().toString());
-        claims.put(ROLE, authenticatedUser.getAuthorities().toString());
+        Map<String, Object> claims = new HashMap<>();
+        claims.put(USER_ID, authenticatedUser.getUserId());
+        claims.put(ROLE, authenticatedUser.getRole().name());
         
         return Jwts.builder()
             .claims(claims)
             .subject(authenticatedUser.getUsername())
             .issuedAt(Date.from(now))
-            .expiration(Date.from(now.plusMillis(expirationMs)))
+            .expiration(Date.from(now.plusMillis(exp)))
             .signWith(getSigningKey())
             .compact();
     }
@@ -52,7 +56,8 @@ public class JwtService {
     }
     
     public Role extractRole(String authToken) {
-        return extractClaims(authToken).get(ROLE, Role.class);
+        String roleString =  extractClaims(authToken).get(ROLE, String.class);
+        return Role.valueOf(roleString);
     }
     
     public boolean isValid(String authToken, UserDetails userDetails) {
