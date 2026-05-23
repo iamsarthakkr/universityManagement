@@ -11,6 +11,7 @@ import com.sarthak.universityManagement.user.UserRepo;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @ActiveProfiles("test")
+@Import(TestDataFactory.class)
 @Transactional
 public class InstructorRegistrationServiceIntegrationTests {
     
@@ -31,10 +33,12 @@ public class InstructorRegistrationServiceIntegrationTests {
     private StudentRegistrationRepo studentRegistrationRepo;
     @Autowired
     private UserRepo userRepo;
+    @Autowired
+    private TestDataFactory dataFactory;
     
     @Test
     void shouldCreateInstructorRegistrationSuccessfully() {
-        var req = TestDataFactory.instructorRegistrationRequest("instructor1", "instructor1@example.com");
+        var req = dataFactory.instructorRegistrationRequest("instructor1", "instructor1@example.com");
         InstructorRegistrationResponse resp = service.createRegistration(req);
         
         assertNotNull(resp);
@@ -48,7 +52,7 @@ public class InstructorRegistrationServiceIntegrationTests {
     
     @Test
     void shouldCreateInstructorRegistrationWithPendingStatus() {
-        var req = TestDataFactory.instructorRegistrationRequest("instructor2", "instructor2@example.com");
+        var req = dataFactory.instructorRegistrationRequest("instructor2", "instructor2@example.com");
         InstructorRegistrationResponse resp = service.createRegistration(req);
         
         var entity = instructorRegistrationRepo.findById(resp.id()).orElseThrow();
@@ -65,7 +69,7 @@ public class InstructorRegistrationServiceIntegrationTests {
         user.setActive(true);
         userRepo.saveAndFlush(user);
         
-        var req = TestDataFactory.instructorRegistrationRequest("dupeuser", "unique@example.com");
+        var req = dataFactory.instructorRegistrationRequest("dupeuser", "unique@example.com");
         assertThrows(ConflictException.class, () -> service.createRegistration(req));
     }
     
@@ -79,45 +83,45 @@ public class InstructorRegistrationServiceIntegrationTests {
         user.setActive(true);
         userRepo.saveAndFlush(user);
         
-        var req = TestDataFactory.instructorRegistrationRequest("anotheruser", "dupe@email.com");
+        var req = dataFactory.instructorRegistrationRequest("anotheruser", "dupe@email.com");
         assertThrows(ConflictException.class, () -> service.createRegistration(req));
     }
     
     @Test
     void shouldRejectDuplicateUsernameInInstructorRegistrationTable() {
-        var req1 = TestDataFactory.instructorRegistrationRequest("instructor3", "instructor3a@example.com");
+        var req1 = dataFactory.instructorRegistrationRequest("instructor3", "instructor3a@example.com");
         service.createRegistration(req1);
         
-        var req2 = TestDataFactory.instructorRegistrationRequest("instructor3", "instructor3b@example.com");
+        var req2 = dataFactory.instructorRegistrationRequest("instructor3", "instructor3b@example.com");
         assertThrows(ConflictException.class, () -> service.createRegistration(req2));
     }
     
     @Test
     void shouldRejectDuplicateEmailInInstructorRegistrationTable() {
-        var req1 = TestDataFactory.instructorRegistrationRequest("instructor4a", "instructor4@example.com");
+        var req1 = dataFactory.instructorRegistrationRequest("instructor4a", "instructor4@example.com");
         service.createRegistration(req1);
         
-        var req2 = TestDataFactory.instructorRegistrationRequest("instructor4b", "instructor4@example.com");
+        var req2 = dataFactory.instructorRegistrationRequest("instructor4b", "instructor4@example.com");
         assertThrows(ConflictException.class, () -> service.createRegistration(req2));
     }
     
     @Test
     void shouldRejectDuplicateUsernameInStudentRegistrationTable() {
-        studentRegistrationRepo.saveAndFlush(TestDataFactory.studentRegistrationEntity("student1", "unique@email.com"));
-        var req = TestDataFactory.instructorRegistrationRequest("student1", "instructor5@example.com");
+        studentRegistrationRepo.saveAndFlush(dataFactory.studentRegistrationEntity("student1", "unique@email.com"));
+        var req = dataFactory.instructorRegistrationRequest("student1", "instructor5@example.com");
         assertThrows(ConflictException.class, () -> service.createRegistration(req));
     }
     
     @Test
     void shouldRejectDuplicateEmailInStudentRegistrationTable() {
-        studentRegistrationRepo.saveAndFlush(TestDataFactory.studentRegistrationEntity("uniqueuser", "dupe@email.com"));
-        var req = TestDataFactory.instructorRegistrationRequest("instructor6", "dupe@email.com");
+        studentRegistrationRepo.saveAndFlush(dataFactory.studentRegistrationEntity("uniqueuser", "dupe@email.com"));
+        var req = dataFactory.instructorRegistrationRequest("instructor6", "dupe@email.com");
         assertThrows(ConflictException.class, () -> service.createRegistration(req));
     }
     
     @Test
     void shouldPersistInstructorRegistration() {
-        var req = TestDataFactory.instructorRegistrationRequest("instructor7", "instructor7@example.com");
+        var req = dataFactory.instructorRegistrationRequest("instructor7", "instructor7@example.com");
         InstructorRegistrationResponse resp = service.createRegistration(req);
         
         var entity = instructorRegistrationRepo.findById(resp.id());

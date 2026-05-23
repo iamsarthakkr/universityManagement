@@ -31,7 +31,6 @@ public class StudentRegistrationAdminServiceIntegrationTests {
     @Autowired
     private TestDataSetup setup;
     
-    
     @Test
     void shouldMarkRegistrationAsApproved() {
         var saved = setup.savedStudentRegistration("student1", "student1@example.com");
