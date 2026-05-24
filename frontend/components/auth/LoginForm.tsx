@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
 
@@ -6,8 +8,48 @@ import { Button } from '@/components/ui/base/button';
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/base/field';
 import { Input } from '@/components/ui/base/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/base/card';
+import { useAuth } from '@/context/AuthContext';
+
+type LoginFormData = {
+    username: string;
+    password: string;
+};
 
 export const LoginForm = ({ className, ...props }: React.ComponentProps<'div'>) => {
+    const auth = useAuth();
+    const [formData, setFormData] = React.useState<LoginFormData>({
+        username: '',
+        password: '',
+    });
+
+    const [isLoading, setIsLoading] = React.useState(false);
+    const handleChange = React.useCallback(
+        (event: React.ChangeEvent<HTMLInputElement>) => {
+            const { name, value } = event.target;
+
+            setFormData((prev) => ({
+                ...prev,
+
+                [name]: value,
+            }));
+        },
+
+        [],
+    );
+
+    const handleLogin = React.useCallback(
+        async (event: React.FormEvent<HTMLFormElement>) => {
+            event.preventDefault();
+            event.stopPropagation();
+
+            setIsLoading(true);
+            await auth.login(formData.username, formData.password);
+            setIsLoading(false);
+        },
+
+        [auth, formData],
+    );
+
     return (
         <div className={cn('flex flex-col gap-6', className)} {...props}>
             <Card>
@@ -16,18 +58,34 @@ export const LoginForm = ({ className, ...props }: React.ComponentProps<'div'>) 
                     <CardDescription>Login with your credentials</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <form>
+                    <form onSubmit={handleLogin}>
                         <FieldGroup>
                             <Field>
                                 <FieldLabel htmlFor="username">Username</FieldLabel>
-                                <Input id="username" type="username" required />
+                                <Input
+                                    id="username"
+                                    name="username"
+                                    type="username"
+                                    value={formData.username}
+                                    onChange={handleChange}
+                                    required
+                                />
                             </Field>
                             <Field>
                                 <FieldLabel htmlFor="password">Password</FieldLabel>
-                                <Input id="password" type="password" required />
+                                <Input
+                                    id="password"
+                                    name="password"
+                                    type="password"
+                                    value={formData.password}
+                                    onChange={handleChange}
+                                    required
+                                />
                             </Field>
                             <Field>
-                                <Button type="submit">Login</Button>
+                                <Button type="submit" disabled={isLoading}>
+                                    {isLoading ? 'Logging in' : 'LogIn'}
+                                </Button>
                             </Field>
                         </FieldGroup>
                     </form>
