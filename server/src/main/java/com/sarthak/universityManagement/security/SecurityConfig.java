@@ -20,6 +20,7 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -33,6 +34,7 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final AuthenticationEntryPoint authenticationEntryPoint;
     private final AccessDeniedHandler accessDeniedHandler;
+    private final RequestMatcher publicEndpoints;
     
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) {
@@ -40,8 +42,7 @@ public class SecurityConfig {
             .cors(Customizer.withDefaults())
             .authorizeHttpRequests(auth ->
                 auth
-                    .requestMatchers("/registration/**").permitAll()
-                    .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
+                    .requestMatchers(publicEndpoints).permitAll()
                     .requestMatchers(HttpMethod.GET, "/auth/me").authenticated()
                     .anyRequest().authenticated()
             )
