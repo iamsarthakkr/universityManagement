@@ -13,7 +13,7 @@ public class ApiResponse<T> {
     @JsonProperty("message")
     private String message;
     
-    @JsonProperty("data")
+    @JsonProperty("body")
     private T body;
     
     @JsonProperty("isSuccess")
