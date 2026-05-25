@@ -31,6 +31,8 @@ export function useAuthRedirect(options: UseAuthRedirectOptions = {}) {
     const router = useRouter();
     const { user, status } = useAuth();
 
+    const allowedRolesKey = allowedRoles?.join(',');
+
     useEffect(() => {
         if (status === 'loading') {
             return;
@@ -49,10 +51,10 @@ export function useAuthRedirect(options: UseAuthRedirectOptions = {}) {
             return;
         }
 
-        if (allowedRoles && user && !allowedRoles.includes(user.role)) {
+        if (user && allowedRolesKey && !allowedRolesKey.includes(user.role)) {
             router.replace(getDashboardPathByRole(user.role));
         }
-    }, [allowedRoles, redirectAuthenticatedTo, requireAuth, router, status, user]);
+    }, [allowedRolesKey, redirectAuthenticatedTo, requireAuth, router, status, user]);
 
     return {
         user,

@@ -1,5 +1,5 @@
-import { GalleryVerticalEnd } from 'lucide-react';
 import { FieldDescription } from '../ui/base/field';
+import { ICONS, UNIV_SHORT } from '@/config/common';
 
 export function AuthShell({ children }: { children: React.ReactNode }) {
     return (
@@ -7,10 +7,10 @@ export function AuthShell({ children }: { children: React.ReactNode }) {
             <div className="flex w-full min-w-xs max-w-sm flex-col gap-6">
                 <a href="#" className="flex flex-col items-center gap-2 font-medium">
                     <div className="flex size-8 items-center justify-center rounded-md">
-                        <GalleryVerticalEnd className="size-6" />
+                        <ICONS.mainIcon className="size-6" />
                     </div>
                     <span className="sr-only">Acme Inc.</span>
-                    <h1 className="text-center text-xl font-bold">Welcome to Nova University</h1>
+                    <h1 className="text-center text-xl font-bold">Welcome to {UNIV_SHORT}</h1>
                 </a>
                 {children}
                 <FieldDescription className="px-6 text-center">

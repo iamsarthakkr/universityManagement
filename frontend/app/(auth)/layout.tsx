@@ -1,11 +1,11 @@
 'use client';
 
+import { UNIV_NAME } from '@/config/common';
 import { useAuthRedirect } from '@/hooks/useAuthRedirect';
 import Link from 'next/link';
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
     const { isLoading, isAuthenticated } = useAuthRedirect({
-        requireAuth: true,
         redirectAuthenticatedTo: '/dashboard',
     });
     if (isLoading || isAuthenticated) {
@@ -15,7 +15,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         <main className="grid min-h-screen lg:grid-cols-[1.05fr_0.95fr]">
             <section className="hidden card-grid-bg bg-brand-soft p-10 lg:flex lg:flex-col lg:justify-between">
                 <Link href="/" className="text-lg font-black tracking-tight text-brand-dark">
-                    Nova Crest University
+                    {UNIV_NAME}
                 </Link>
                 <div className="max-w-xl">
                     <p className="mb-4 inline-flex rounded-full bg-white/80 px-4 py-2 text-sm font-semibold text-brand-dark shadow-sm">
