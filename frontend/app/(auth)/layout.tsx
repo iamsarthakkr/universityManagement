@@ -1,6 +1,16 @@
+'use client';
+
+import { useAuthRedirect } from '@/hooks/useAuthRedirect';
 import Link from 'next/link';
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
+    const { isLoading, isAuthenticated } = useAuthRedirect({
+        requireAuth: true,
+        redirectAuthenticatedTo: '/dashboard',
+    });
+    if (isLoading || isAuthenticated) {
+        return null;
+    }
     return (
         <main className="grid min-h-screen lg:grid-cols-[1.05fr_0.95fr]">
             <section className="hidden card-grid-bg bg-brand-soft p-10 lg:flex lg:flex-col lg:justify-between">

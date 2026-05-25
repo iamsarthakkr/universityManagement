@@ -1,3 +1,5 @@
+'use client';
+
 import { LoginForm } from './LoginForm';
 import { AuthShell } from '../layout/AuthShell';
 
