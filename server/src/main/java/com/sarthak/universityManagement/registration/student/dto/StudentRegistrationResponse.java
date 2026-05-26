@@ -12,11 +12,7 @@ public record StudentRegistrationResponse(
     String firstName,
     String lastName,
     String email,
-    String phoneNumber,
     LocalDate dateOfBirth,
-    String address,
-    String fatherName,
-    String motherName,
     RegistrationStatus status
 ) {
 }

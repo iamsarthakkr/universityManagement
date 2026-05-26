@@ -67,9 +67,6 @@ public class InstructorRegistrationEntity extends BaseEntity {
     @Column(name = "email", length = 100, nullable = false)
     private String email;
     
-    @Column(name = "phoneNumber", length = 10, nullable = false)
-    private String phoneNumber;
-    
     @Column(name = "department", length = 50, nullable = false)
     private String department;
 }

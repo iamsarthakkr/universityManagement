@@ -80,13 +80,6 @@ class InstructorRegistrationEntityTests {
     }
     
     @Test
-    void shouldRejectNullPhoneNumber() {
-        var entity = dataFactory.instructorRegistrationEntity("temp5", "temp5@example.com");
-        entity.setPhoneNumber(null);
-        assertThrows(DataIntegrityViolationException.class, () -> repo.saveAndFlush(entity));
-    }
-    
-    @Test
     void shouldRejectNullDepartment() {
         var entity = dataFactory.instructorRegistrationEntity("temp6", "temp6@example.com");
         entity.setDepartment(null);

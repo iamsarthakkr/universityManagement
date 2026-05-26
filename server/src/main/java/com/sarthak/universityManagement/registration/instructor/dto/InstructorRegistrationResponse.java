@@ -10,7 +10,6 @@ public record InstructorRegistrationResponse(
     String firstName,
     String lastName,
     String email,
-    String phoneNumber,
     String department,
     RegistrationStatus status
 ) {

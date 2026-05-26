@@ -16,8 +16,6 @@ public record InstructorRegistrationRequest(
     @NotBlank(message = "email required")
     @Email(message = "invalid email")
     String email,
-    @NotBlank(message = "phone number required")
-    String phoneNumber,
     @NotBlank(message = "department required")
     String department
 ) {

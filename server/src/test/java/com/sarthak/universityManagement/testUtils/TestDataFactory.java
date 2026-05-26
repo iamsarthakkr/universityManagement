@@ -52,11 +52,7 @@ public final class TestDataFactory {
             "John",
             "Doe",
             email,
-            "1234567890",
-            LocalDate.of(2000, 1, 1),
-            "123 Main St",
-            "Father",
-            "Mother"
+            LocalDate.of(2000, 1, 1)
         );
     }
     
@@ -69,11 +65,7 @@ public final class TestDataFactory {
             .firstName("John")
             .lastName("Doe")
             .email(email)
-            .phoneNumber("1234567890")
             .dateOfBirth(LocalDate.of(2000, 1, 1))
-            .address("123 Main St")
-            .fatherName("Father")
-            .motherName("Mother")
             .build();
     }
     
@@ -85,7 +77,6 @@ public final class TestDataFactory {
             "Jane",
             "Doe",
             email,
-            "1234567890",
             "Computer Science"
         );
     }
@@ -99,13 +90,16 @@ public final class TestDataFactory {
             .firstName("Jane")
             .lastName("Doe")
             .email(email)
-            .phoneNumber("1234567890")
             .department("Computer Science")
             .build();
     }
     
     public String getDefaultPassword() {
         return defaultPassword;
+    }
+    
+    public String getDefaultEmail() {
+        return defaultEmail;
     }
     
     private String getEncodedPassword(String password) {

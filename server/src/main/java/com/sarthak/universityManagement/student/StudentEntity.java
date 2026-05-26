@@ -46,19 +46,19 @@ public class StudentEntity {
     @Column(name = "lastName", length = 50)
     private String lastName;
     
-    @Column(name = "phoneNumber", length = 10, nullable = false)
-    private String phoneNumber;
-    
     @Column(name = "dateOfBirth", nullable = false)
     private LocalDate dateOfBirth;
     
-    @Column(name = "address", length = 100, nullable = false)
+    @Column(name = "phoneNumber", length = 10)
+    private String phoneNumber;
+    
+    @Column(name = "address", length = 100)
     private String address;
     
-    @Column(name = "fatherName", length = 50, nullable = false)
+    @Column(name = "fatherName", length = 50)
     private String fatherName;
     
-    @Column(name = "motherName", length = 50, nullable = false)
+    @Column(name = "motherName", length = 50)
     private String motherName;
     
 }

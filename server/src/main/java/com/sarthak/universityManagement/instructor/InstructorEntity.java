@@ -43,10 +43,10 @@ public class InstructorEntity {
 
     @Column(name = "lastName", length = 50)
     private String lastName;
-
-    @Column(name = "phoneNumber", length = 10, nullable = false)
-    private String phoneNumber;
-
+    
     @Column(name = "department", length = 50, nullable = false)
     private String department;
+
+    @Column(name = "phoneNumber", length = 10)
+    private String phoneNumber;
 }

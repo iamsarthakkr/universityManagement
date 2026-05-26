@@ -14,11 +14,7 @@ public class StudentRegistrationMapper {
             .firstName(request.firstName())
             .lastName(request.lastName())
             .email(request.email())
-            .phoneNumber(request.phoneNumber())
             .dateOfBirth(request.dateOfBirth())
-            .address(request.address())
-            .fatherName(request.fatherName())
-            .motherName(request.motherName())
             .build();
     }
     
@@ -30,11 +26,7 @@ public class StudentRegistrationMapper {
             .firstName(entity.getFirstName())
             .lastName(entity.getLastName())
             .email(entity.getEmail())
-            .phoneNumber(entity.getPhoneNumber())
             .dateOfBirth(entity.getDateOfBirth())
-            .address(entity.getAddress())
-            .fatherName(entity.getFatherName())
-            .motherName(entity.getMotherName())
             .status(entity.getRegistrationStatus())
             .build();
     }
@@ -54,11 +46,7 @@ public class StudentRegistrationMapper {
             .builder()
             .firstName(entity.getFirstName())
             .lastName(entity.getLastName())
-            .phoneNumber(entity.getPhoneNumber())
             .dateOfBirth(entity.getDateOfBirth())
-            .address(entity.getAddress())
-            .fatherName(entity.getFatherName())
-            .motherName(entity.getMotherName())
             .build();
     }
     

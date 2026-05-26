@@ -14,7 +14,6 @@ public class InstructorRegistrationMapper {
             .firstName(request.firstName())
             .lastName(request.lastName())
             .email(request.email())
-            .phoneNumber(request.phoneNumber())
             .department(request.department())
             .build();
     }
@@ -27,7 +26,6 @@ public class InstructorRegistrationMapper {
             .firstName(entity.getFirstName())
             .lastName(entity.getLastName())
             .email(entity.getEmail())
-            .phoneNumber(entity.getPhoneNumber())
             .department(entity.getDepartment())
             .status(entity.getRegistrationStatus())
             .build();
@@ -49,7 +47,6 @@ public class InstructorRegistrationMapper {
             .builder()
             .firstName(entity.getFirstName())
             .lastName(entity.getLastName())
-            .phoneNumber(entity.getPhoneNumber())
             .department(entity.getDepartment())
             .build();
     }
