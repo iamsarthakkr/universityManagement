@@ -13,6 +13,7 @@ public record StudentRegistrationResponse(
     String lastName,
     String email,
     LocalDate dateOfBirth,
+    LocalDate submittedAt,
     RegistrationStatus status
 ) {
 }

@@ -6,6 +6,11 @@ import com.sarthak.universityManagement.student.dto.CreateStudentCommand;
 import com.sarthak.universityManagement.user.dto.CreateUserCommand;
 import com.sarthak.universityManagement.common.types.Role;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Date;
+import java.util.Locale;
+
 public class StudentRegistrationMapper {
     public static StudentRegistrationEntity toEntity(StudentRegistrationRequest request) {
         return StudentRegistrationEntity
@@ -28,6 +33,7 @@ public class StudentRegistrationMapper {
             .email(entity.getEmail())
             .dateOfBirth(entity.getDateOfBirth())
             .status(entity.getRegistrationStatus())
+            .submittedAt(entity.getCreatedAt().atZone(ZoneId.systemDefault()).toLocalDate())
             .build();
     }
     
