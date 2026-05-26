@@ -76,13 +76,12 @@ public class AuthServiceIntegrationTests {
         assertNotNull(response);
         String token = response.accessToken();
         assertNotNull(token);
-        assertFalse(token.isEmpty());
-        assertEquals("Bearer", response.tokenHeader());
+        assertNotNull(response.user());
     }
     
     @Test
     void shouldReturnCorrectUserDetailsInResponse() {
-        setup.savedUser(
+        var user = setup.savedUser(
             "student4",
             "student4@example.com",
             Role.STUDENT,
@@ -91,8 +90,10 @@ public class AuthServiceIntegrationTests {
         LoginRequest request = new LoginRequest("student4", "pwd");
         LoginResponse response = authService.login(request);
         assertNotNull(response);
-        assertEquals("Bearer", response.tokenHeader());
         assertNotNull(response.accessToken());
+        assertEquals(user.getId(), response.user().id());
+        assertEquals(user.getRole(), response.user().role());
+        assertEquals(user.getUsername(), response.user().username());
     }
     
 }

@@ -30,7 +30,8 @@ public class AuthService {
         UserPrincipal principal = Objects.requireNonNull((UserPrincipal) authentication.getPrincipal());
         String token = jwtService.generateToken(principal);
         
-        return new LoginResponse(token, "Bearer");
+        var user = new UserResponse(principal.getUserId(), principal.getUsername(), principal.getRole());
+        return new LoginResponse(token, user);
     }
     
     @Transactional(readOnly = true)

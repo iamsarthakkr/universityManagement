@@ -5,7 +5,7 @@ import Link from 'next/link';
 
 import { cn } from '@/lib/cn';
 import { Button } from '@/components/ui/base/button';
-import { Field, FieldGroup, FieldLabel } from '@/components/ui/base/field';
+import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/base/field';
 import { Input } from '@/components/ui/base/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/base/card';
 import { useAuth } from '@/context/AuthContext';
@@ -21,6 +21,7 @@ export const LoginForm = ({ className, ...props }: React.ComponentProps<'div'>) 
         username: '',
         password: '',
     });
+    const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
 
     const [isLoading, setIsLoading] = React.useState(false);
     const handleChange = React.useCallback(
@@ -43,7 +44,8 @@ export const LoginForm = ({ className, ...props }: React.ComponentProps<'div'>) 
             event.stopPropagation();
 
             setIsLoading(true);
-            await auth.login(formData.username, formData.password);
+            const errorMessage = await auth.login(formData.username, formData.password);
+            setErrorMessage(errorMessage);
             setIsLoading(false);
         },
 
@@ -82,6 +84,7 @@ export const LoginForm = ({ className, ...props }: React.ComponentProps<'div'>) 
                                     required
                                 />
                             </Field>
+                            {errorMessage && <p className="text-center text-sm  text-red-400">{errorMessage}</p>}
                             <Field>
                                 <Button type="submit" disabled={isLoading}>
                                     {isLoading ? 'Logging in' : 'LogIn'}

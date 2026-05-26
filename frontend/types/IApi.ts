@@ -7,7 +7,7 @@ export type LoginRequest = {
 };
 export type LoginResponse = {
     accessToken: string;
-    tokenHeader: string;
+    user: AuthUser;
 };
 
 export type StudentRegistrationRequest = {

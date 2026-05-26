@@ -12,7 +12,7 @@ type AuthContextValue = {
     token: string | null;
     status: AuthStatus;
     isAuthenticated: boolean;
-    login: (username: string, password: string) => Promise<void>;
+    login: (username: string, password: string) => Promise<string | null>;
     logout: () => void;
 };
 
@@ -64,37 +64,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             password,
         });
         if (!response.isSuccess || !response.body) {
-            console.log('login failed');
-            return;
+            return 'Login failed';
         }
 
-        const { accessToken } = response.body;
+        const { accessToken, user } = response.body;
+
         localStorage.setItem('accessToken', accessToken);
         setToken(accessToken);
 
-        const userRes = await api.auth.me();
-        if (userRes.isSuccess && userRes.body) {
-            const currentUser = userRes.body;
+        setUser(user);
+        setStatus('authenticated');
 
-            setUser(currentUser);
-            setStatus('authenticated');
-
-            if (currentUser.role === 'ADMIN') {
-                router.push('/dashboard/admin');
-            } else if (currentUser.role === 'STUDENT') {
-                router.push('/dashboard/student');
-            } else {
-                router.push('/dashboard/instructor');
-            }
-            return;
+        if (user.role === 'ADMIN') {
+            router.push('/dashboard/admin');
+        } else if (user.role === 'STUDENT') {
+            router.push('/dashboard/student');
+        } else if (user.role === 'INSTRUCTOR') {
+            router.push('/dashboard/instructor');
         }
-
-        localStorage.removeItem('accessToken');
-        setToken(null);
-        setUser(null);
-        setStatus('unauthenticated');
-
-        console.log('login failed');
+        return null;
     }
 
     function logout() {
