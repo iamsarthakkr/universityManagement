@@ -1,4 +1,4 @@
-import { StudentRegistration } from '@/components/auth/StudentRegistration';
+import { StudentRegistration } from '@/components/registration/StudentRegistration';
 
 export default function StudentRegistrationPage() {
     return <StudentRegistration />;
