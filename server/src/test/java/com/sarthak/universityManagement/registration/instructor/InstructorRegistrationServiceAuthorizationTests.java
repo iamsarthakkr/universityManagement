@@ -1,7 +1,8 @@
-package com.sarthak.universityManagement.registration.student;
+// java
+package com.sarthak.universityManagement.registration.instructor;
 
 import com.sarthak.universityManagement.common.types.RegistrationStatus;
-import com.sarthak.universityManagement.registration.student.dto.StudentRegistrationResponse;
+import com.sarthak.universityManagement.registration.instructor.dto.InstructorRegistrationResponse;
 import com.sarthak.universityManagement.testUtils.TestDataSetup;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,28 +22,28 @@ import static org.junit.jupiter.api.Assertions.*;
 @ActiveProfiles("test")
 @Import(TestDataSetup.class)
 @Transactional
-public class StudentRegistrationServiceAuthorizationTests {
+public class InstructorRegistrationServiceAuthorizationTests {
     @Autowired
-    private StudentRegistrationService studentRegistrationService;
+    private InstructorRegistrationService instructorRegistrationService;
     @Autowired
-    private StudentRegistrationRepo studentRegistrationRepo;
+    private InstructorRegistrationRepo instructorRegistrationRepo;
     @Autowired
     private TestDataSetup setup;
     
     @Test
     @WithMockUser(roles = "ADMIN")
     void getPendingRequests_whenAdmin_shouldAllow() {
-        List<StudentRegistrationResponse> response =
-            studentRegistrationService.getPendingRequests();
+        List<InstructorRegistrationResponse> response =
+            instructorRegistrationService.getPendingRequests();
         assertNotNull(response);
     }
     
     @Test
-    @WithMockUser(roles = "STUDENT")
-    void getPendingRequests_whenStudent_shouldDeny() {
+    @WithMockUser(roles = "INSTRUCTOR")
+    void getPendingRequests_whenInstructor_shouldDeny() {
         assertThrows(
             AuthorizationDeniedException.class,
-            () -> studentRegistrationService.getPendingRequests()
+            () -> instructorRegistrationService.getPendingRequests()
         );
     }
     
@@ -50,27 +51,27 @@ public class StudentRegistrationServiceAuthorizationTests {
     void getPendingRequests_whenAnonymous_shouldDeny() {
         assertThrows(
             AuthenticationCredentialsNotFoundException.class,
-            () -> studentRegistrationService.getPendingRequests()
+            () -> instructorRegistrationService.getPendingRequests()
         );
     }
     
     @Test
     @WithMockUser(roles = "ADMIN")
     void approveRegistration_whenAdmin_shouldAllow() {
-        StudentRegistrationEntity saved = setup.savedStudentRegistration("student1", "student@abc");
+        InstructorRegistrationEntity saved = setup.savedInstructorRegistration("instr1", "instr@abc");
         
-        StudentRegistrationResponse response =
-            studentRegistrationService.approveRegistration(saved.getId());
+        InstructorRegistrationResponse response =
+            instructorRegistrationService.approveRegistration(saved.getId());
         assertEquals(RegistrationStatus.APPROVED, response.status());
     }
     
     @Test
     @WithMockUser(roles = "ADMIN")
-    void RejectRegistration_whenAdmin_shouldAllow() {
-        StudentRegistrationEntity saved = setup.savedStudentRegistration("student1", "student@abc");
+    void rejectRegistration_whenAdmin_shouldAllow() {
+        InstructorRegistrationEntity saved = setup.savedInstructorRegistration("instr2", "instr2@abc");
         
-        StudentRegistrationResponse response =
-            studentRegistrationService.rejectRegistration(saved.getId());
+        InstructorRegistrationResponse response =
+            instructorRegistrationService.rejectRegistration(saved.getId());
         assertEquals(RegistrationStatus.REJECTED, response.status());
     }
 }

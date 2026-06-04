@@ -1,5 +1,6 @@
 package com.sarthak.universityManagement.registration.instructor;
 
+import com.sarthak.universityManagement.auth.AuthorizationExpressions;
 import com.sarthak.universityManagement.instructor.InstructorService;
 import com.sarthak.universityManagement.registration.instructor.dto.InstructorRegistrationRequest;
 import com.sarthak.universityManagement.registration.instructor.dto.InstructorRegistrationResponse;
@@ -10,6 +11,7 @@ import com.sarthak.universityManagement.common.exceptions.ResourceNotFoundExcept
 import com.sarthak.universityManagement.user.UserService;
 import com.sarthak.universityManagement.registration.validators.RegistrationValidator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,6 +42,7 @@ public class InstructorRegistrationService {
     }
     
     @Transactional(readOnly = true)
+    @PreAuthorize(AuthorizationExpressions.ADMIN)
     public List<InstructorRegistrationResponse> getPendingRequests() {
         return instructorRegistrationRepo
             .findByRegistrationStatus(RegistrationStatus.PENDING)
@@ -49,7 +52,8 @@ public class InstructorRegistrationService {
     }
     
     @Transactional
-    public void approveRegistration(int registrationId) {
+    @PreAuthorize(AuthorizationExpressions.ADMIN)
+    public InstructorRegistrationResponse approveRegistration(int registrationId) {
         InstructorRegistrationEntity registration = getPendingRegistrationOrThrow(registrationId);
         
         // create user
@@ -62,14 +66,19 @@ public class InstructorRegistrationService {
         registration.setRegistrationStatus(RegistrationStatus.APPROVED);
         registration.setReviewedAt(Instant.now());
         registration.setReviewedBy(null); // TODO: need to set once security is done
+        
+        return InstructorRegistrationMapper.toResponse(registration);
     }
     
     @Transactional
-    public void rejectRegistration(int registrationId) {
+    @PreAuthorize(AuthorizationExpressions.ADMIN)
+    public InstructorRegistrationResponse rejectRegistration(int registrationId) {
         InstructorRegistrationEntity registration = getPendingRegistrationOrThrow(registrationId);
         registration.setRegistrationStatus(RegistrationStatus.REJECTED);
         registration.setReviewedAt(Instant.now());
         registration.setReviewedBy(null); // TODO: need to set once security is done
+        
+        return InstructorRegistrationMapper.toResponse(registration);
     }
     
     private InstructorRegistrationEntity getPendingRegistrationOrThrow(int registrationId) {
