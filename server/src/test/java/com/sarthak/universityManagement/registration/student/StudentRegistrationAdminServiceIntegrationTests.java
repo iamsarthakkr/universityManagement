@@ -3,6 +3,7 @@ package com.sarthak.universityManagement.registration.student;
 import com.sarthak.universityManagement.common.exceptions.ConflictException;
 import com.sarthak.universityManagement.common.exceptions.ResourceNotFoundException;
 import com.sarthak.universityManagement.common.types.RegistrationStatus;
+import com.sarthak.universityManagement.common.types.Role;
 import com.sarthak.universityManagement.student.StudentRepo;
 import com.sarthak.universityManagement.testUtils.TestDataSetup;
 import com.sarthak.universityManagement.user.UserRepo;
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 @ActiveProfiles("test")
 @Import(TestDataSetup.class)
+@WithMockUser(roles = "ADMIN")
 @Transactional
 public class StudentRegistrationAdminServiceIntegrationTests {
     @Autowired
