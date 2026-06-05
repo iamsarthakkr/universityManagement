@@ -41,11 +41,12 @@ public class StudentRegistrationService {
         return StudentRegistrationMapper.toResponse(saved);
     }
     
+    
     @Transactional(readOnly = true)
     @PreAuthorize(AuthorizationExpressions.ADMIN)
-    public List<StudentRegistrationResponse> getPendingRequests() {
+    public List<StudentRegistrationResponse> getRequests(RegistrationStatus status) {
         return studentRegistrationRepo
-            .findByRegistrationStatus(RegistrationStatus.PENDING)
+            .findByRegistrationStatus(status)
             .stream()
             .map(StudentRegistrationMapper::toResponse)
             .toList();

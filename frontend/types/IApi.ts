@@ -3,6 +3,7 @@ import { RemoteCall, RemoteCallNoArgs } from './common';
 import {
     InstructorRegistrationRequest,
     InstructorRegistrationResponse,
+    RegistrationStatus,
     StudentRegistrationRequest,
     StudentRegistrationResponse,
 } from './registration';
@@ -34,6 +35,6 @@ export interface IRegistrationApi {
 }
 
 export interface IAdminApi {
-    getPendingStudentRegistrations: RemoteCallNoArgs<StudentRegistrationResponse[]>;
+    getStudentRegistrations: RemoteCall<RegistrationStatus, StudentRegistrationResponse[]>;
     approveStudentRegistration: RemoteCall<number, StudentRegistrationResponse>;
 }

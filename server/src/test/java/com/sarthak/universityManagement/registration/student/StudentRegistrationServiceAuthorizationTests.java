@@ -33,7 +33,7 @@ public class StudentRegistrationServiceAuthorizationTests {
     @WithMockUser(roles = "ADMIN")
     void getPendingRequests_whenAdmin_shouldAllow() {
         List<StudentRegistrationResponse> response =
-            studentRegistrationService.getPendingRequests();
+            studentRegistrationService.getRequests(RegistrationStatus.PENDING);
         assertNotNull(response);
     }
     
@@ -42,7 +42,7 @@ public class StudentRegistrationServiceAuthorizationTests {
     void getPendingRequests_whenStudent_shouldDeny() {
         assertThrows(
             AuthorizationDeniedException.class,
-            () -> studentRegistrationService.getPendingRequests()
+            () -> studentRegistrationService.getRequests(RegistrationStatus.PENDING)
         );
     }
     
@@ -50,7 +50,7 @@ public class StudentRegistrationServiceAuthorizationTests {
     void getPendingRequests_whenAnonymous_shouldDeny() {
         assertThrows(
             AuthenticationCredentialsNotFoundException.class,
-            () -> studentRegistrationService.getPendingRequests()
+            () -> studentRegistrationService.getRequests(RegistrationStatus.PENDING)
         );
     }
     

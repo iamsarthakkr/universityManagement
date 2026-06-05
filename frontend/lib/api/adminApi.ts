@@ -3,7 +3,7 @@ import { http } from '../http';
 
 export const createAdminApi = (): IAdminApi => {
     return {
-        getPendingStudentRegistrations: () => http.get('/admin/student-registrations/pending'),
+        getStudentRegistrations: (status) => http.get(`/admin/student-registrations/${status}`),
         approveStudentRegistration: (id) => http.post(`/admin/student-registrations/${id}/approve`),
     };
 };
