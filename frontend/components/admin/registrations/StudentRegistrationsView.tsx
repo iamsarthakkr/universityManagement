@@ -24,20 +24,42 @@ export const StudentRegistrationsView = ({
     const [isLoading, setIsLoading] = React.useState(true);
     const [error, setError] = React.useState<string | null>(null);
 
-    React.useEffect(() => {
-        const asyncFetch = async () => {
-            setIsLoading(true);
+    const fetchData = React.useCallback(async () => {
+        setIsLoading(true);
 
-            const res = await api.admin.getStudentRegistrations(status);
-            if (!res.isSuccess || !res.body) {
-                setError(res.message);
-                return;
+        const res = await api.admin.getStudentRegistrations(status);
+        if (!res.isSuccess || !res.body) {
+            setError(res.message);
+            return;
+        }
+        setItems(res.body);
+
+        setIsLoading(false);
+    }, []);
+
+    const onApprove = React.useCallback(
+        async (item: StudentRegistrationResponse) => {
+            const res = await api.admin.approveStudentRegistration(item.id);
+            if (res.isSuccess && res.body) {
+                await fetchData();
+            } else {
+                console.warn(res);
             }
-            setItems(res.body);
+        },
+        [api],
+    );
 
-            setIsLoading(false);
-        };
-        asyncFetch();
+    const onReject = React.useCallback(async (item: StudentRegistrationResponse) => {
+        const res = await api.admin.rejectStudentRegistration(item.id);
+        if (res.isSuccess && res.body) {
+            await fetchData();
+        } else {
+            console.warn(res);
+        }
+    }, []);
+
+    React.useEffect(() => {
+        fetchData();
     }, []);
 
     return (
@@ -51,10 +73,10 @@ export const StudentRegistrationsView = ({
                     <p className="px-1 py-0.5">{error}</p>
                 ) : items.length === 0 ? (
                     <div className="p-6">
-                        <p className="text-sm text-muted-foreground">No pending student registration requests</p>
+                        <p className="text-sm text-muted-foreground">{placeholder}</p>
                     </div>
                 ) : (
-                    <StudentRegistrationsTable items={items} />
+                    <StudentRegistrationsTable items={items} onApprove={onApprove} onReject={onReject} />
                 )}
             </div>
         </div>

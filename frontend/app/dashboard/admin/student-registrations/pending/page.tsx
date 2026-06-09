@@ -6,7 +6,7 @@ export default function PendingStudentRegistrationsPage() {
         <StudentRegistrationsView
             title="Pending Student Registrations"
             description="Review pending student registration requests."
-            placeholder="Pending registrations table placeholder."
+            placeholder="No Pending student registration requests found."
             status={RegistrationStatus.PENDING}
         />
     );

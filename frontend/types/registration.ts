@@ -14,7 +14,7 @@ export type StudentRegistrationRequest = {
 };
 
 export type StudentRegistrationResponse = {
-    id: string;
+    id: number;
     username: string;
     email: string;
     firstName: string;
@@ -34,7 +34,7 @@ export type InstructorRegistrationRequest = {
 };
 
 export type InstructorRegistrationResponse = {
-    id: string;
+    id: number;
     username: string;
     password: string;
     email: string;

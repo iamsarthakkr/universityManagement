@@ -37,4 +37,5 @@ export interface IRegistrationApi {
 export interface IAdminApi {
     getStudentRegistrations: RemoteCall<RegistrationStatus, StudentRegistrationResponse[]>;
     approveStudentRegistration: RemoteCall<number, StudentRegistrationResponse>;
+    rejectStudentRegistration: RemoteCall<number, StudentRegistrationResponse>;
 }

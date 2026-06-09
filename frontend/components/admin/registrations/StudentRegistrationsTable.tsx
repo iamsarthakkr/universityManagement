@@ -14,6 +14,7 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/base/table';
 import { cn } from '@/lib/cn';
 import { RegistrationStatus, StudentRegistrationResponse } from '@/types/registration';
+import { Callback1 } from '@/types/common';
 
 const statusStyles: Record<RegistrationStatus, string> = {
     PENDING: 'bg-yellow-50 text-yellow-700 ring-yellow-600/20',
@@ -23,9 +24,29 @@ const statusStyles: Record<RegistrationStatus, string> = {
 
 interface Props {
     items: StudentRegistrationResponse[];
+    onApprove?: Callback1<StudentRegistrationResponse>;
+    onReject?: Callback1<StudentRegistrationResponse>;
 }
 export const StudentRegistrationsTable = (props: Props) => {
-    const { items } = props;
+    const { items, onApprove, onReject } = props;
+
+    const handleApprove = React.useCallback(
+        (item: StudentRegistrationResponse) => {
+            if (onApprove) {
+                onApprove(item);
+            }
+        },
+        [onApprove],
+    );
+
+    const handleReject = React.useCallback(
+        (item: StudentRegistrationResponse) => {
+            if (onReject) {
+                onReject(item);
+            }
+        },
+        [onReject],
+    );
 
     return (
         <Table>
@@ -77,10 +98,12 @@ export const StudentRegistrationsTable = (props: Props) => {
                                     {item.status === 'PENDING' && (
                                         <>
                                             <DropdownMenuSeparator />
-
-                                            <DropdownMenuItem>Approve</DropdownMenuItem>
-
-                                            <DropdownMenuItem variant="destructive">Reject</DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => handleApprove(item)}>
+                                                Approve
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => handleReject(item)} variant="destructive">
+                                                Reject
+                                            </DropdownMenuItem>
                                         </>
                                     )}
                                 </DropdownMenuContent>
