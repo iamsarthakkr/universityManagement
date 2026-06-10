@@ -43,9 +43,9 @@ public class InstructorRegistrationService {
     
     @Transactional(readOnly = true)
     @PreAuthorize(AuthorizationExpressions.ADMIN)
-    public List<InstructorRegistrationResponse> getPendingRequests() {
+    public List<InstructorRegistrationResponse> getRequests(RegistrationStatus status) {
         return instructorRegistrationRepo
-            .findByRegistrationStatus(RegistrationStatus.PENDING)
+            .findByRegistrationStatus(status)
             .stream()
             .map(InstructorRegistrationMapper::toResponse)
             .toList();

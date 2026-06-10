@@ -6,6 +6,8 @@ import com.sarthak.universityManagement.registration.instructor.dto.InstructorRe
 import com.sarthak.universityManagement.user.dto.CreateUserCommand;
 import com.sarthak.universityManagement.common.types.Role;
 
+import java.time.ZoneId;
+
 public class InstructorRegistrationMapper {
     public static InstructorRegistrationEntity toEntity(InstructorRegistrationRequest request) {
         return InstructorRegistrationEntity
@@ -27,6 +29,7 @@ public class InstructorRegistrationMapper {
             .lastName(entity.getLastName())
             .email(entity.getEmail())
             .department(entity.getDepartment())
+            .submittedAt(entity.getCreatedAt().atZone(ZoneId.systemDefault()).toLocalDate())
             .status(entity.getRegistrationStatus())
             .build();
     }

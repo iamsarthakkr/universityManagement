@@ -38,4 +38,8 @@ export interface IAdminApi {
     getStudentRegistrations: RemoteCall<RegistrationStatus, StudentRegistrationResponse[]>;
     approveStudentRegistration: RemoteCall<number, StudentRegistrationResponse>;
     rejectStudentRegistration: RemoteCall<number, StudentRegistrationResponse>;
+
+    getInstructorRegistrations: RemoteCall<RegistrationStatus, InstructorRegistrationResponse[]>;
+    approveInstructorRegistration: RemoteCall<number, InstructorRegistrationResponse>;
+    rejectInstructorRegistration: RemoteCall<number, InstructorRegistrationResponse>;
 }

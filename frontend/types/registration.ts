@@ -42,4 +42,5 @@ export type InstructorRegistrationResponse = {
     lastName?: string;
     department: string;
     status: RegistrationStatus;
+    submittedAt: string;
 };

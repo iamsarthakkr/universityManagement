@@ -2,6 +2,7 @@ package com.sarthak.universityManagement.admin;
 
 import com.sarthak.universityManagement.common.rest.ApiResponse;
 import com.sarthak.universityManagement.common.rest.Res;
+import com.sarthak.universityManagement.common.types.RegistrationStatus;
 import com.sarthak.universityManagement.registration.instructor.InstructorRegistrationService;
 import com.sarthak.universityManagement.registration.instructor.dto.InstructorRegistrationResponse;
 import lombok.RequiredArgsConstructor;
@@ -20,9 +21,9 @@ import java.util.List;
 public class AdminInstructorRegistrationController {
     private final InstructorRegistrationService instructorRegistrationService;
     
-    @GetMapping("/pending")
-    public ResponseEntity<ApiResponse<List<InstructorRegistrationResponse>>> getPendingRegistrations() {
-        return Res.success(instructorRegistrationService.getPendingRequests());
+    @GetMapping("/{status}")
+    public ResponseEntity<ApiResponse<List<InstructorRegistrationResponse>>> getPendingRegistrations(@PathVariable RegistrationStatus status) {
+        return Res.success(instructorRegistrationService.getRequests(status));
     }
     
     @PostMapping("/{id}/approve")

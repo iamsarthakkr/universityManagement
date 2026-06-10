@@ -38,7 +38,7 @@ export const StudentRegistrationForm = ({ className, ...props }: React.Component
     }, []);
 
     const handleSubmit = React.useCallback(
-        async (event: React.FormEvent<HTMLFormElement>) => {
+        async (event: React.SubmitEvent<HTMLFormElement>) => {
             event.preventDefault();
 
             setIsSubmitting(true);
@@ -65,9 +65,7 @@ export const StudentRegistrationForm = ({ className, ...props }: React.Component
                 <CardHeader className="text-center">
                     <CardTitle className="text-xl">Student registration</CardTitle>
 
-                    <CardDescription>
-                        Creates a pending student registration request for admin approval.
-                    </CardDescription>
+                    <CardDescription>Submit student registration request for admin approval.</CardDescription>
                 </CardHeader>
 
                 <CardContent>
