@@ -1,5 +1,6 @@
 package com.sarthak.universityManagement.student;
 
+import com.sarthak.universityManagement.common.exceptions.ResourceNotFoundException;
 import com.sarthak.universityManagement.student.dto.CreateStudentCommand;
 import com.sarthak.universityManagement.user.UserEntity;
 import com.sarthak.universityManagement.common.types.Role;
@@ -27,6 +28,13 @@ public class StudentService {
         StudentEntity newStudent = StudentMapper.toEntity(createStudentCommand);
         newStudent.setUser(user);
         return studentRepo.save(newStudent);
+    }
+    
+    @Transactional
+    public StudentEntity getStudentByUserId(int userId) {
+        return studentRepo
+            .findByUserId(userId)
+            .orElseThrow(() -> new ResourceNotFoundException("No student exist for user id " + userId));
     }
 
 }

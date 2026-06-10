@@ -3,9 +3,13 @@ package com.sarthak.universityManagement.registration.instructor;
 import com.sarthak.universityManagement.common.exceptions.ConflictException;
 import com.sarthak.universityManagement.common.exceptions.ResourceNotFoundException;
 import com.sarthak.universityManagement.common.types.RegistrationStatus;
+import com.sarthak.universityManagement.common.types.Role;
 import com.sarthak.universityManagement.instructor.InstructorRepo;
 import com.sarthak.universityManagement.testUtils.TestDataSetup;
+import com.sarthak.universityManagement.testUtils.TestSecurityUtils;
 import com.sarthak.universityManagement.user.UserRepo;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -14,12 +18,13 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @ActiveProfiles("test")
 @Import(TestDataSetup.class)
-@WithMockUser(roles = "ADMIN")
 @Transactional
 public class InstructorRegistrationAdminServiceIntegrationTests {
     @Autowired
@@ -33,6 +38,20 @@ public class InstructorRegistrationAdminServiceIntegrationTests {
     @Autowired
     private TestDataSetup setup;
     
+    private final String adminUsername = "admin";
+    private final String adminEmail = "admin@gmail.com";
+    
+    @BeforeEach
+    void setup() {
+        var user = setup.savedUser(adminUsername, adminEmail, Role.ADMIN);
+        TestSecurityUtils.authenticateAs(user);
+    }
+    
+    @AfterEach
+    void cleanup() {
+        TestSecurityUtils.clearAuthentication();
+    }
+    
     @Test
     void shouldApprovePendingInstructorRegistration() {
         var saved = setup.savedInstructorRegistration("instructor1", "instructor1@example.com");
@@ -40,6 +59,17 @@ public class InstructorRegistrationAdminServiceIntegrationTests {
         
         var updated = instructorRegistrationRepo.findById(saved.getId()).orElseThrow();
         assertEquals(RegistrationStatus.APPROVED, updated.getRegistrationStatus());
+    }
+    
+    @Test
+    void shouldSetCorrectReviewerAndReviewedAtWhenApproved() {
+        var saved = setup.savedInstructorRegistration("instructor1", "instructor1@example.com");
+        service.approveRegistration(saved.getId());
+        
+        var updated = instructorRegistrationRepo.findById(saved.getId()).orElseThrow();
+        assertEquals(adminUsername, updated.getReviewedBy().getUsername());
+        assertEquals(adminEmail, updated.getReviewedBy().getEmail());
+        assertTrue(updated.getReviewedAt().isBefore(Instant.now()));
     }
     
     @Test
@@ -70,6 +100,18 @@ public class InstructorRegistrationAdminServiceIntegrationTests {
     }
     
     @Test
+    void shouldSetCorrectReviewerAndReviewedAtWhenRejected() {
+        var saved = setup.savedInstructorRegistration("instructor1", "instructor1@example.com");
+        service.rejectRegistration(saved.getId());
+        
+        var updated = instructorRegistrationRepo.findById(saved.getId()).orElseThrow();
+        assertEquals(adminUsername, updated.getReviewedBy().getUsername());
+        assertEquals(adminEmail, updated.getReviewedBy().getEmail());
+        assertTrue(updated.getReviewedAt().isBefore(Instant.now()));
+    }
+    
+    
+    @Test
     void shouldNotCreateUserWhenRegistrationRejected() {
         var registration = setup.savedInstructorRegistration("instructor1", "instructor1@example.com");
         service.rejectRegistration(registration.getId());
@@ -77,7 +119,7 @@ public class InstructorRegistrationAdminServiceIntegrationTests {
         assertFalse(userRepo.existsByUsername("instructor1"));
         assertFalse(userRepo.existsByEmail("instructor1@example.com"));
         
-        assertEquals(0, userRepo.count());
+        assertEquals(1, userRepo.count());
         assertEquals(0, instructorRepo.count());
     }
     

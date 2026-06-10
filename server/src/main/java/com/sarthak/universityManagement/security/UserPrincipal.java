@@ -1,6 +1,7 @@
 package com.sarthak.universityManagement.security;
 
 import com.sarthak.universityManagement.common.types.Role;
+import com.sarthak.universityManagement.user.UserEntity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
@@ -22,6 +23,10 @@ public class UserPrincipal implements UserDetails {
     private String password;
     private Role role;
     private boolean enabled;
+    
+    public UserPrincipal(UserEntity user) {
+        this(user.getId(), user.getUsername(), user.getPassword(), user.getRole(), user.isActive());
+    }
     
     @Override
     @NonNull

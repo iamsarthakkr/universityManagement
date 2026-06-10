@@ -1,6 +1,7 @@
 package com.sarthak.universityManagement.user;
 
 import com.sarthak.universityManagement.common.exceptions.ConflictException;
+import com.sarthak.universityManagement.common.exceptions.ResourceNotFoundException;
 import com.sarthak.universityManagement.user.dto.CreateUserCommand;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,5 +25,12 @@ public class UserService {
         UserEntity newUser = UserMapper.toEntity(createUserCommand);
         newUser.setActive(true);
         return userRepo.save(newUser);
+    }
+    
+    @Transactional(readOnly = true)
+    public UserEntity getUserById(int id) {
+        return userRepo
+            .findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("No user exists with id " + id));
     }
 }

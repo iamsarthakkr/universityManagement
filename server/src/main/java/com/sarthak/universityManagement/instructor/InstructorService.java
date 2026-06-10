@@ -1,5 +1,6 @@
 package com.sarthak.universityManagement.instructor;
 
+import com.sarthak.universityManagement.common.exceptions.ResourceNotFoundException;
 import com.sarthak.universityManagement.instructor.dto.CreateInstructorCommand;
 import com.sarthak.universityManagement.user.UserEntity;
 import com.sarthak.universityManagement.common.types.Role;
@@ -28,4 +29,10 @@ public class InstructorService {
         return instructorRepo.save(newInstructor);
     }
     
+    @Transactional
+    public InstructorEntity getInstructorByUserId(int userId) {
+        return instructorRepo
+            .findByUserId(userId)
+            .orElseThrow(() -> new ResourceNotFoundException("No instructor exist for user id " + userId));
+    }
 }

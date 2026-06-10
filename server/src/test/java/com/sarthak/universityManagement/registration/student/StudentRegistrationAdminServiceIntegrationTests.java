@@ -6,21 +6,24 @@ import com.sarthak.universityManagement.common.types.RegistrationStatus;
 import com.sarthak.universityManagement.common.types.Role;
 import com.sarthak.universityManagement.student.StudentRepo;
 import com.sarthak.universityManagement.testUtils.TestDataSetup;
+import com.sarthak.universityManagement.testUtils.TestSecurityUtils;
 import com.sarthak.universityManagement.user.UserRepo;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Instant;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @ActiveProfiles("test")
 @Import(TestDataSetup.class)
-@WithMockUser(roles = "ADMIN")
 @Transactional
 public class StudentRegistrationAdminServiceIntegrationTests {
     @Autowired
@@ -34,6 +37,20 @@ public class StudentRegistrationAdminServiceIntegrationTests {
     @Autowired
     private TestDataSetup setup;
     
+    private final String adminUsername = "admin";
+    private final String adminEmail = "admin@gmail.com";
+    
+    @BeforeEach
+    public void setup() {
+        var user = setup.savedUser(adminUsername, adminEmail, Role.ADMIN);
+        TestSecurityUtils.authenticateAs(user);
+    }
+    
+    @AfterEach
+    public void cleanup() {
+        TestSecurityUtils.clearAuthentication();
+    }
+    
     @Test
     void shouldMarkRegistrationAsApproved() {
         var saved = setup.savedStudentRegistration("student1", "student1@example.com");
@@ -41,6 +58,17 @@ public class StudentRegistrationAdminServiceIntegrationTests {
         
         var updated = studentRegistrationRepo.findById(saved.getId()).orElseThrow();
         assertEquals(RegistrationStatus.APPROVED, updated.getRegistrationStatus());
+    }
+    
+    @Test
+    void shouldSetCorrectReviewerAndReviewedAtWhenApproved() {
+        var saved = setup.savedStudentRegistration("student1", "student1@example.com");
+        service.approveRegistration(saved.getId());
+        
+        var updated = studentRegistrationRepo.findById(saved.getId()).orElseThrow();
+        assertEquals(adminUsername, updated.getReviewedBy().getUsername());
+        assertEquals(adminEmail, updated.getReviewedBy().getEmail());
+        assertTrue(updated.getReviewedAt().isBefore(Instant.now()));
     }
     
     @Test
@@ -73,7 +101,17 @@ public class StudentRegistrationAdminServiceIntegrationTests {
     }
     
     @Test
+    void shouldSetCorrectReviewerAndReviewedAtWhenRejected() {
+        var saved = setup.savedStudentRegistration("student1", "student1@example.com");
+        service.rejectRegistration(saved.getId());
+        
+        var updated = studentRegistrationRepo.findById(saved.getId()).orElseThrow();
+        assertEquals(adminUsername, updated.getReviewedBy().getUsername());
+        assertEquals(adminEmail, updated.getReviewedBy().getEmail());
+        assertTrue(updated.getReviewedAt().isBefore(Instant.now()));
+    }
     
+    @Test
     void shouldNotCreateUserOrStudentWhenRegistrationRejected() {
         var registration = setup.savedStudentRegistration("student1", "student1@example.com");
         service.rejectRegistration(registration.getId());
@@ -81,9 +119,10 @@ public class StudentRegistrationAdminServiceIntegrationTests {
         assertFalse(userRepo.existsByUsername("student1"));
         assertFalse(userRepo.existsByEmail("student1@example.com"));
         
-        assertEquals(0, userRepo.count());
+        assertEquals(1, userRepo.count());
         assertEquals(0, studentRepo.count());
     }
+    
     
     @Test
     void shouldThrowWhenRegistrationNotFound() {

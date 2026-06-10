@@ -4,6 +4,7 @@ import com.sarthak.universityManagement.auth.AuthorizationExpressions;
 import com.sarthak.universityManagement.registration.student.dto.StudentRegistrationRequest;
 import com.sarthak.universityManagement.registration.student.dto.StudentRegistrationResponse;
 import com.sarthak.universityManagement.student.StudentService;
+import com.sarthak.universityManagement.user.CurrentUserService;
 import com.sarthak.universityManagement.user.UserEntity;
 import com.sarthak.universityManagement.common.types.RegistrationStatus;
 import com.sarthak.universityManagement.common.exceptions.ConflictException;
@@ -27,6 +28,7 @@ public class StudentRegistrationService {
     private final UserService userService;
     private final StudentService studentService;
     private final PasswordEncoder passwordEncoder;
+    private final CurrentUserService currentUserService;
     
     @Transactional
     public StudentRegistrationResponse createRegistration(StudentRegistrationRequest studentRegistrationRequest) {
@@ -64,10 +66,7 @@ public class StudentRegistrationService {
         studentService.createStudentForUser(StudentRegistrationMapper.toCreateStudentCommand(registration), user);
         
         // approve registration
-        registration.setRegistrationStatus(RegistrationStatus.APPROVED);
-        registration.setReviewedAt(Instant.now());
-        registration.setReviewedBy(null); // TODO: need to set once security is done
-        
+        updateRegistration(registration, RegistrationStatus.APPROVED);
         return StudentRegistrationMapper.toResponse(registration);
     }
     
@@ -75,12 +74,16 @@ public class StudentRegistrationService {
     @PreAuthorize(AuthorizationExpressions.ADMIN)
     public StudentRegistrationResponse rejectRegistration(int registrationId) {
         StudentRegistrationEntity registration = getPendingRegistrationOrThrow(registrationId);
-        registration.setRegistrationStatus(RegistrationStatus.REJECTED);
-        registration.setReviewedAt(Instant.now());
-        registration.setReviewedBy(null); // TODO: need to set once security is done
-        
+        updateRegistration(registration, RegistrationStatus.REJECTED);
         return StudentRegistrationMapper.toResponse(registration);
     }
+    
+    private void updateRegistration(StudentRegistrationEntity registration, RegistrationStatus status) {
+        registration.setRegistrationStatus(status);
+        registration.setReviewedAt(Instant.now());
+        registration.setReviewedBy(currentUserService.getCurrentUser());
+    }
+    
     
     private StudentRegistrationEntity getPendingRegistrationOrThrow(int registrationId) {
         StudentRegistrationEntity registration = studentRegistrationRepo
