@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useApi } from '@/context/ApiContext';
 import { AuthUser } from '@/types/auth';
+import { toast } from 'sonner';
 
 type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated';
 
@@ -82,6 +83,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } else if (user.role === 'INSTRUCTOR') {
             router.push('/dashboard/instructor');
         }
+        toast.success('Login successful');
         return null;
     }
 
@@ -91,6 +93,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(null);
         setStatus('unauthenticated');
         router.push('/login');
+        toast.success('Logged out');
     }
 
     const value = useMemo<AuthContextValue>(

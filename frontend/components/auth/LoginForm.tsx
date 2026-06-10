@@ -5,7 +5,7 @@ import Link from 'next/link';
 
 import { cn } from '@/lib/cn';
 import { Button } from '@/components/ui/base/button';
-import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/base/field';
+import { Field, FieldGroup, FieldLabel } from '@/components/ui/base/field';
 import { Input } from '@/components/ui/base/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/base/card';
 import { useAuth } from '@/context/AuthContext';
@@ -39,7 +39,7 @@ export const LoginForm = ({ className, ...props }: React.ComponentProps<'div'>) 
     );
 
     const handleLogin = React.useCallback(
-        async (event: React.FormEvent<HTMLFormElement>) => {
+        async (event: React.SubmitEvent<HTMLFormElement>) => {
             event.preventDefault();
             event.stopPropagation();
 

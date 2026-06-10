@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/base/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/base/card';
 import { useApi } from '@/context/ApiContext';
 import type { StudentRegistrationRequest } from '@/types/registration';
+import { toast } from 'sonner';
 
 const initialFormData: StudentRegistrationRequest = {
     username: '',
@@ -26,7 +27,6 @@ export const StudentRegistrationForm = ({ className, ...props }: React.Component
     const [formData, setFormData] = React.useState<StudentRegistrationRequest>(initialFormData);
 
     const [isSubmitting, setIsSubmitting] = React.useState(false);
-    const [message, setMessage] = React.useState<string | null>(null);
 
     const handleChange = React.useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = event.target;
@@ -42,18 +42,17 @@ export const StudentRegistrationForm = ({ className, ...props }: React.Component
             event.preventDefault();
 
             setIsSubmitting(true);
-            setMessage(null);
 
             const res = await api.registration.createStudentRegistration(formData);
 
             setIsSubmitting(false);
 
             if (!res.isSuccess) {
-                setMessage(res.message || 'Unable to submit request.');
+                toast.error('Request failed', { description: res.message || 'Unalbe to submit request.' });
                 return;
             }
 
-            setMessage(res.message || 'Registration request submitted.');
+            toast.error(res.message);
             setFormData(initialFormData);
         },
         [api, formData],
@@ -149,13 +148,6 @@ export const StudentRegistrationForm = ({ className, ...props }: React.Component
                                     onChange={handleChange}
                                 />
                             </Field>
-
-                            {message && (
-                                <p className="rounded-xl bg-surface-muted px-4 py-3 text-sm text-text-muted">
-                                    {message}
-                                </p>
-                            )}
-
                             <Field>
                                 <Button type="submit" className="mt-2 w-full" disabled={isSubmitting}>
                                     {isSubmitting ? 'Submitting...' : 'Submit request'}

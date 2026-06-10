@@ -5,6 +5,7 @@ import { InstructorRegistrationResponse, RegistrationStatus } from '@/types/regi
 import React from 'react';
 import { useApi } from '@/context/ApiContext';
 import { InstructorRegistrationsTable } from './InstructorRegistrationsTable';
+import { toast } from 'sonner';
 
 type RegistrationViewProps = {
     title: string;
@@ -42,8 +43,9 @@ export const InstructorRegistrationsView = ({
             const res = await api.admin.approveInstructorRegistration(item.id);
             if (res.isSuccess && res.body) {
                 await fetchData();
+                toast.success('Request approved successfully!');
             } else {
-                console.warn(res);
+                toast.error('Failed to approve request');
             }
         },
         [api],
@@ -53,8 +55,10 @@ export const InstructorRegistrationsView = ({
         const res = await api.admin.rejectInstructorRegistration(item.id);
         if (res.isSuccess && res.body) {
             await fetchData();
+            toast.success('Request rejected request successfully!');
         } else {
             console.warn(res);
+            toast.error('Failed to reject request');
         }
     }, []);
 
