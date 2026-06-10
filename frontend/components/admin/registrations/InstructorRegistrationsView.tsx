@@ -39,8 +39,8 @@ export const InstructorRegistrationsView = ({
     }, []);
 
     const onApprove = React.useCallback(
-        async (item: InstructorRegistrationResponse) => {
-            const res = await api.admin.approveInstructorRegistration(item.id);
+        async (id: number) => {
+            const res = await api.admin.approveInstructorRegistration(id);
             if (res.isSuccess && res.body) {
                 await fetchData();
                 toast.success('Request approved successfully!');
@@ -51,8 +51,8 @@ export const InstructorRegistrationsView = ({
         [api],
     );
 
-    const onReject = React.useCallback(async (item: InstructorRegistrationResponse) => {
-        const res = await api.admin.rejectInstructorRegistration(item.id);
+    const onReject = React.useCallback(async (id: number) => {
+        const res = await api.admin.rejectInstructorRegistration(id);
         if (res.isSuccess && res.body) {
             await fetchData();
             toast.success('Request rejected request successfully!');

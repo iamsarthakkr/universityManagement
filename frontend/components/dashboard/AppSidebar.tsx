@@ -25,7 +25,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <NavMain items={navItems} />
             </SidebarContent>
             <SidebarFooter>
-                <NavUser user={auth.user!} onLogout={auth.logout} />
+                <NavUser user={auth.user} onLogout={auth.logout} />
             </SidebarFooter>
             <SidebarRail />
         </Sidebar>

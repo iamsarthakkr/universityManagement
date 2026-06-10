@@ -1,52 +1,19 @@
 'use client';
 
 import React from 'react';
-import { MoreHorizontalIcon } from 'lucide-react';
-
-import { Button } from '@/components/ui/base/button';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from '@/components/ui/base/dropdownMenu';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/base/table';
-import { cn } from '@/lib/cn';
 import { RegistrationStatus, InstructorRegistrationResponse } from '@/types/registration';
 import { Callback1 } from '@/types/common';
-
-const statusStyles: Record<RegistrationStatus, string> = {
-    PENDING: 'bg-yellow-50 text-yellow-700 ring-yellow-600/20',
-    APPROVED: 'bg-green-50 text-green-700 ring-green-600/20',
-    REJECTED: 'bg-red-50 text-red-700 ring-red-600/20',
-};
+import { AdminActions, Status } from './common';
 
 interface Props {
     items: InstructorRegistrationResponse[];
-    onApprove?: Callback1<InstructorRegistrationResponse>;
-    onReject?: Callback1<InstructorRegistrationResponse>;
+    onApprove: Callback1<number>;
+    onReject: Callback1<number>;
 }
+
 export const InstructorRegistrationsTable = (props: Props) => {
     const { items, onApprove, onReject } = props;
-
-    const handleApprove = React.useCallback(
-        (item: InstructorRegistrationResponse) => {
-            if (onApprove) {
-                onApprove(item);
-            }
-        },
-        [onApprove],
-    );
-
-    const handleReject = React.useCallback(
-        (item: InstructorRegistrationResponse) => {
-            if (onReject) {
-                onReject(item);
-            }
-        },
-        [onReject],
-    );
 
     return (
         <Table>
@@ -72,42 +39,17 @@ export const InstructorRegistrationsTable = (props: Props) => {
                         <TableCell className="text-center">{item.email}</TableCell>
                         <TableCell className="text-center">{item.department}</TableCell>
                         <TableCell className="text-center">
-                            <span
-                                className={cn(
-                                    'inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset',
-                                    statusStyles[item.status],
-                                )}
-                            >
-                                {item.status}
-                            </span>
+                            <Status status={item.status} />
                         </TableCell>
                         <TableCell className="text-center">{item.submittedAt}</TableCell>
 
                         <TableCell className="text-center">
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="size-8">
-                                        <MoreHorizontalIcon className="size-4" />
-                                        <span className="sr-only">Open menu</span>
-                                    </Button>
-                                </DropdownMenuTrigger>
-
-                                <DropdownMenuContent align="end">
-                                    <DropdownMenuItem>View details</DropdownMenuItem>
-
-                                    {item.status === 'PENDING' && (
-                                        <>
-                                            <DropdownMenuSeparator />
-                                            <DropdownMenuItem onClick={() => handleApprove(item)}>
-                                                Approve
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem onClick={() => handleReject(item)} variant="destructive">
-                                                Reject
-                                            </DropdownMenuItem>
-                                        </>
-                                    )}
-                                </DropdownMenuContent>
-                            </DropdownMenu>
+                            <AdminActions
+                                id={item.id}
+                                showActions={item.status === RegistrationStatus.PENDING}
+                                onApprove={onApprove}
+                                onReject={onReject}
+                            />
                         </TableCell>
                     </TableRow>
                 ))}

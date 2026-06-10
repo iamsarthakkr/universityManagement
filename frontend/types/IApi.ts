@@ -1,4 +1,4 @@
-import { AuthUser } from './auth';
+import { AuthUser, LoginRequest, LoginResponse } from './auth';
 import { RemoteCall, RemoteCallNoArgs } from './common';
 import {
     InstructorRegistrationRequest,
@@ -7,15 +7,6 @@ import {
     StudentRegistrationRequest,
     StudentRegistrationResponse,
 } from './registration';
-
-export type LoginRequest = {
-    username: string;
-    password: string;
-};
-export type LoginResponse = {
-    accessToken: string;
-    user: AuthUser;
-};
 
 export interface IApi {
     auth: IAuthApi;

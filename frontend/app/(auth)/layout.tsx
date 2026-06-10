@@ -1,6 +1,7 @@
 'use client';
 
-import { UNIV_NAME } from '@/config/common';
+import { FieldDescription } from '@/components/ui/base/field';
+import { ICONS, UNIV_NAME, UNIV_SHORT } from '@/config/common';
 import { useAuthRedirect } from '@/hooks/useAuthRedirect';
 import Link from 'next/link';
 
@@ -8,9 +9,11 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
     const { isLoading, isAuthenticated } = useAuthRedirect({
         redirectAuthenticatedTo: '/dashboard',
     });
+
     if (isLoading || isAuthenticated) {
-        return null;
+        return null; // TODO: replace with loading icon
     }
+
     return (
         <main className="grid min-h-screen lg:grid-cols-[1.05fr_0.95fr]">
             <section className="hidden card-grid-bg bg-brand-soft p-10 lg:flex lg:flex-col lg:justify-between">
@@ -33,7 +36,24 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
                     JWT auth integration can be added once backend endpoints are finalized.
                 </p>
             </section>
-            <section className="flex items-center justify-center bg-brand-soft px-5 py-10">{children}</section>
+            <section className="flex items-center justify-center bg-brand-soft px-5 py-10">
+                <div className="flex flex-col items-center justify-center gap-6">
+                    <div className="flex w-full min-w-xs max-w-sm flex-col gap-6">
+                        <a href="#" className="flex flex-col items-center gap-2 font-medium">
+                            <div className="flex size-8 items-center justify-center rounded-md">
+                                <ICONS.mainIcon className="size-6" />
+                            </div>
+                            <span className="sr-only">Acme Inc.</span>
+                            <h1 className="text-center text-xl font-bold">Welcome to {UNIV_SHORT}</h1>
+                        </a>
+                        {children}
+                        <FieldDescription className="px-6 text-center">
+                            By clicking continue, you agree to our <a href="#">Terms of Service</a> and
+                            <a href="#">Privacy Policy</a>.
+                        </FieldDescription>
+                    </div>
+                </div>
+            </section>
         </main>
     );
 }

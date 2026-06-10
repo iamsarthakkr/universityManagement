@@ -12,6 +12,7 @@ export type StudentRegistrationRequest = {
     lastName?: string;
     dateOfBirth: string;
 };
+export type StudentRegistrationData = StudentRegistrationRequest; // alias
 
 export type StudentRegistrationResponse = {
     id: number;
@@ -23,6 +24,7 @@ export type StudentRegistrationResponse = {
     status: RegistrationStatus;
     submittedAt: string;
 };
+export type StudentRegistrationItem = StudentRegistrationResponse; // alias
 
 export type InstructorRegistrationRequest = {
     username: string;
@@ -32,6 +34,7 @@ export type InstructorRegistrationRequest = {
     lastName?: string;
     department: string;
 };
+export type InstructorRegistrationData = InstructorRegistrationRequest; // alias
 
 export type InstructorRegistrationResponse = {
     id: number;
@@ -44,3 +47,4 @@ export type InstructorRegistrationResponse = {
     status: RegistrationStatus;
     submittedAt: string;
 };
+export type InstructorRegistrationItem = InstructorRegistrationResponse; // alias

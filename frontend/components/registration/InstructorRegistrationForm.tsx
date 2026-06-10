@@ -9,9 +9,11 @@ import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/components/ui
 import { Input } from '@/components/ui/base/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/base/card';
 import { useApi } from '@/context/ApiContext';
-import type { InstructorRegistrationRequest } from '@/types/registration';
+import type { InstructorRegistrationData } from '@/types/registration';
+import { toast } from 'sonner';
+import RegistrationLayout from './RegistrationLayout';
 
-const initialFormData: InstructorRegistrationRequest = {
+const initialFormData: InstructorRegistrationData = {
     username: '',
     password: '',
     email: '',
@@ -23,10 +25,9 @@ const initialFormData: InstructorRegistrationRequest = {
 export const InstructorRegistrationForm = ({ className, ...props }: React.ComponentProps<'div'>) => {
     const api = useApi();
 
-    const [formData, setFormData] = React.useState<InstructorRegistrationRequest>(initialFormData);
+    const [formData, setFormData] = React.useState<InstructorRegistrationData>(initialFormData);
 
     const [isSubmitting, setIsSubmitting] = React.useState(false);
-    const [message, setMessage] = React.useState<string | null>(null);
 
     const handleChange = React.useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = event.target;
@@ -39,144 +40,112 @@ export const InstructorRegistrationForm = ({ className, ...props }: React.Compon
 
     const handleSubmit = React.useCallback(
         async (event: React.SubmitEvent<HTMLFormElement>) => {
-            event.preventDefault();
-
             setIsSubmitting(true);
-            setMessage(null);
 
+            event.preventDefault();
             const res = await api.registration.createInstructorRegistration(formData);
 
-            setIsSubmitting(false);
-
             if (!res.isSuccess) {
-                setMessage(res.message || 'Unable to submit request.');
+                toast.error('Request failed', { description: res.message || 'Unable to submit request.' });
                 return;
             }
 
-            setMessage(res.message || 'Registration request submitted.');
+            toast.error(res.message);
             setFormData(initialFormData);
+
+            setIsSubmitting(false);
         },
         [api, formData],
     );
 
     return (
-        <div className={cn('flex flex-col gap-6', className)} {...props}>
-            <Card>
-                <CardHeader className="text-center">
-                    <CardTitle className="text-xl">Instructor registration</CardTitle>
+        <RegistrationLayout
+            title="Instructor registration"
+            description="Submit instructor registration request for approval."
+        >
+            <form onSubmit={handleSubmit}>
+                <FieldGroup>
+                    <Field>
+                        <FieldLabel htmlFor="username">Username</FieldLabel>
+                        <Input
+                            id="username"
+                            name="username"
+                            type="text"
+                            required
+                            value={formData.username}
+                            onChange={handleChange}
+                        />
+                    </Field>
 
-                    <CardDescription>Submit instructor registration request for admin approval.</CardDescription>
-                </CardHeader>
+                    <Field>
+                        <FieldLabel htmlFor="password">Password</FieldLabel>
+                        <Input
+                            id="password"
+                            name="password"
+                            type="password"
+                            required
+                            value={formData.password}
+                            onChange={handleChange}
+                        />
+                    </Field>
 
-                <CardContent>
-                    <form onSubmit={handleSubmit}>
-                        <FieldGroup>
-                            <Field>
-                                <FieldLabel htmlFor="username">Username</FieldLabel>
+                    <Field>
+                        <FieldLabel htmlFor="email">Email</FieldLabel>
+                        <Input
+                            id="email"
+                            name="email"
+                            type="email"
+                            required
+                            value={formData.email}
+                            onChange={handleChange}
+                        />
+                    </Field>
 
-                                <Input
-                                    id="username"
-                                    name="username"
-                                    type="text"
-                                    required
-                                    value={formData.username}
-                                    onChange={handleChange}
-                                />
-                            </Field>
+                    <div className="grid gap-4 md:grid-cols-2">
+                        <Field>
+                            <FieldLabel htmlFor="firstName">Firstname</FieldLabel>
+                            <Input
+                                id="firstName"
+                                name="firstName"
+                                type="text"
+                                required
+                                value={formData.firstName}
+                                onChange={handleChange}
+                            />
+                        </Field>
 
-                            <Field>
-                                <FieldLabel htmlFor="password">Password</FieldLabel>
+                        <Field>
+                            <FieldLabel htmlFor="lastName">Lastname</FieldLabel>
+                            <Input
+                                id="lastName"
+                                name="lastName"
+                                type="text"
+                                value={formData.lastName}
+                                onChange={handleChange}
+                            />
+                        </Field>
+                    </div>
 
-                                <Input
-                                    id="password"
-                                    name="password"
-                                    type="password"
-                                    required
-                                    value={formData.password}
-                                    onChange={handleChange}
-                                />
-                            </Field>
+                    <Field>
+                        <FieldLabel htmlFor="dateOfBirth">Department</FieldLabel>
+                        <Input
+                            id="department"
+                            name="department"
+                            type="text"
+                            required
+                            value={formData.department}
+                            placeholder="Computer Science"
+                            onChange={handleChange}
+                        />
+                    </Field>
 
-                            <Field>
-                                <FieldLabel htmlFor="email">Email</FieldLabel>
-
-                                <Input
-                                    id="email"
-                                    name="email"
-                                    type="email"
-                                    required
-                                    value={formData.email}
-                                    onChange={handleChange}
-                                />
-                            </Field>
-
-                            <div className="grid gap-4 md:grid-cols-2">
-                                <Field>
-                                    <FieldLabel htmlFor="firstName">Firstname</FieldLabel>
-
-                                    <Input
-                                        id="firstName"
-                                        name="firstName"
-                                        type="text"
-                                        required
-                                        value={formData.firstName}
-                                        onChange={handleChange}
-                                    />
-                                </Field>
-
-                                <Field>
-                                    <FieldLabel htmlFor="lastName">Lastname</FieldLabel>
-
-                                    <Input
-                                        id="lastName"
-                                        name="lastName"
-                                        type="text"
-                                        value={formData.lastName}
-                                        onChange={handleChange}
-                                    />
-                                </Field>
-                            </div>
-
-                            <Field>
-                                <FieldLabel htmlFor="dateOfBirth">Department</FieldLabel>
-
-                                <Input
-                                    id="department"
-                                    name="department"
-                                    type="text"
-                                    required
-                                    value={formData.department}
-                                    placeholder="Computer Science"
-                                    onChange={handleChange}
-                                />
-                            </Field>
-
-                            {message && (
-                                <p className="rounded-xl bg-surface-muted px-4 py-3 text-sm text-text-muted">
-                                    {message}
-                                </p>
-                            )}
-
-                            <Field>
-                                <Button type="submit" className="mt-2 w-full" disabled={isSubmitting}>
-                                    {isSubmitting ? 'Submitting...' : 'Submit request'}
-                                </Button>
-                            </Field>
-                        </FieldGroup>
-                    </form>
-                </CardContent>
-
-                <CardFooter>
-                    <FieldDescription className="mx-auto px-6 text-center">
-                        <p className="text-center text-sm text-text-muted">
-                            Already registered?{' '}
-                            <Link className="font-semibold text-brand" href="/login">
-                                Login
-                            </Link>
-                        </p>
-                    </FieldDescription>
-                </CardFooter>
-            </Card>
-        </div>
+                    <Field>
+                        <Button type="submit" className="mt-2 w-full" disabled={isSubmitting}>
+                            {isSubmitting ? 'Submitting...' : 'Submit request'}
+                        </Button>
+                    </Field>
+                </FieldGroup>
+            </form>
+        </RegistrationLayout>
     );
 };

@@ -1,5 +1,5 @@
-import { InstructorRegistration } from '@/components/registration/InstructorRegistration';
+import { InstructorRegistrationForm } from '@/components/registration/InstructorRegistrationForm';
 
 export default function InstructorRegistrationPage() {
-    return <InstructorRegistration />;
+    return <InstructorRegistrationForm />;
 }

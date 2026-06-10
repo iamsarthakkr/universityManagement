@@ -1,5 +1,5 @@
-import { StudentRegistration } from '@/components/registration/StudentRegistration';
+import { StudentRegistrationForm } from '@/components/registration/StudentRegistrationForm';
 
 export default function StudentRegistrationPage() {
-    return <StudentRegistration />;
+    return <StudentRegistrationForm />;
 }

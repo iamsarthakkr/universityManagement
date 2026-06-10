@@ -9,15 +9,11 @@ import { Field, FieldGroup, FieldLabel } from '@/components/ui/base/field';
 import { Input } from '@/components/ui/base/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/base/card';
 import { useAuth } from '@/context/AuthContext';
-
-type LoginFormData = {
-    username: string;
-    password: string;
-};
+import { LoginData } from '@/types/auth';
 
 export const LoginForm = ({ className, ...props }: React.ComponentProps<'div'>) => {
     const auth = useAuth();
-    const [formData, setFormData] = React.useState<LoginFormData>({
+    const [formData, setFormData] = React.useState<LoginData>({
         username: '',
         password: '',
     });
@@ -44,8 +40,8 @@ export const LoginForm = ({ className, ...props }: React.ComponentProps<'div'>) 
             event.stopPropagation();
 
             setIsLoading(true);
-            const errorMessage = await auth.login(formData.username, formData.password);
-            setErrorMessage(errorMessage);
+            const res = await auth.login(formData.username, formData.password);
+            setErrorMessage(!res ? 'Login falied' : null);
             setIsLoading(false);
         },
 

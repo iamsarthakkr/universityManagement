@@ -13,7 +13,7 @@ type AuthContextValue = {
     token: string | null;
     status: AuthStatus;
     isAuthenticated: boolean;
-    login: (username: string, password: string) => Promise<string | null>;
+    login: (username: string, password: string) => Promise<boolean>;
     logout: () => void;
 };
 
@@ -28,7 +28,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [status, setStatus] = useState<AuthStatus>('loading');
 
     useEffect(() => {
-        async function initializeAuth() {
+        const initializeAuth = async () => {
             const storedToken = localStorage.getItem('accessToken');
 
             if (!storedToken) {
@@ -43,6 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 if (res.isSuccess && res.body) {
                     setUser(res.body);
                     setStatus('authenticated');
+                    toast.success('Welcome back ' + res.body.username);
                 } else {
                     setToken(null);
                     setUser(null);
@@ -54,7 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 setUser(null);
                 setStatus('unauthenticated');
             }
-        }
+        };
 
         initializeAuth();
     }, [api]);
@@ -65,7 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             password,
         });
         if (!response.isSuccess || !response.body) {
-            return 'Login failed';
+            return false;
         }
 
         const { accessToken, user } = response.body;
@@ -84,7 +85,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             router.push('/dashboard/instructor');
         }
         toast.success('Login successful');
-        return null;
+        return true;
     }
 
     function logout() {
