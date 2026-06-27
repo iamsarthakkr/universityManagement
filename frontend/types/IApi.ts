@@ -1,5 +1,6 @@
 import { AuthUser, LoginRequest, LoginResponse } from './auth';
 import { RemoteCall, RemoteCallNoArgs } from './common';
+import { CourseRequest, CourseResponse } from './course';
 import {
     InstructorRegistrationRequest,
     InstructorRegistrationResponse,
@@ -12,6 +13,7 @@ export interface IApi {
     auth: IAuthApi;
     registration: IRegistrationApi;
     admin: IAdminApi;
+    courses: ICoursesApi;
 }
 
 export interface IAuthApi {
@@ -23,6 +25,10 @@ export interface IRegistrationApi {
     createStudentRegistration: RemoteCall<StudentRegistrationRequest, StudentRegistrationResponse>;
 
     createInstructorRegistration: RemoteCall<InstructorRegistrationRequest, InstructorRegistrationResponse>;
+}
+
+export interface ICoursesApi {
+    createCourse: RemoteCall<CourseRequest, CourseResponse>;
 }
 
 export interface IAdminApi {

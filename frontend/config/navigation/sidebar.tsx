@@ -1,4 +1,4 @@
-import { BookOpenIcon, GraduationCapIcon, Settings2Icon, ShieldCheckIcon, UsersIcon } from 'lucide-react';
+import { BookOpenIcon, GraduationCapIcon, PlusCircleIcon, Settings2Icon, ShieldCheckIcon, UsersIcon } from 'lucide-react';
 
 import { SidebarNavItem } from '@/types/navigation';
 
@@ -87,6 +87,22 @@ export const NAV_MAIN: SidebarNavItem[] = [
             {
                 title: 'Students',
                 url: '/dashboard/instructor/students',
+            },
+        ],
+    },
+
+    {
+        title: 'Courses',
+        url: '/dashboard/courses',
+        icon: PlusCircleIcon,
+        open: true,
+
+        roles: ['ADMIN', 'INSTRUCTOR'],
+
+        items: [
+            {
+                title: 'Create Course',
+                url: '/dashboard/courses/new',
             },
         ],
     },
