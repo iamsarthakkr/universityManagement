@@ -9,7 +9,7 @@ export type CourseRequest = {
 };
 
 export type CourseResponse = {
-    id: number;
+    courseId: number;
     department: string;
     code: string;
     title: string;
@@ -17,4 +17,9 @@ export type CourseResponse = {
     credits: number;
     capacity: number;
     instructorId: number;
+};
+
+export type CourseCatalogueGroup = {
+    department: string;
+    courseList: CourseResponse[];
 };

@@ -1,6 +1,6 @@
 import { AuthUser, LoginRequest, LoginResponse } from './auth';
 import { RemoteCall, RemoteCallNoArgs } from './common';
-import { CourseRequest, CourseResponse } from './course';
+import { CourseCatalogueGroup, CourseRequest, CourseResponse } from './course';
 import {
     InstructorRegistrationRequest,
     InstructorRegistrationResponse,
@@ -29,6 +29,7 @@ export interface IRegistrationApi {
 
 export interface ICoursesApi {
     createCourse: RemoteCall<CourseRequest, CourseResponse>;
+    getCatalogue: RemoteCallNoArgs<CourseCatalogueGroup[]>;
 }
 
 export interface IAdminApi {

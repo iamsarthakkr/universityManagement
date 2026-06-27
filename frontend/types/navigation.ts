@@ -5,6 +5,7 @@ import { Role } from './auth';
 export type SidebarNavSubItem = {
     title: string;
     url: string;
+    roles?: Array<Role>;
 };
 
 export type SidebarNavItem = {

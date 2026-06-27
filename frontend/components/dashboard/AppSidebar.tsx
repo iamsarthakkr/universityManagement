@@ -15,7 +15,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         return null;
     }
 
-    const navItems = NAV_MAIN.filter((item) => auth.user && item.roles.includes(auth.user?.role));
+    const navItems = NAV_MAIN.filter((item) => auth.user && item.roles.includes(auth.user.role)).map((item) => ({
+        ...item,
+        items: item.items?.filter((sub) => !sub.roles || sub.roles.includes(auth.user!.role)),
+    }));
     return (
         <Sidebar collapsible="icon" {...props}>
             <SidebarHeader>
