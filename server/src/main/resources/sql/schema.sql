@@ -31,6 +31,16 @@ CREATE TABLE IF NOT EXISTS instructor (
     CONSTRAINT unique_instructor UNIQUE (email)
 );
 
+CREATE TABLE IF NOT EXISTS department (
+    id INT NOT NULL AUTO_INCREMENT,
+    name VARCHAR(100) NOT NULL,
+    code VARCHAR(10) NOT NULL,
+    createdAt DATETIME(6) NOT NULL,
+    updatedAt DATETIME(6) NOT NULL,
+    CONSTRAINT pk_department PRIMARY KEY (id),
+    CONSTRAINT unique_department_code UNIQUE (code)
+);
+
 CREATE TABLE IF NOT EXISTS course (
     id INT NOT NULL AUTO_INCREMENT,
     title VARCHAR(50) NOT NULL,

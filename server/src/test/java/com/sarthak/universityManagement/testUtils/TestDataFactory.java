@@ -3,6 +3,9 @@ package com.sarthak.universityManagement.testUtils;
 import com.sarthak.universityManagement.common.types.RegistrationStatus;
 import com.sarthak.universityManagement.common.types.Role;
 import com.sarthak.universityManagement.config.AppSecurityBeansConfig;
+import com.sarthak.universityManagement.course.CourseEntity;
+import com.sarthak.universityManagement.course.dto.CourseRequest;
+import com.sarthak.universityManagement.instructor.InstructorEntity;
 import com.sarthak.universityManagement.registration.instructor.InstructorRegistrationEntity;
 import com.sarthak.universityManagement.registration.instructor.dto.InstructorRegistrationRequest;
 import com.sarthak.universityManagement.registration.student.StudentRegistrationEntity;
@@ -94,6 +97,41 @@ public final class TestDataFactory {
             .build();
     }
     
+    public InstructorEntity instructorEntity(UserEntity user) {
+        return InstructorEntity.builder()
+            .user(user)
+            .firstName("Jane")
+            .lastName("Doe")
+            .department("Computer Science")
+            .phoneNumber("1234567890")
+            .build();
+    }
+
+    public CourseRequest courseRequest(Integer instructorId) {
+        return new CourseRequest(
+            "Computer Science",
+            "CS101",
+            "Intro to CS",
+            "An introductory course",
+            3,
+            30,
+            instructorId
+        );
+    }
+
+    public CourseEntity courseEntity(InstructorEntity instructor) {
+        return CourseEntity.builder()
+            .department("Computer Science")
+            .code("CS101")
+            .title("Intro to CS")
+            .description("An introductory course")
+            .credits(3)
+            .capacity(30)
+            .active(true)
+            .instructor(instructor)
+            .build();
+    }
+
     public String getDefaultPassword() {
         return defaultPassword;
     }

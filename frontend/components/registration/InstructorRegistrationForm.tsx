@@ -9,6 +9,7 @@ import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/components/ui
 import { Input } from '@/components/ui/base/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/base/card';
 import { useApi } from '@/context/ApiContext';
+import { useStaticData } from '@/context/StaticDataContext';
 import type { InstructorRegistrationData } from '@/types/registration';
 import { toast } from 'sonner';
 import RegistrationLayout from './RegistrationLayout';
@@ -24,6 +25,7 @@ const initialFormData: InstructorRegistrationData = {
 
 export const InstructorRegistrationForm = ({ className, ...props }: React.ComponentProps<'div'>) => {
     const api = useApi();
+    const { departments, isLoading: depsLoading } = useStaticData();
 
     const [formData, setFormData] = React.useState<InstructorRegistrationData>(initialFormData);
 
@@ -127,16 +129,30 @@ export const InstructorRegistrationForm = ({ className, ...props }: React.Compon
                     </div>
 
                     <Field>
-                        <FieldLabel htmlFor="dateOfBirth">Department</FieldLabel>
-                        <Input
+                        <FieldLabel htmlFor="department">Department</FieldLabel>
+                        <select
                             id="department"
                             name="department"
-                            type="text"
                             required
+                            disabled={depsLoading}
                             value={formData.department}
-                            placeholder="Computer Science"
-                            onChange={handleChange}
-                        />
+                            onChange={(e) => setFormData((prev) => ({ ...prev, department: e.target.value }))}
+                            className={cn(
+                                'h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none',
+                                'focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50',
+                                'disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50',
+                                'md:text-sm dark:bg-input/30',
+                            )}
+                        >
+                            <option value="" disabled>
+                                {depsLoading ? 'Loading...' : 'Select a department'}
+                            </option>
+                            {departments.map((d) => (
+                                <option key={d.id} value={d.name}>
+                                    {d.name}
+                                </option>
+                            ))}
+                        </select>
                     </Field>
 
                     <Field>

@@ -1,6 +1,7 @@
 import { AuthUser, LoginRequest, LoginResponse } from './auth';
 import { RemoteCall, RemoteCallNoArgs } from './common';
 import { CourseCatalogueGroup, CourseRequest, CourseResponse } from './course';
+import { Department } from './department';
 import {
     InstructorRegistrationRequest,
     InstructorRegistrationResponse,
@@ -14,6 +15,11 @@ export interface IApi {
     registration: IRegistrationApi;
     admin: IAdminApi;
     courses: ICoursesApi;
+    staticData: IStaticDataApi;
+}
+
+export interface IStaticDataApi {
+    getDepartments: RemoteCallNoArgs<Department[]>;
 }
 
 export interface IAuthApi {
