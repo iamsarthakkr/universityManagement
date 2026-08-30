@@ -1,6 +1,7 @@
 package com.sarthak.universityManagement.registration.instructor.dto;
 
 import com.sarthak.universityManagement.common.types.RegistrationStatus;
+import com.sarthak.universityManagement.department.dto.DepartmentResponse;
 import lombok.Builder;
 
 import java.time.LocalDate;
@@ -12,8 +13,8 @@ public record InstructorRegistrationResponse(
     String firstName,
     String lastName,
     String email,
-    String department,
     LocalDate submittedAt,
-    RegistrationStatus status
+    RegistrationStatus status,
+    DepartmentResponse department
 ) {
 }

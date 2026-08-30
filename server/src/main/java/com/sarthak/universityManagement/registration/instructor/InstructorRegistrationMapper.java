@@ -1,10 +1,12 @@
 package com.sarthak.universityManagement.registration.instructor;
 
+import com.sarthak.universityManagement.department.DepartmentMapper;
 import com.sarthak.universityManagement.instructor.dto.CreateInstructorCommand;
 import com.sarthak.universityManagement.registration.instructor.dto.InstructorRegistrationRequest;
 import com.sarthak.universityManagement.registration.instructor.dto.InstructorRegistrationResponse;
 import com.sarthak.universityManagement.user.dto.CreateUserCommand;
 import com.sarthak.universityManagement.common.types.Role;
+import jakarta.persistence.EntityManager;
 
 import java.time.ZoneId;
 
@@ -16,7 +18,6 @@ public class InstructorRegistrationMapper {
             .firstName(request.firstName())
             .lastName(request.lastName())
             .email(request.email())
-            .department(request.department())
             .build();
     }
     
@@ -28,7 +29,7 @@ public class InstructorRegistrationMapper {
             .firstName(entity.getFirstName())
             .lastName(entity.getLastName())
             .email(entity.getEmail())
-            .department(entity.getDepartment())
+            .department(DepartmentMapper.toResponse(entity.getDepartment()))
             .submittedAt(entity.getCreatedAt().atZone(ZoneId.systemDefault()).toLocalDate())
             .status(entity.getRegistrationStatus())
             .build();

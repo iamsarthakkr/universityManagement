@@ -1,6 +1,8 @@
 package com.sarthak.universityManagement.registration.instructor;
 
 import com.sarthak.universityManagement.auth.AuthorizationExpressions;
+import com.sarthak.universityManagement.department.DepartmentEntity;
+import com.sarthak.universityManagement.department.DepartmentService;
 import com.sarthak.universityManagement.instructor.InstructorService;
 import com.sarthak.universityManagement.registration.instructor.dto.InstructorRegistrationRequest;
 import com.sarthak.universityManagement.registration.instructor.dto.InstructorRegistrationResponse;
@@ -23,21 +25,25 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class InstructorRegistrationService {
+    private final PasswordEncoder passwordEncoder;
     private final InstructorRegistrationRepo instructorRegistrationRepo;
     private final RegistrationValidator registrationValidator;
     private final UserService userService;
     private final InstructorService instructorService;
-    private final PasswordEncoder passwordEncoder;
     private final CurrentUserService currentUserService;
+    private final DepartmentService departmentService;
     
     @Transactional
     public InstructorRegistrationResponse createRegistration(InstructorRegistrationRequest instructorRegistrationRequest) {
         registrationValidator.validateUserNameAvailable(instructorRegistrationRequest.username());
         registrationValidator.validateEmailAvailable(instructorRegistrationRequest.email());
-        
+        registrationValidator.validateDepartmentAvailable(instructorRegistrationRequest.departmentId());
+
+        DepartmentEntity department = departmentService.getDepartmentById(instructorRegistrationRequest.departmentId());
         InstructorRegistrationEntity toSave = InstructorRegistrationMapper.toEntity(instructorRegistrationRequest);
         toSave.setPassword(passwordEncoder.encode(instructorRegistrationRequest.password()));
         toSave.setRegistrationStatus(RegistrationStatus.PENDING);
+        toSave.setDepartment(department);
         
         InstructorRegistrationEntity saved = instructorRegistrationRepo.save(toSave);
         return InstructorRegistrationMapper.toResponse(saved);
