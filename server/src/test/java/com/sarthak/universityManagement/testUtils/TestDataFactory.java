@@ -46,66 +46,6 @@ public final class TestDataFactory {
     public UserPrincipal userPrincipal(String username, String email, Role role, String password) {
         return new UserPrincipal(1, username, getEncodedPassword(password), role, true);
     }
-    
-    public StudentRegistrationRequest studentRegistrationRequest(String username, String email) { return studentRegistrationRequest(username, email, defaultPassword); }
-    public StudentRegistrationRequest studentRegistrationRequest(String username, String email, String password) {
-        return new StudentRegistrationRequest(
-            username,
-            getEncodedPassword(password),
-            "John",
-            "Doe",
-            email,
-            LocalDate.of(2000, 1, 1)
-        );
-    }
-    
-    public StudentRegistrationEntity studentRegistrationEntity(String username, String email) { return studentRegistrationEntity(username, email, defaultPassword); }
-    public StudentRegistrationEntity studentRegistrationEntity(String username, String email, String password) {
-        return StudentRegistrationEntity.builder()
-            .registrationStatus(RegistrationStatus.PENDING)
-            .username(username)
-            .password(getEncodedPassword(password))
-            .firstName("John")
-            .lastName("Doe")
-            .email(email)
-            .dateOfBirth(LocalDate.of(2000, 1, 1))
-            .build();
-    }
-    
-    public InstructorRegistrationRequest instructorRegistrationRequest(String username, String email) { return instructorRegistrationRequest(username, email, defaultPassword); }
-    public InstructorRegistrationRequest instructorRegistrationRequest(String username, String email, String password) {
-        return new InstructorRegistrationRequest(
-            username,
-            getEncodedPassword(password),
-            "Jane",
-            "Doe",
-            email,
-            "Computer Science"
-        );
-    }
-    
-    public InstructorRegistrationEntity instructorRegistrationEntity(String username, String email) { return instructorRegistrationEntity(username, email, defaultPassword); }
-    public InstructorRegistrationEntity instructorRegistrationEntity(String username, String email, String password) {
-        return InstructorRegistrationEntity.builder()
-            .registrationStatus(RegistrationStatus.PENDING)
-            .username(username)
-            .password(getEncodedPassword(password))
-            .firstName("Jane")
-            .lastName("Doe")
-            .email(email)
-            .department("Computer Science")
-            .build();
-    }
-    
-    public InstructorEntity instructorEntity(UserEntity user) {
-        return InstructorEntity.builder()
-            .user(user)
-            .firstName("Jane")
-            .lastName("Doe")
-            .department("Computer Science")
-            .phoneNumber("1234567890")
-            .build();
-    }
 
     public CourseRequest courseRequest(Integer instructorId) {
         return new CourseRequest(

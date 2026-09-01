@@ -51,33 +51,6 @@ public class TestDataSetup {
         return userRepo.saveAndFlush(dataFactory.user(username, email, role, password));
     }
     
-    public StudentRegistrationEntity savedStudentRegistration(String username, String email) {
-        return studentRegistrationRepo.saveAndFlush(
-            dataFactory.studentRegistrationEntity(username, email)
-        );
-    }
-    public StudentRegistrationEntity savedStudentRegistration(String username, String email, String password) {
-        return studentRegistrationRepo.saveAndFlush(
-            dataFactory.studentRegistrationEntity(username, email, password)
-        );
-    }
-    
-    public InstructorRegistrationEntity savedInstructorRegistration(String username, String email) {
-        return instructorRegistrationRepo.saveAndFlush(
-            dataFactory.instructorRegistrationEntity(username, email)
-        );
-    }
-    public InstructorRegistrationEntity savedInstructorRegistration(String username, String email, String password) {
-        return instructorRegistrationRepo.saveAndFlush(
-            dataFactory.instructorRegistrationEntity(username, email, password)
-        );
-    }
-
-    public InstructorEntity savedInstructor(String username, String email) {
-        UserEntity user = savedUser(username, email, Role.INSTRUCTOR);
-        return instructorRepo.saveAndFlush(dataFactory.instructorEntity(user));
-    }
-
     public CourseEntity savedCourse(InstructorEntity instructor) {
         return courseRepo.saveAndFlush(dataFactory.courseEntity(instructor));
     }

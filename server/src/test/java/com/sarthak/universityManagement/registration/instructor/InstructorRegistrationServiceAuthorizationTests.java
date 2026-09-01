@@ -4,8 +4,10 @@ package com.sarthak.universityManagement.registration.instructor;
 import com.sarthak.universityManagement.common.types.RegistrationStatus;
 import com.sarthak.universityManagement.common.types.Role;
 import com.sarthak.universityManagement.registration.instructor.dto.InstructorRegistrationResponse;
-import com.sarthak.universityManagement.testUtils.TestDataSetup;
 import com.sarthak.universityManagement.testUtils.TestSecurityUtils;
+import com.sarthak.universityManagement.testUtils.seeders.InstructorRegistrationSeeder;
+import com.sarthak.universityManagement.testUtils.seeders.UserSeeder;
+import com.sarthak.universityManagement.testUtils.testConfigs.RegistrationTestConfig;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,34 +24,29 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @ActiveProfiles("test")
-@Import(TestDataSetup.class)
+@Import(RegistrationTestConfig.class)
 @Transactional
 public class InstructorRegistrationServiceAuthorizationTests {
     @Autowired
     private InstructorRegistrationService instructorRegistrationService;
     @Autowired
-    private InstructorRegistrationRepo instructorRegistrationRepo;
+    private InstructorRegistrationSeeder instructorRegistrationSeeder;
     @Autowired
-    private TestDataSetup setup;
-    
+    private UserSeeder userSeeder;
+
     @AfterEach
     void cleanup() {
         TestSecurityUtils.clearAuthentication();
     }
-    
-    private void setupAdmin() {
-        var user = setup.savedUser("admin", "admin@gmail.com", Role.ADMIN);
+
+    private void setupUser(Role role) {
+        var user = userSeeder.saveDefaultUser(role);
         TestSecurityUtils.authenticateAs(user);
     }
-    
-    private void setupInstructor() {
-        var user = setup.savedUser("instructor1", "instructor1@gmail.com", Role.INSTRUCTOR);
-        TestSecurityUtils.authenticateAs(user);
-    }
-    
+
     @Test
     void getPendingRequests_whenAdmin_shouldAllow() {
-        setupAdmin();
+        setupUser(Role.ADMIN);
         List<InstructorRegistrationResponse> response =
             instructorRegistrationService.getRequests(RegistrationStatus.PENDING);
         assertNotNull(response);
@@ -57,7 +54,7 @@ public class InstructorRegistrationServiceAuthorizationTests {
     
     @Test
     void getPendingRequests_whenInstructor_shouldDeny() {
-        setupInstructor();
+        setupUser(Role.INSTRUCTOR);
         assertThrows(
             AuthorizationDeniedException.class,
             () -> instructorRegistrationService.getRequests(RegistrationStatus.PENDING)
@@ -74,9 +71,9 @@ public class InstructorRegistrationServiceAuthorizationTests {
     
     @Test
     void approveRegistration_whenAdmin_shouldAllow() {
-        setupAdmin();
-        InstructorRegistrationEntity saved = setup.savedInstructorRegistration("instr1", "instr@abc");
-        
+        setupUser(Role.ADMIN);
+        InstructorRegistrationEntity saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("test-department");
+
         InstructorRegistrationResponse response =
             instructorRegistrationService.approveRegistration(saved.getId());
         assertEquals(RegistrationStatus.APPROVED, response.status());
@@ -84,9 +81,9 @@ public class InstructorRegistrationServiceAuthorizationTests {
     
     @Test
     void rejectRegistration_whenAdmin_shouldAllow() {
-        setupAdmin();
-        InstructorRegistrationEntity saved = setup.savedInstructorRegistration("instr2", "instr2@abc");
-        
+        setupUser(Role.ADMIN);
+        InstructorRegistrationEntity saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("test-department");
+
         InstructorRegistrationResponse response =
             instructorRegistrationService.rejectRegistration(saved.getId());
         assertEquals(RegistrationStatus.REJECTED, response.status());
@@ -94,8 +91,8 @@ public class InstructorRegistrationServiceAuthorizationTests {
     
     @Test
     void approveRegistration_whenInstructor_shouldDeny() {
-        setupInstructor();
-        InstructorRegistrationEntity saved = setup.savedInstructorRegistration("instr1", "instr@abc");
+        setupUser(Role.INSTRUCTOR);
+        InstructorRegistrationEntity saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("test-department");
         
         assertThrows(
             AuthorizationDeniedException.class,
@@ -105,8 +102,8 @@ public class InstructorRegistrationServiceAuthorizationTests {
     
     @Test
     void rejectRegistration_whenInstructor_shouldDeny() {
-        setupInstructor();
-        InstructorRegistrationEntity saved = setup.savedInstructorRegistration("instr2", "instr2@abc");
+        setupUser(Role.INSTRUCTOR);
+        InstructorRegistrationEntity saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("test-department");
         
         assertThrows(
             AuthorizationDeniedException.class,

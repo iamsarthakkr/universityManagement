@@ -8,6 +8,10 @@ import com.sarthak.universityManagement.course.dto.CourseResponse;
 import com.sarthak.universityManagement.instructor.InstructorEntity;
 import com.sarthak.universityManagement.testUtils.TestDataSetup;
 import com.sarthak.universityManagement.testUtils.TestSecurityUtils;
+import com.sarthak.universityManagement.testUtils.seeders.DepartmentSeeder;
+import com.sarthak.universityManagement.testUtils.seeders.InstructorSeeder;
+import com.sarthak.universityManagement.testUtils.seeders.UserSeeder;
+import com.sarthak.universityManagement.testUtils.testConfigs.RegistrationTestConfig;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,8 +26,8 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
-@Import(TestDataSetup.class)
 @ActiveProfiles("test")
+@Import(RegistrationTestConfig.class)
 @Transactional
 public class CourseServiceIntegrationTests {
 
@@ -33,10 +37,16 @@ public class CourseServiceIntegrationTests {
     private CourseRepo courseRepo;
     @Autowired
     private TestDataSetup setup;
+    @Autowired
+    private UserSeeder userSeeder;
+    @Autowired
+    private InstructorSeeder instructorSeeder;
+    @Autowired
+    private DepartmentSeeder departmentSeeder;
 
     @BeforeEach
     void setupAdmin() {
-        var user = setup.savedUser("admin", "admin@gmail.com", Role.ADMIN);
+        var user = userSeeder.saveDefaultUser(Role.ADMIN);
         TestSecurityUtils.authenticateAs(user);
     }
 
@@ -47,9 +57,10 @@ public class CourseServiceIntegrationTests {
 
     @Test
     void shouldCreateCourseSuccessfully() {
-        InstructorEntity instructor = setup.savedInstructor("instructor1", "instructor1@example.com");
-        CourseRequest req = new CourseRequest("Computer Science", "CS101", "Intro to CS", "An intro course", 3, 30, instructor.getId());
+        var department = departmentSeeder.saveDefault("test-department");
+        InstructorEntity instructor = instructorSeeder.saveDefaultInstructorWithDepartment(department);
 
+        CourseRequest req = new CourseRequest("Computer Science", "CS101", "Intro to CS", "An intro course", 3, 30, instructor.getId());
         CourseResponse resp = courseService.createCourse(req);
 
         assertNotNull(resp);
@@ -63,7 +74,8 @@ public class CourseServiceIntegrationTests {
 
     @Test
     void shouldPersistCourseAfterCreation() {
-        InstructorEntity instructor = setup.savedInstructor("instructor2", "instructor2@example.com");
+        var department = departmentSeeder.saveDefault("test-department");
+        InstructorEntity instructor = instructorSeeder.saveDefaultInstructorWithDepartment(department);
         CourseRequest req = new CourseRequest("Mathematics", "MATH101", "Calculus I", "Differential calculus", 4, 25, instructor.getId());
 
         CourseResponse resp = courseService.createCourse(req);
@@ -90,11 +102,13 @@ public class CourseServiceIntegrationTests {
 
     @Test
     void shouldReturnCatalogueGroupedByDepartment() {
-        InstructorEntity instructor = setup.savedInstructor("instructor3", "instructor3@example.com");
+        var department = departmentSeeder.saveDefault("test-department");
+        InstructorEntity instructor = instructorSeeder.saveDefaultInstructorWithDepartment(department);
+
         setup.savedCourse(instructor, "CS101");
         setup.savedCourse(instructor, "CS102");
 
-        InstructorEntity instructor2 = setup.savedInstructor("instructor4", "instructor4@example.com");
+        InstructorEntity instructor2 = instructorSeeder.saveDefaultInstructorWithDepartment(department);
         CourseEntity mathCourse = courseRepo.saveAndFlush(
             CourseEntity.builder()
                 .department("Mathematics")
@@ -128,7 +142,8 @@ public class CourseServiceIntegrationTests {
 
     @Test
     void shouldIncludeInstructorNameInCourseResponse() {
-        InstructorEntity instructor = setup.savedInstructor("instructor5", "instructor5@example.com");
+        var department = departmentSeeder.saveDefault("test-department");
+        InstructorEntity instructor = instructorSeeder.saveDefaultInstructorWithDepartment(department);
         CourseRequest req = new CourseRequest("Computer Science", "CS201", "Data Structures", "Trees and graphs", 3, 30, instructor.getId());
 
         CourseResponse resp = courseService.createCourse(req);

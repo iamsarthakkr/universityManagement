@@ -7,6 +7,10 @@ import com.sarthak.universityManagement.common.types.Role;
 import com.sarthak.universityManagement.instructor.InstructorRepo;
 import com.sarthak.universityManagement.testUtils.TestDataSetup;
 import com.sarthak.universityManagement.testUtils.TestSecurityUtils;
+import com.sarthak.universityManagement.testUtils.seeders.DepartmentSeeder;
+import com.sarthak.universityManagement.testUtils.seeders.InstructorRegistrationSeeder;
+import com.sarthak.universityManagement.testUtils.seeders.UserSeeder;
+import com.sarthak.universityManagement.testUtils.testConfigs.RegistrationTestConfig;
 import com.sarthak.universityManagement.user.UserRepo;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,7 +18,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @ActiveProfiles("test")
-@Import(TestDataSetup.class)
+@Import(RegistrationTestConfig.class)
 @Transactional
 public class InstructorRegistrationAdminServiceIntegrationTests {
     @Autowired
@@ -35,129 +38,130 @@ public class InstructorRegistrationAdminServiceIntegrationTests {
     private InstructorRepo instructorRepo;
     @Autowired
     private UserRepo userRepo;
+
     @Autowired
-    private TestDataSetup setup;
-    
+    private InstructorRegistrationSeeder instructorRegistrationSeeder;
+    @Autowired
+    private UserSeeder userSeeder;
+
     private final String adminUsername = "admin";
     private final String adminEmail = "admin@gmail.com";
-    
+
     @BeforeEach
-    void setup() {
-        var user = setup.savedUser(adminUsername, adminEmail, Role.ADMIN);
+    void beforeEach() {
+        var user = userSeeder.saveDefaultUser(Role.ADMIN);
         TestSecurityUtils.authenticateAs(user);
     }
-    
+
     @AfterEach
-    void cleanup() {
+    void afterEach() {
         TestSecurityUtils.clearAuthentication();
     }
-    
+
     @Test
     void shouldApprovePendingInstructorRegistration() {
-        var saved = setup.savedInstructorRegistration("instructor1", "instructor1@example.com");
+        var saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("test-department");
         service.approveRegistration(saved.getId());
-        
+
         var updated = instructorRegistrationRepo.findById(saved.getId()).orElseThrow();
         assertEquals(RegistrationStatus.APPROVED, updated.getRegistrationStatus());
     }
-    
+
     @Test
     void shouldSetCorrectReviewerAndReviewedAtWhenApproved() {
-        var saved = setup.savedInstructorRegistration("instructor1", "instructor1@example.com");
+        var saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("test-department");
         service.approveRegistration(saved.getId());
-        
+
         var updated = instructorRegistrationRepo.findById(saved.getId()).orElseThrow();
         assertEquals(adminUsername, updated.getReviewedBy().getUsername());
         assertEquals(adminEmail, updated.getReviewedBy().getEmail());
         assertTrue(updated.getReviewedAt().isBefore(Instant.now()));
     }
-    
+
     @Test
     void shouldCreateUserWhenRegistrationApproved() {
-        var saved = setup.savedInstructorRegistration("instructor1", "instructor1@example.com");
+        var saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("test-department");
         service.approveRegistration(saved.getId());
-        
-        assertTrue(userRepo.existsByUsername("instructor1"));
-        assertTrue(userRepo.existsByEmail("instructor1@example.com"));
+
+        assertTrue(userRepo.existsByUsername(saved.getUsername()));
+        assertTrue(userRepo.existsByEmail(saved.getEmail()));
     }
-    
+
     @Test
     void shouldCreateInstructorWhenRegistrationApproved() {
-        var saved = setup.savedInstructorRegistration("instructor1", "instructor1@example.com");
+        var saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("test-department");
         service.approveRegistration(saved.getId());
-        
-        var user = userRepo.findByUsername("instructor1").orElseThrow();
+
+        var user = userRepo.findByUsername(saved.getUsername()).orElseThrow();
         assertTrue(instructorRepo.existsByUserId(user.getId()));
     }
-    
+
     @Test
     void shouldMarkRegistrationAsRejected() {
-        var saved = setup.savedInstructorRegistration("instructor1", "instructor1@example.com");
+        var saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("test-department");
         service.rejectRegistration(saved.getId());
-        
+
         var updated = instructorRegistrationRepo.findById(saved.getId()).orElseThrow();
         assertEquals(RegistrationStatus.REJECTED, updated.getRegistrationStatus());
     }
-    
+
     @Test
     void shouldSetCorrectReviewerAndReviewedAtWhenRejected() {
-        var saved = setup.savedInstructorRegistration("instructor1", "instructor1@example.com");
+        var saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("test-department");
         service.rejectRegistration(saved.getId());
-        
+
         var updated = instructorRegistrationRepo.findById(saved.getId()).orElseThrow();
         assertEquals(adminUsername, updated.getReviewedBy().getUsername());
         assertEquals(adminEmail, updated.getReviewedBy().getEmail());
         assertTrue(updated.getReviewedAt().isBefore(Instant.now()));
     }
-    
-    
+
     @Test
     void shouldNotCreateUserWhenRegistrationRejected() {
-        var registration = setup.savedInstructorRegistration("instructor1", "instructor1@example.com");
-        service.rejectRegistration(registration.getId());
-        
-        assertFalse(userRepo.existsByUsername("instructor1"));
-        assertFalse(userRepo.existsByEmail("instructor1@example.com"));
-        
+        var saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("test-department");
+        service.rejectRegistration(saved.getId());
+
+        assertFalse(userRepo.existsByUsername(saved.getUsername()));
+        assertFalse(userRepo.existsByEmail(saved.getEmail()));
         assertEquals(1, userRepo.count());
         assertEquals(0, instructorRepo.count());
     }
-    
+
     @Test
     void shouldThrowWhenRegistrationNotFound() {
         assertThrows(ResourceNotFoundException.class, () -> service.approveRegistration(Integer.MAX_VALUE));
         assertThrows(ResourceNotFoundException.class, () -> service.rejectRegistration(Integer.MAX_VALUE));
     }
-    
+
     @Test
     void shouldRejectApprovingApprovedRegistration() {
-        var saved = setup.savedInstructorRegistration("instructor1", "instructor1@example.com");
+        var saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("test-department");
         service.approveRegistration(saved.getId());
-        
+
         assertThrows(ConflictException.class, () -> service.approveRegistration(saved.getId()));
     }
-    
+
     @Test
     void shouldRejectApprovingRejectedRegistration() {
-        var saved = setup.savedInstructorRegistration("instructor1", "instructor1@example.com");
+        var saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("test-department");
         service.rejectRegistration(saved.getId());
-        
+
         assertThrows(ConflictException.class, () -> service.approveRegistration(saved.getId()));
     }
-    
+
     @Test
     void shouldRejectRejectingApprovedRegistration() {
-        var saved = setup.savedInstructorRegistration("instructor1", "instructor1@example.com");
+        var saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("test-department");
         service.approveRegistration(saved.getId());
-        
+
         assertThrows(ConflictException.class, () -> service.rejectRegistration(saved.getId()));
     }
-    
+
     @Test
     void shouldRejectRejectingRejectedRegistration() {
-        var saved = setup.savedInstructorRegistration("instructor1", "instructor1@example.com");
+        var saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("test-department");
         service.rejectRegistration(saved.getId());
-        
+
         assertThrows(ConflictException.class, () -> service.rejectRegistration(saved.getId()));
     }
 }
