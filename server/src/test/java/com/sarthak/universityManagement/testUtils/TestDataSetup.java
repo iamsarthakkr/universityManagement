@@ -50,7 +50,7 @@ public class TestDataSetup {
     public UserEntity savedUser(String username, String email, Role role, String password) {
         return userRepo.saveAndFlush(dataFactory.user(username, email, role, password));
     }
-    
+
     public CourseEntity savedCourse(InstructorEntity instructor) {
         return courseRepo.saveAndFlush(dataFactory.courseEntity(instructor));
     }

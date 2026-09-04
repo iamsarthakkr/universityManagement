@@ -20,13 +20,14 @@ public final class StudentRegistrationFixtures {
                 .dateOfBirth(LocalDate.of(2000, 1, 1));
     }
 
-    public static StudentRegistrationRequest.StudentRegistrationRequestBuilder studentRegistrationRequest() {
+    public static StudentRegistrationRequest.StudentRegistrationRequestBuilder studentRegistrationRequest(Integer departmentId) {
         return StudentRegistrationRequest.builder()
                 .username("test-student")
                 .password("test-password")
                 .firstName("test-first")
                 .lastName("test-last")
                 .email("test@test.com")
+                .departmentId(departmentId)
                 .dateOfBirth(LocalDate.of(2000, 1, 1));
     }
 

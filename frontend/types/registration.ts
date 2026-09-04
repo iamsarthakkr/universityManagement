@@ -1,3 +1,5 @@
+import type { Department } from './department';
+
 export enum RegistrationStatus {
     PENDING = 'PENDING',
     APPROVED = 'APPROVED',
@@ -11,6 +13,7 @@ export type StudentRegistrationRequest = {
     firstName: string;
     lastName?: string;
     dateOfBirth: string;
+    departmentId: number;
 };
 export type StudentRegistrationData = StudentRegistrationRequest; // alias
 
@@ -23,6 +26,7 @@ export type StudentRegistrationResponse = {
     dateOfBirth: string;
     status: RegistrationStatus;
     submittedAt: string;
+    department: Department;
 };
 export type StudentRegistrationItem = StudentRegistrationResponse; // alias
 
@@ -32,7 +36,7 @@ export type InstructorRegistrationRequest = {
     email: string;
     firstName: string;
     lastName?: string;
-    department: string;
+    departmentId: number;
 };
 export type InstructorRegistrationData = InstructorRegistrationRequest; // alias
 
@@ -43,7 +47,7 @@ export type InstructorRegistrationResponse = {
     email: string;
     firstName: string;
     lastName?: string;
-    department: string;
+    department: Department;
     status: RegistrationStatus;
     submittedAt: string;
 };

@@ -14,6 +14,7 @@ public class StudentMapper {
             .address(createStudentCommand.address())
             .fatherName(createStudentCommand.fatherName())
             .motherName(createStudentCommand.motherName())
+            .department(createStudentCommand.department())
             .build();
     }
 }

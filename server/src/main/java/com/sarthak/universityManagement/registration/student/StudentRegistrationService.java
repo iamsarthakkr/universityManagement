@@ -1,6 +1,8 @@
 package com.sarthak.universityManagement.registration.student;
 
 import com.sarthak.universityManagement.auth.AuthorizationExpressions;
+import com.sarthak.universityManagement.department.DepartmentEntity;
+import com.sarthak.universityManagement.department.DepartmentService;
 import com.sarthak.universityManagement.registration.student.dto.StudentRegistrationRequest;
 import com.sarthak.universityManagement.registration.student.dto.StudentRegistrationResponse;
 import com.sarthak.universityManagement.student.StudentService;
@@ -29,15 +31,18 @@ public class StudentRegistrationService {
     private final StudentService studentService;
     private final PasswordEncoder passwordEncoder;
     private final CurrentUserService currentUserService;
+    private final DepartmentService departmentService;
     
     @Transactional
     public StudentRegistrationResponse createRegistration(StudentRegistrationRequest studentRegistrationRequest) {
         registrationValidator.validateUserNameAvailable(studentRegistrationRequest.username());
         registrationValidator.validateEmailAvailable(studentRegistrationRequest.email());
-        
+
+        DepartmentEntity department = departmentService.getDepartmentById(studentRegistrationRequest.departmentId());
         StudentRegistrationEntity toSave = StudentRegistrationMapper.toEntity(studentRegistrationRequest);
         toSave.setPassword(passwordEncoder.encode(studentRegistrationRequest.password()));
         toSave.setRegistrationStatus(RegistrationStatus.PENDING);
+        toSave.setDepartment(department);
         
         StudentRegistrationEntity saved = studentRegistrationRepo.save(toSave);
         return StudentRegistrationMapper.toResponse(saved);

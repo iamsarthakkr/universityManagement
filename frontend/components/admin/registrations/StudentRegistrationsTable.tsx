@@ -24,6 +24,7 @@ export const StudentRegistrationsTable = (props: Props) => {
                     <TableHead className="text-center">Username</TableHead>
                     <TableHead className="text-center">Email</TableHead>
                     <TableHead className="text-center">Date of Birth</TableHead>
+                    <TableHead className="text-center">Department</TableHead>
                     <TableHead className="text-center">Status</TableHead>
                     <TableHead className="text-center">Submitted</TableHead>
                     <TableHead className="text-center">Actions</TableHead>
@@ -39,6 +40,7 @@ export const StudentRegistrationsTable = (props: Props) => {
                         <TableCell className="text-center">{item.username}</TableCell>
                         <TableCell className="text-center">{item.email}</TableCell>
                         <TableCell className="text-center">{item.dateOfBirth}</TableCell>
+                        <TableCell className="text-center">{item.department.name}</TableCell>
                         <TableCell className="text-center">
                             <Status status={item.status} />
                         </TableCell>

@@ -3,8 +3,8 @@ package com.sarthak.universityManagement.registration.student;
 import com.sarthak.universityManagement.common.types.RegistrationStatus;
 import com.sarthak.universityManagement.common.types.Role;
 import com.sarthak.universityManagement.registration.student.dto.StudentRegistrationResponse;
-import com.sarthak.universityManagement.testUtils.TestDataSetup;
 import com.sarthak.universityManagement.testUtils.TestSecurityUtils;
+import com.sarthak.universityManagement.testUtils.fixtures.UserFixtures;
 import com.sarthak.universityManagement.testUtils.seeders.StudentRegistrationSeeder;
 import com.sarthak.universityManagement.testUtils.seeders.UserSeeder;
 import com.sarthak.universityManagement.testUtils.testConfigs.RegistrationTestConfig;
@@ -41,7 +41,9 @@ public class StudentRegistrationServiceAuthorizationTests {
     }
 
     private void setupUser(Role role) {
-        var user = userSeeder.saveDefaultUser(role);
+        var user = userSeeder.saveUser(
+                UserFixtures.user() .username("seeded-user") .email("seeded@abc.com") .role(role) .build()
+        );
         TestSecurityUtils.authenticateAs(user);
     }
     
@@ -74,7 +76,7 @@ public class StudentRegistrationServiceAuthorizationTests {
     @Test
     void approveRegistration_whenAdmin_shouldAllow() {
         setupUser(Role.ADMIN);
-        StudentRegistrationEntity saved = studentRegistrationSeeder.saveDefaultStudentRegistration();
+        StudentRegistrationEntity saved = studentRegistrationSeeder.saveDefaultStudentRegistration("test-department");
         
         StudentRegistrationResponse response =
             studentRegistrationService.approveRegistration(saved.getId());
@@ -84,7 +86,7 @@ public class StudentRegistrationServiceAuthorizationTests {
     @Test
     void RejectRegistration_whenAdmin_shouldAllow() {
         setupUser(Role.ADMIN);
-        StudentRegistrationEntity saved = studentRegistrationSeeder.saveDefaultStudentRegistration();
+        StudentRegistrationEntity saved = studentRegistrationSeeder.saveDefaultStudentRegistration("test-department");
 
         StudentRegistrationResponse response =
             studentRegistrationService.rejectRegistration(saved.getId());
@@ -94,7 +96,7 @@ public class StudentRegistrationServiceAuthorizationTests {
     @Test
     void approveRegistration_whenStudent_shouldDeny() {
         setupUser(Role.STUDENT);
-        StudentRegistrationEntity saved = studentRegistrationSeeder.saveDefaultStudentRegistration();
+        StudentRegistrationEntity saved = studentRegistrationSeeder.saveDefaultStudentRegistration("test-department");
 
         assertThrows(
             AuthorizationDeniedException.class,
@@ -105,8 +107,8 @@ public class StudentRegistrationServiceAuthorizationTests {
     @Test
     void rejectRegistration_whenStudent_shouldDeny() {
         setupUser(Role.STUDENT);
-        StudentRegistrationEntity saved = studentRegistrationSeeder.saveDefaultStudentRegistration();
-        
+        StudentRegistrationEntity saved = studentRegistrationSeeder.saveDefaultStudentRegistration("test-department");
+
         assertThrows(
             AuthorizationDeniedException.class,
             () -> studentRegistrationService.rejectRegistration(saved.getId())

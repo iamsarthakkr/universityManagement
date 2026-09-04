@@ -5,6 +5,8 @@ import com.sarthak.universityManagement.common.types.RegistrationStatus;
 import com.sarthak.universityManagement.common.types.Role;
 import com.sarthak.universityManagement.registration.instructor.dto.InstructorRegistrationRequest;
 import com.sarthak.universityManagement.registration.instructor.dto.InstructorRegistrationResponse;
+import com.sarthak.universityManagement.registration.student.StudentRegistrationEntity;
+import com.sarthak.universityManagement.registration.student.dto.StudentRegistrationRequest;
 import com.sarthak.universityManagement.testUtils.fixtures.InstructorRegistrationFixtures;
 import com.sarthak.universityManagement.testUtils.fixtures.StudentRegistrationFixtures;
 import com.sarthak.universityManagement.testUtils.fixtures.UserFixtures;
@@ -40,17 +42,24 @@ public class InstructorRegistrationServiceIntegrationTests {
     private UserSeeder userSeeder;
 
     private InstructorRegistrationRequest.InstructorRegistrationRequestBuilder instructorRegistrationRequestBuilder;
+    private StudentRegistrationEntity.StudentRegistrationEntityBuilder studentRegistrationEntityBuilder;
 
     @BeforeEach
     void beforeEach() {
         var savedDepartment = departmentSeeder.saveDefault("test-department");
         instructorRegistrationRequestBuilder = InstructorRegistrationFixtures
                 .instructorRegistrationRequest(savedDepartment.getId());
+        studentRegistrationEntityBuilder = StudentRegistrationFixtures
+                .studentRegistration()
+                .department(savedDepartment);
     }
 
     @Test
     void shouldCreateInstructorRegistrationSuccessfully() {
-        var req = instructorRegistrationRequestBuilder.username("instructor1").email("instructor1@example.com").build();
+        var req = instructorRegistrationRequestBuilder
+                .username("instructor1")
+                .email("instructor1@example.com")
+                .build();
         InstructorRegistrationResponse resp = service.createRegistration(req);
 
         assertNotNull(resp);
@@ -58,8 +67,8 @@ public class InstructorRegistrationServiceIntegrationTests {
         assertEquals("instructor1@example.com", resp.email());
 
         var entity = instructorRegistrationRepo.findById(resp.id()).orElseThrow();
-        assertEquals("instructor1", entity.getFirstName());
-        assertEquals("instructor1@example.com", entity.getLastName());
+        assertEquals("instructor1", entity.getUsername());
+        assertEquals("instructor1@example.com", entity.getEmail());
     }
 
     @Test
@@ -110,7 +119,7 @@ public class InstructorRegistrationServiceIntegrationTests {
     @Test
     void shouldRejectDuplicateUsernameInStudentRegistrationTable() {
         studentRegistrationSeeder.saveStudentRegistration(
-                StudentRegistrationFixtures.studentRegistration().username("student1").email("unique@email.com").build()
+                studentRegistrationEntityBuilder.username("student1").email("unique@email.com").build()
         );
         var req = instructorRegistrationRequestBuilder.username("student1").email("instructor5@example.com").build();
         assertThrows(ConflictException.class, () -> service.createRegistration(req));
@@ -119,7 +128,7 @@ public class InstructorRegistrationServiceIntegrationTests {
     @Test
     void shouldRejectDuplicateEmailInStudentRegistrationTable() {
         studentRegistrationSeeder.saveStudentRegistration(
-                StudentRegistrationFixtures.studentRegistration().username("uniqueuser").email("dupe@email.com").build()
+                studentRegistrationEntityBuilder.username("uniqueuser").email("dupe@email.com").build()
         );
         var req = instructorRegistrationRequestBuilder.username("instructor6").email("dupe@email.com").build();
         assertThrows(ConflictException.class, () -> service.createRegistration(req));

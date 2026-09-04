@@ -1,5 +1,6 @@
 package com.sarthak.universityManagement.testUtils.testConfigs;
 
+import com.sarthak.universityManagement.config.JpaConfig;
 import com.sarthak.universityManagement.testUtils.seeders.DepartmentSeeder;
 import com.sarthak.universityManagement.testUtils.seeders.InstructorRegistrationSeeder;
 import com.sarthak.universityManagement.testUtils.seeders.InstructorSeeder;
@@ -14,6 +15,8 @@ import org.springframework.context.annotation.Import;
         DepartmentSeeder.class,
         InstructorSeeder.class,
         StudentRegistrationSeeder.class,
-        InstructorRegistrationSeeder.class})
+        InstructorRegistrationSeeder.class,
+        JpaConfig.class
+})
 public class RegistrationTestConfig {
 }

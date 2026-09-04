@@ -5,6 +5,7 @@ import com.sarthak.universityManagement.common.types.RegistrationStatus;
 import com.sarthak.universityManagement.common.types.Role;
 import com.sarthak.universityManagement.registration.instructor.dto.InstructorRegistrationResponse;
 import com.sarthak.universityManagement.testUtils.TestSecurityUtils;
+import com.sarthak.universityManagement.testUtils.fixtures.UserFixtures;
 import com.sarthak.universityManagement.testUtils.seeders.InstructorRegistrationSeeder;
 import com.sarthak.universityManagement.testUtils.seeders.UserSeeder;
 import com.sarthak.universityManagement.testUtils.testConfigs.RegistrationTestConfig;
@@ -40,7 +41,9 @@ public class InstructorRegistrationServiceAuthorizationTests {
     }
 
     private void setupUser(Role role) {
-        var user = userSeeder.saveDefaultUser(role);
+        var user = userSeeder.saveUser(
+                UserFixtures.user() .username("seeded-user") .email("seeded@abc.com") .role(role) .build()
+        );
         TestSecurityUtils.authenticateAs(user);
     }
 

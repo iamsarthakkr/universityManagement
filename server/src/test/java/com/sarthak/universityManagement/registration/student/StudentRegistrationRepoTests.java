@@ -1,9 +1,9 @@
 package com.sarthak.universityManagement.registration.student;
 
-import com.sarthak.universityManagement.config.JpaConfig;
 import com.sarthak.universityManagement.testUtils.fixtures.StudentRegistrationFixtures;
-import com.sarthak.universityManagement.testUtils.seeders.StudentRegistrationSeeder;
+import com.sarthak.universityManagement.testUtils.seeders.DepartmentSeeder;
 import com.sarthak.universityManagement.testUtils.testConfigs.RegistrationTestConfig;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -27,9 +27,20 @@ class StudentRegistrationRepoTests {
     @Autowired
     private StudentRegistrationRepo repo;
 
+    @Autowired
+    private DepartmentSeeder departmentSeeder;
+
+    private StudentRegistrationEntity.StudentRegistrationEntityBuilder studentRegistrationEntityBuilder;
+
+    @BeforeEach
+    void setUp() {
+        var department = departmentSeeder.saveDefault("test-department");
+        studentRegistrationEntityBuilder = StudentRegistrationFixtures.studentRegistration().department(department);
+    }
+
     @Test
     void shouldSaveRegistrationSuccessfully() {
-        var entity = StudentRegistrationFixtures.studentRegistration().username("student1").email("student1@example.com").build();
+        var entity = studentRegistrationEntityBuilder.username("student1").email("student1@example.com").build();
         var saved = repo.saveAndFlush(entity);
 
         assertNotNull(saved.getId());
@@ -38,25 +49,25 @@ class StudentRegistrationRepoTests {
     
     @Test
     void shouldRejectDuplicateUsername() {
-        var first = StudentRegistrationFixtures.studentRegistration().username("student2").email("student2a@example.com").build();
+        var first = studentRegistrationEntityBuilder.username("student2").email("student2a@example.com").build();
         repo.saveAndFlush(first);
-        var duplicate = StudentRegistrationFixtures.studentRegistration().username("student2").email("student2b@example.com").build();
+        var duplicate = studentRegistrationEntityBuilder.username("student2").email("student2b@example.com").build();
 
         assertThrows(DataIntegrityViolationException.class, () -> repo.saveAndFlush(duplicate));
     }
     
     @Test
     void shouldRejectDuplicateEmail() {
-        var first = StudentRegistrationFixtures.studentRegistration().username("student3a").email("student3@example.com").build();
+        var first = studentRegistrationEntityBuilder.username("student3a").email("student3@example.com").build();
         repo.saveAndFlush(first);
-        var duplicate = StudentRegistrationFixtures.studentRegistration().username("student3b").email("student3@example.com").build();
+        var duplicate = studentRegistrationEntityBuilder.username("student3b").email("student3@example.com").build();
 
         assertThrows(DataIntegrityViolationException.class, () -> repo.saveAndFlush(duplicate));
     }
     
     @Test
     void shouldRejectNullUsername() {
-        var entity = StudentRegistrationFixtures.studentRegistration().username("temp").email("temp@example.com").build();
+        var entity = studentRegistrationEntityBuilder.username("temp").email("temp@example.com").build();
         entity.setUsername(null);
 
         assertThrows(DataIntegrityViolationException.class, () -> repo.saveAndFlush(entity));
@@ -64,7 +75,7 @@ class StudentRegistrationRepoTests {
     
     @Test
     void shouldRejectNullEmail() {
-        var entity = StudentRegistrationFixtures.studentRegistration().username("temp2").email("temp2@example.com").build();
+        var entity = studentRegistrationEntityBuilder.username("temp2").email("temp2@example.com").build();
         entity.setEmail(null);
 
         assertThrows(DataIntegrityViolationException.class, () -> repo.saveAndFlush(entity));
@@ -72,7 +83,7 @@ class StudentRegistrationRepoTests {
     
     @Test
     void shouldRejectNullPassword() {
-        var entity = StudentRegistrationFixtures.studentRegistration().username("temp3").email("temp3@example.com").build();
+        var entity = studentRegistrationEntityBuilder.username("temp3").email("temp3@example.com").build();
         entity.setPassword(null);
 
         assertThrows(DataIntegrityViolationException.class, () -> repo.saveAndFlush(entity));
@@ -80,7 +91,7 @@ class StudentRegistrationRepoTests {
     
     @Test
     void shouldRejectNullFirstName() {
-        var entity = StudentRegistrationFixtures.studentRegistration().username("temp4").email("temp4@example.com").build();
+        var entity = studentRegistrationEntityBuilder.username("temp4").email("temp4@example.com").build();
         entity.setFirstName(null);
 
         assertThrows(DataIntegrityViolationException.class, () -> repo.saveAndFlush(entity));
@@ -88,7 +99,7 @@ class StudentRegistrationRepoTests {
     
     @Test
     void shouldRejectNullDateOfBirth() {
-        var entity = StudentRegistrationFixtures.studentRegistration().username("temp6").email("temp6@example.com").build();
+        var entity = studentRegistrationEntityBuilder.username("temp6").email("temp6@example.com").build();
         entity.setDateOfBirth(null);
 
         assertThrows(DataIntegrityViolationException.class, () -> repo.saveAndFlush(entity));
@@ -96,7 +107,7 @@ class StudentRegistrationRepoTests {
     
     @Test
     void shouldRejectNullRegistrationStatus() {
-        var entity = StudentRegistrationFixtures.studentRegistration().username("temp10").email("temp10@example.com").build();
+        var entity = studentRegistrationEntityBuilder.username("temp10").email("temp10@example.com").build();
         entity.setRegistrationStatus(null);
 
         assertThrows(DataIntegrityViolationException.class, () -> repo.saveAndFlush(entity));
@@ -104,7 +115,7 @@ class StudentRegistrationRepoTests {
     
     @Test
     void shouldPopulateCreatedAtBeforeNow() {
-        var entity = StudentRegistrationFixtures.studentRegistration().username("audit1").email("audit1@example.com").build();
+        var entity = studentRegistrationEntityBuilder.username("audit1").email("audit1@example.com").build();
         var saved = repo.saveAndFlush(entity);
         Instant createdInstant = saved.getCreatedAt();
 
@@ -114,7 +125,7 @@ class StudentRegistrationRepoTests {
     
     @Test
     void shouldPopulateUpdatedAtBeforeNow() {
-        var entity = StudentRegistrationFixtures.studentRegistration().username("audit2").email("audit2@example.com").build();
+        var entity = studentRegistrationEntityBuilder.username("audit2").email("audit2@example.com").build();
         var saved = repo.saveAndFlush(entity);
         Instant updatedInstant = saved.getUpdatedAt();
 
@@ -124,7 +135,7 @@ class StudentRegistrationRepoTests {
     
     @Test
     void shouldReturnTrueWhenUsernameExists() {
-        var entity = StudentRegistrationFixtures.studentRegistration().username("uniqueuser").email("uniqueuser@example.com").build();
+        var entity = studentRegistrationEntityBuilder.username("uniqueuser").email("uniqueuser@example.com").build();
         repo.saveAndFlush(entity);
         
         assertTrue(repo.existsByUsername("uniqueuser"));
@@ -133,7 +144,7 @@ class StudentRegistrationRepoTests {
     
     @Test
     void shouldReturnTrueWhenEmailExists() {
-        var entity = StudentRegistrationFixtures.studentRegistration().username("emailuser").email("emailuser@example.com").build();
+        var entity = studentRegistrationEntityBuilder.username("emailuser").email("emailuser@example.com").build();
         repo.saveAndFlush(entity);
         
         assertTrue(repo.existsByEmail("emailuser@example.com"));

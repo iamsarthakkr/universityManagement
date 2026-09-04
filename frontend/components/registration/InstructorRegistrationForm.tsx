@@ -1,13 +1,11 @@
 'use client';
 
 import React from 'react';
-import Link from 'next/link';
 
 import { cn } from '@/lib/cn';
 import { Button } from '@/components/ui/base/button';
-import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/components/ui/base/field';
+import { Field, FieldGroup, FieldLabel } from '@/components/ui/base/field';
 import { Input } from '@/components/ui/base/input';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/base/card';
 import { useApi } from '@/context/ApiContext';
 import { useStaticData } from '@/context/StaticDataContext';
 import type { InstructorRegistrationData } from '@/types/registration';
@@ -20,7 +18,7 @@ const initialFormData: InstructorRegistrationData = {
     email: '',
     firstName: '',
     lastName: '',
-    department: '',
+    departmentId: 0,
 };
 
 export const InstructorRegistrationForm = ({ className, ...props }: React.ComponentProps<'div'>) => {
@@ -46,16 +44,13 @@ export const InstructorRegistrationForm = ({ className, ...props }: React.Compon
 
             event.preventDefault();
             const res = await api.registration.createInstructorRegistration(formData);
+            setIsSubmitting(false);
 
             if (!res.isSuccess) {
                 toast.error('Request failed', { description: res.message || 'Unable to submit request.' });
-                return;
+            } else {
+                toast.success(res.message);
             }
-
-            toast.error(res.message);
-            setFormData(initialFormData);
-
-            setIsSubmitting(false);
         },
         [api, formData],
     );
@@ -135,8 +130,10 @@ export const InstructorRegistrationForm = ({ className, ...props }: React.Compon
                             name="department"
                             required
                             disabled={depsLoading}
-                            value={formData.department}
-                            onChange={(e) => setFormData((prev) => ({ ...prev, department: e.target.value }))}
+                            value={formData.departmentId || ''}
+                            onChange={(e) =>
+                                setFormData((prev) => ({ ...prev, departmentId: Number(e.target.value) }))
+                            }
                             className={cn(
                                 'h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none',
                                 'focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50',
@@ -148,7 +145,7 @@ export const InstructorRegistrationForm = ({ className, ...props }: React.Compon
                                 {depsLoading ? 'Loading...' : 'Select a department'}
                             </option>
                             {departments.map((d) => (
-                                <option key={d.id} value={d.name}>
+                                <option key={d.id} value={d.id}>
                                     {d.name}
                                 </option>
                             ))}

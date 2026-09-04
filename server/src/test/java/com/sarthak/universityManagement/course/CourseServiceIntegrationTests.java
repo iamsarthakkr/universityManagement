@@ -6,12 +6,18 @@ import com.sarthak.universityManagement.course.dto.CourseCatalogueResponse;
 import com.sarthak.universityManagement.course.dto.CourseRequest;
 import com.sarthak.universityManagement.course.dto.CourseResponse;
 import com.sarthak.universityManagement.instructor.InstructorEntity;
-import com.sarthak.universityManagement.testUtils.TestDataSetup;
 import com.sarthak.universityManagement.testUtils.TestSecurityUtils;
+import com.sarthak.universityManagement.testUtils.fixtures.CourseFixtures;
+import com.sarthak.universityManagement.testUtils.fixtures.DepartmentFixtures;
+import com.sarthak.universityManagement.testUtils.fixtures.InstructorFixtures;
+import com.sarthak.universityManagement.testUtils.fixtures.InstructorRegistrationFixtures;
+import com.sarthak.universityManagement.testUtils.fixtures.UserFixtures;
+import com.sarthak.universityManagement.testUtils.seeders.CourseSeeder;
 import com.sarthak.universityManagement.testUtils.seeders.DepartmentSeeder;
 import com.sarthak.universityManagement.testUtils.seeders.InstructorSeeder;
 import com.sarthak.universityManagement.testUtils.seeders.UserSeeder;
 import com.sarthak.universityManagement.testUtils.testConfigs.RegistrationTestConfig;
+import jdk.jfr.Frequency;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @ActiveProfiles("test")
-@Import(RegistrationTestConfig.class)
+@Import({RegistrationTestConfig.class, CourseSeeder.class})
 @Transactional
 public class CourseServiceIntegrationTests {
 
@@ -36,17 +42,17 @@ public class CourseServiceIntegrationTests {
     @Autowired
     private CourseRepo courseRepo;
     @Autowired
-    private TestDataSetup setup;
-    @Autowired
     private UserSeeder userSeeder;
     @Autowired
     private InstructorSeeder instructorSeeder;
     @Autowired
     private DepartmentSeeder departmentSeeder;
+    @Autowired
+    private CourseSeeder courseSeeder;
 
     @BeforeEach
     void setupAdmin() {
-        var user = userSeeder.saveDefaultUser(Role.ADMIN);
+        var user = userSeeder.saveUser(UserFixtures.user().username("seed-user").email("seed@abc").build());
         TestSecurityUtils.authenticateAs(user);
     }
 
@@ -60,15 +66,15 @@ public class CourseServiceIntegrationTests {
         var department = departmentSeeder.saveDefault("test-department");
         InstructorEntity instructor = instructorSeeder.saveDefaultInstructorWithDepartment(department);
 
-        CourseRequest req = new CourseRequest("Computer Science", "CS101", "Intro to CS", "An intro course", 3, 30, instructor.getId());
+        CourseRequest req = CourseFixtures.courseRequest(instructor.getId()).build();
         CourseResponse resp = courseService.createCourse(req);
 
         assertNotNull(resp);
-        assertEquals("CS101", resp.code());
-        assertEquals("Intro to CS", resp.title());
-        assertEquals("Computer Science", resp.department());
-        assertEquals(3, resp.credits());
-        assertEquals(30, resp.capacity());
+        assertEquals(req.code(), resp.code());
+        assertEquals(req.title(), resp.title());
+        assertEquals(req.department(), resp.department());
+        assertEquals(req.credits(), resp.credits());
+        assertEquals(req.capacity(), resp.capacity());
         assertEquals(instructor.getId(), resp.instructorId());
     }
 
@@ -76,18 +82,18 @@ public class CourseServiceIntegrationTests {
     void shouldPersistCourseAfterCreation() {
         var department = departmentSeeder.saveDefault("test-department");
         InstructorEntity instructor = instructorSeeder.saveDefaultInstructorWithDepartment(department);
-        CourseRequest req = new CourseRequest("Mathematics", "MATH101", "Calculus I", "Differential calculus", 4, 25, instructor.getId());
+        CourseRequest req = CourseFixtures.courseRequest(instructor.getId()).build();
 
         CourseResponse resp = courseService.createCourse(req);
-
         var saved = courseRepo.findById(resp.courseId());
+
         assertTrue(saved.isPresent());
-        assertEquals("MATH101", saved.get().getCode());
+        assertEquals(req.code(), saved.get().getCode());
     }
 
     @Test
     void shouldThrowWhenInstructorDoesNotExist() {
-        CourseRequest req = new CourseRequest("Physics", "PHY101", "Mechanics", "Classical mechanics", 3, 20, 99999);
+        CourseRequest req = CourseFixtures.courseRequest(9999).build();
 
         assertThrows(BadRequestException.class, () -> courseService.createCourse(req));
     }
@@ -102,25 +108,18 @@ public class CourseServiceIntegrationTests {
 
     @Test
     void shouldReturnCatalogueGroupedByDepartment() {
-        var department = departmentSeeder.saveDefault("test-department");
-        InstructorEntity instructor = instructorSeeder.saveDefaultInstructorWithDepartment(department);
+        var department1 = departmentSeeder.save(DepartmentFixtures.departmentWithCode("cse").name("Computer Science").build());
+        var department2 = departmentSeeder.save(DepartmentFixtures.departmentWithCode("maths").name("Mathematics").build());
 
-        setup.savedCourse(instructor, "CS101");
-        setup.savedCourse(instructor, "CS102");
+        var instructor1 = InstructorFixtures.instructor().firstName("name-1").department(department1).build();
+        var instructor2 = InstructorFixtures.instructor().firstName("name-2").department(department2).build();
 
-        InstructorEntity instructor2 = instructorSeeder.saveDefaultInstructorWithDepartment(department);
-        CourseEntity mathCourse = courseRepo.saveAndFlush(
-            CourseEntity.builder()
-                .department("Mathematics")
-                .code("MATH101")
-                .title("Calculus")
-                .description("Differential calculus")
-                .credits(4)
-                .capacity(25)
-                .active(true)
-                .instructor(instructor2)
-                .build()
-        );
+        instructorSeeder.saveInstructor(instructor1);
+        instructorSeeder.saveInstructor(instructor2);
+
+        courseSeeder.save(CourseFixtures.course(instructor1).department(department1.getName()).code("CS100").build());
+        courseSeeder.save(CourseFixtures.course(instructor1).department(department1.getName()).code("CS101").build());
+        courseSeeder.save(CourseFixtures.course(instructor2).department(department2.getName()).code("MT101").build());
 
         List<CourseCatalogueResponse> catalogue = courseService.getCoursesCatalogue();
 
@@ -144,8 +143,8 @@ public class CourseServiceIntegrationTests {
     void shouldIncludeInstructorNameInCourseResponse() {
         var department = departmentSeeder.saveDefault("test-department");
         InstructorEntity instructor = instructorSeeder.saveDefaultInstructorWithDepartment(department);
-        CourseRequest req = new CourseRequest("Computer Science", "CS201", "Data Structures", "Trees and graphs", 3, 30, instructor.getId());
 
+        var req =  CourseFixtures.courseRequest(instructor.getId()).build();
         CourseResponse resp = courseService.createCourse(req);
 
         assertEquals(instructor.getFirstName(), resp.instructor());

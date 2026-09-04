@@ -47,5 +47,4 @@ public final class InstructorSeeder {
         return saveDefaultInstructorWithDepartment(defaultDepartment);
     }
 
-
 }

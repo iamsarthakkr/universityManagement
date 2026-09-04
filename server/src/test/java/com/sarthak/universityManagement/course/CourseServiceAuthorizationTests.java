@@ -4,6 +4,7 @@ import com.sarthak.universityManagement.common.types.Role;
 import com.sarthak.universityManagement.course.dto.CourseRequest;
 import com.sarthak.universityManagement.instructor.InstructorEntity;
 import com.sarthak.universityManagement.testUtils.TestSecurityUtils;
+import com.sarthak.universityManagement.testUtils.fixtures.UserFixtures;
 import com.sarthak.universityManagement.testUtils.seeders.DepartmentSeeder;
 import com.sarthak.universityManagement.testUtils.seeders.InstructorSeeder;
 import com.sarthak.universityManagement.testUtils.seeders.UserSeeder;
@@ -28,7 +29,6 @@ public class CourseServiceAuthorizationTests {
 
     @Autowired
     private CourseService courseService;
-
     @Autowired
     private UserSeeder userSeeder;
     @Autowired
@@ -43,7 +43,9 @@ public class CourseServiceAuthorizationTests {
     }
 
     private void setupUser(Role role) {
-        var user = userSeeder.saveDefaultUser(role);
+        var user = userSeeder.saveUser(
+                UserFixtures.user().username("seeded-user").email("seeded@abc").role(role).build()
+        );
         TestSecurityUtils.authenticateAs(user);
     }
 

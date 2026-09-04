@@ -37,7 +37,7 @@ export const InstructorRegistrationsTable = (props: Props) => {
                         </TableCell>
                         <TableCell className="text-center">{item.username}</TableCell>
                         <TableCell className="text-center">{item.email}</TableCell>
-                        <TableCell className="text-center">{item.department}</TableCell>
+                        <TableCell className="text-center">{item.department.name}</TableCell>
                         <TableCell className="text-center">
                             <Status status={item.status} />
                         </TableCell>

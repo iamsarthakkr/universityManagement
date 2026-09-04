@@ -11,20 +11,24 @@ import org.springframework.test.context.ActiveProfiles;
 @ActiveProfiles("test")
 public final class StudentRegistrationSeeder {
     private final StudentRegistrationRepo studentRegistrationRepo;
+    private final DepartmentSeeder departmentSeeder;
 
     @Autowired
-    public StudentRegistrationSeeder(StudentRegistrationRepo studentRegistrationRepo) {
+    public StudentRegistrationSeeder(StudentRegistrationRepo studentRegistrationRepo, DepartmentSeeder departmentSeeder) {
         this.studentRegistrationRepo = studentRegistrationRepo;
+        this.departmentSeeder = departmentSeeder;
     }
 
     public StudentRegistrationEntity saveStudentRegistration(StudentRegistrationEntity studentRegistrationEntity) {
         return studentRegistrationRepo.saveAndFlush(studentRegistrationEntity);
     }
 
-    public StudentRegistrationEntity saveDefaultStudentRegistration() {
+    public StudentRegistrationEntity saveDefaultStudentRegistration(String departmentCode) {
+        var department = departmentSeeder.saveDefault(departmentCode);
         return saveStudentRegistration(
                 StudentRegistrationFixtures
                         .studentRegistration()
+                        .department(department)
                         .build()
         );
     }

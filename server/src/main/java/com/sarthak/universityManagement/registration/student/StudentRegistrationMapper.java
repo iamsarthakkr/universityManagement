@@ -1,5 +1,6 @@
 package com.sarthak.universityManagement.registration.student;
 
+import com.sarthak.universityManagement.department.DepartmentMapper;
 import com.sarthak.universityManagement.registration.student.dto.StudentRegistrationRequest;
 import com.sarthak.universityManagement.registration.student.dto.StudentRegistrationResponse;
 import com.sarthak.universityManagement.student.dto.CreateStudentCommand;
@@ -34,6 +35,7 @@ public class StudentRegistrationMapper {
             .dateOfBirth(entity.getDateOfBirth())
             .status(entity.getRegistrationStatus())
             .submittedAt(entity.getCreatedAt().atZone(ZoneId.systemDefault()).toLocalDate())
+            .department(DepartmentMapper.toResponse(entity.getDepartment()))
             .build();
     }
     
@@ -53,6 +55,7 @@ public class StudentRegistrationMapper {
             .firstName(entity.getFirstName())
             .lastName(entity.getLastName())
             .dateOfBirth(entity.getDateOfBirth())
+            .department(entity.getDepartment())
             .build();
     }
     
