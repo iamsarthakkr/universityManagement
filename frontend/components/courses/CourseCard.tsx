@@ -51,8 +51,8 @@ export function CourseCard({ course }: { course: CourseResponse }) {
                             <span className="text-text-muted">{course.capacity}</span>
                         </span>
                         <span>
-                            <span className="font-medium text-text">Instructor ID:</span>{' '}
-                            <span className="text-text-muted">{course.instructorId}</span>
+                            <span className="font-medium text-text">Instructor:</span>{' '}
+                            <span className="text-text-muted">{course.instructor}</span>
                         </span>
                     </div>
                 </div>

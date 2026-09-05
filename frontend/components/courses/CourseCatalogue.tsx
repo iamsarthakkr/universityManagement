@@ -45,7 +45,7 @@ export function CourseCatalogue() {
                 ) : (
                     <div className="divide-y divide-border">
                         {groups.map((group) => (
-                            <DepartmentGroup key={group.department} group={group} />
+                            <DepartmentGroup key={group.departmentId} group={group} />
                         ))}
                     </div>
                 )}

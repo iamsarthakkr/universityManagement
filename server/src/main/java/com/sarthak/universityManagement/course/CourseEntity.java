@@ -1,6 +1,7 @@
 package com.sarthak.universityManagement.course;
 
 import com.sarthak.universityManagement.common.entity.BaseEntity;
+import com.sarthak.universityManagement.department.DepartmentEntity;
 import com.sarthak.universityManagement.instructor.InstructorEntity;
 import jakarta.persistence.CheckConstraint;
 import jakarta.persistence.Column;
@@ -42,9 +43,10 @@ public class CourseEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    
-    @Column(name = "department", nullable = false)
-    private String department;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "department", nullable = false)
+    private DepartmentEntity department;
     
     @Column(name = "code", nullable = false)
     private String code;

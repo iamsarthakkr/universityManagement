@@ -2,6 +2,7 @@ package com.sarthak.universityManagement.instructor;
 
 import com.sarthak.universityManagement.common.exceptions.ResourceNotFoundException;
 import com.sarthak.universityManagement.instructor.dto.CreateInstructorCommand;
+import com.sarthak.universityManagement.instructor.dto.InstructorResponse;
 import com.sarthak.universityManagement.user.UserEntity;
 import com.sarthak.universityManagement.common.types.Role;
 import com.sarthak.universityManagement.common.exceptions.BadRequestException;
@@ -9,6 +10,8 @@ import com.sarthak.universityManagement.common.exceptions.ConflictException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +30,18 @@ public class InstructorService {
         InstructorEntity newInstructor = InstructorMapper.toEntity(createInstructorCommand);
         newInstructor.setUser(user);
         return instructorRepo.save(newInstructor);
+    }
+
+    @Transactional
+    public List<InstructorResponse> getAllInstructors() {
+        return instructorRepo.findAll().stream().map(InstructorMapper::toResponse).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public InstructorEntity getInstructorById(Integer instructorId) {
+        return instructorRepo
+                .findById(instructorId)
+                .orElseThrow(() -> new BadRequestException("Instructor does not exist with id " + instructorId));
     }
     
     @Transactional

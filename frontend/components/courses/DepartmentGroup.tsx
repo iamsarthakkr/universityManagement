@@ -12,7 +12,7 @@ export function DepartmentGroup({ group }: { group: CourseCatalogueGroup }) {
         <Collapsible>
             <CollapsibleTrigger className="flex w-full items-center justify-between py-2 text-left">
                 <div className="flex items-center gap-3">
-                    <h3 className="font-semibold text-text">{group.department}</h3>
+                    <h3 className="font-semibold text-text">{group.departmentName}</h3>
                     <span className="rounded-full bg-surface-muted px-2 py-0.5 text-xs text-text-muted">
                         {group.courseList.length} {group.courseList.length === 1 ? 'course' : 'courses'}
                     </span>

@@ -8,9 +8,7 @@ import lombok.Builder;
 
 @Builder
 public record CourseRequest(
-    @NotBlank(message = "department required")
-    String department,
-    
+
     @NotBlank(message = "code required")
     String code,
     
@@ -30,6 +28,9 @@ public record CourseRequest(
     Integer capacity,
     
     @NotNull(message = "Instructor required")
-    Integer instructorId
+    Integer instructorId,
+
+    @NotNull(message = "department required")
+    Integer departmentId
 ) {
 }

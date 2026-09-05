@@ -3,6 +3,7 @@ package com.sarthak.universityManagement.course;
 import com.sarthak.universityManagement.course.dto.CourseCatalogueResponse;
 import com.sarthak.universityManagement.course.dto.CourseRequest;
 import com.sarthak.universityManagement.course.dto.CourseResponse;
+import com.sarthak.universityManagement.department.DepartmentMapper;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,7 +14,6 @@ public class CourseMapper {
     public static CourseEntity toEntity(CourseRequest courseRequest) {
         return CourseEntity
             .builder()
-            .department(courseRequest.department())
             .code(courseRequest.code())
             .title(courseRequest.title())
             .description(courseRequest.description())
@@ -21,11 +21,13 @@ public class CourseMapper {
             .capacity(courseRequest.capacity())
             .build();
     }
+
     public static CourseResponse toResponse(CourseEntity courseEntity) {
         return CourseResponse
             .builder()
             .courseId(courseEntity.getId())
-            .department(courseEntity.getDepartment())
+            .departmentId(courseEntity.getDepartment().getId())
+            .departmentName(courseEntity.getDepartment().getName())
             .code(courseEntity.getCode())
             .title(courseEntity.getTitle())
             .description(courseEntity.getDescription())
@@ -37,17 +39,21 @@ public class CourseMapper {
     }
     
     public static List<CourseCatalogueResponse> toCatalogue(List<CourseEntity> courses) {
-        Map<String, List<CourseEntity>> coursesMap = new HashMap<>();
+        Map<Integer, List<CourseEntity>> coursesMap = new HashMap<>();
+        Map<Integer, String> departmentNameMap = new HashMap<>();
         courses.forEach(course -> {
             var department = course.getDepartment();
-            if(!coursesMap.containsKey(department)) {
-                coursesMap.put(department, new ArrayList<>());
+            if(!coursesMap.containsKey(department.getId())) {
+                coursesMap.put(department.getId(), new ArrayList<>());
+                departmentNameMap.put(department.getId(), department.getName());
             }
-            coursesMap.get(department).add(course);
+            coursesMap.get(department.getId()).add(course);
         });
         
         List<CourseCatalogueResponse> ret = new ArrayList<>();
-        coursesMap.forEach((key, courseList) -> ret.add(new CourseCatalogueResponse(key, courseList.stream().map(CourseMapper::toResponse).toList())));
+        coursesMap.forEach((key, courseList) ->
+                ret.add(new CourseCatalogueResponse(key, departmentNameMap.get(key),  courseList.stream().map(CourseMapper::toResponse).toList()))
+        );
         return ret;
     }
 }

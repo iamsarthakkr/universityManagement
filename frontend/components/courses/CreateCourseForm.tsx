@@ -17,7 +17,7 @@ import { cn } from '@/lib/cn';
 import { CourseFormLayout, CourseFormSection } from './CourseFormLayout';
 
 const initialFormData: CourseRequest = {
-    department: '',
+    departmentId: 0,
     code: '',
     title: '',
     description: '',
@@ -28,12 +28,17 @@ const initialFormData: CourseRequest = {
 
 export function CreateCourseForm() {
     const api = useApi();
-    const { departments, isLoading: depsLoading } = useStaticData();
+    const { departments, instructors, isLoading: depsLoading } = useStaticData();
 
     const [formData, setFormData] = React.useState<CourseRequest>(initialFormData);
     const [selectedDept, setSelectedDept] = React.useState<Department | null>(null);
     const [codeWithoutPrefix, setCodeWithoutPrefix] = React.useState('');
     const [isSubmitting, setIsSubmitting] = React.useState(false);
+
+    const departmentInstructors = React.useMemo(
+        () => instructors.filter((i) => i.departmentId === selectedDept?.id),
+        [instructors, selectedDept],
+    );
 
     const handleDepartmentChange = React.useCallback(
         (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -41,12 +46,17 @@ export function CreateCourseForm() {
             setSelectedDept(dept);
             setFormData((prev) => ({
                 ...prev,
-                department: dept?.name ?? '',
+                departmentId: dept?.id ?? 0,
+                instructorId: 0,
                 code: dept ? `${dept.code}${codeWithoutPrefix}` : codeWithoutPrefix,
             }));
         },
         [departments, codeWithoutPrefix],
     );
+
+    const handleInstructorChange = React.useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
+        setFormData((prev) => ({ ...prev, instructorId: Number(event.target.value) }));
+    }, []);
 
     const handleCodeSuffixChange = React.useCallback(
         (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -213,17 +223,25 @@ export function CreateCourseForm() {
                         <CourseFormSection label="Instructor" description="Assign an instructor to this course.">
                             <FieldGroup>
                                 <Field>
-                                    <FieldLabel htmlFor="instructorId">Instructor ID</FieldLabel>
-                                    <Input
+                                    <FieldLabel htmlFor="instructorId">Instructor</FieldLabel>
+                                    <select
                                         id="instructorId"
                                         name="instructorId"
-                                        type="number"
-                                        min={1}
                                         required
-                                        placeholder="e.g. 42"
+                                        disabled={depsLoading || !selectedDept}
                                         value={formData.instructorId || ''}
-                                        onChange={handleChange}
-                                    />
+                                        onChange={handleInstructorChange}
+                                        className={selectClassName}
+                                    >
+                                        <option value="" disabled>
+                                            {!selectedDept ? 'Select a department first' : 'Select an instructor'}
+                                        </option>
+                                        {departmentInstructors.map((i) => (
+                                            <option key={i.id} value={i.id}>
+                                                {i.firstName + (i.lastName ? ' ' + i.lastName : '')}
+                                            </option>
+                                        ))}
+                                    </select>
                                 </Field>
                             </FieldGroup>
                         </CourseFormSection>

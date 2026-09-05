@@ -1,5 +1,5 @@
 export type CourseRequest = {
-    department: string;
+    departmentId: number;
     code: string;
     title: string;
     description: string;
@@ -10,16 +10,19 @@ export type CourseRequest = {
 
 export type CourseResponse = {
     courseId: number;
-    department: string;
+    departmentId: number;
+    departmentName: string;
     code: string;
     title: string;
     description: string;
     credits: number;
     capacity: number;
     instructorId: number;
+    instructor: string;
 };
 
 export type CourseCatalogueGroup = {
-    department: string;
+    departmentId: number;
+    departmentName: string;
     courseList: CourseResponse[];
 };
