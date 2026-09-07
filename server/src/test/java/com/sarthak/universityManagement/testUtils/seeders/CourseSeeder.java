@@ -2,6 +2,7 @@ package com.sarthak.universityManagement.testUtils.seeders;
 
 import com.sarthak.universityManagement.course.CourseEntity;
 import com.sarthak.universityManagement.course.CourseRepo;
+import com.sarthak.universityManagement.department.DepartmentEntity;
 import com.sarthak.universityManagement.instructor.InstructorEntity;
 import com.sarthak.universityManagement.testUtils.fixtures.CourseFixtures;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,9 +23,9 @@ public class CourseSeeder {
         return courseRepo.saveAndFlush(course);
     }
 
-    public CourseEntity saveDefault(InstructorEntity instructor) {
+    public CourseEntity saveDefault(InstructorEntity instructor, DepartmentEntity department) {
         return courseRepo.saveAndFlush(
-                CourseFixtures.course(instructor).build()
+                CourseFixtures.course(instructor, department).build()
         );
     }
 

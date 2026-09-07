@@ -41,7 +41,7 @@ public class InstructorService {
     public InstructorEntity getInstructorById(Integer instructorId) {
         return instructorRepo
                 .findById(instructorId)
-                .orElseThrow(() -> new BadRequestException("Instructor does not exist with id " + instructorId));
+                .orElseThrow(() -> new ResourceNotFoundException("Instructor does not exist with id " + instructorId));
     }
     
     @Transactional

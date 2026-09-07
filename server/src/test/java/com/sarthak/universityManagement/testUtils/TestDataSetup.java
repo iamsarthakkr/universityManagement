@@ -51,13 +51,4 @@ public class TestDataSetup {
         return userRepo.saveAndFlush(dataFactory.user(username, email, role, password));
     }
 
-    public CourseEntity savedCourse(InstructorEntity instructor) {
-        return courseRepo.saveAndFlush(dataFactory.courseEntity(instructor));
-    }
-
-    public CourseEntity savedCourse(InstructorEntity instructor, String code) {
-        CourseEntity course = dataFactory.courseEntity(instructor);
-        course.setCode(code);
-        return courseRepo.saveAndFlush(course);
-    }
 }

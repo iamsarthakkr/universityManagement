@@ -47,31 +47,6 @@ public final class TestDataFactory {
         return new UserPrincipal(1, username, getEncodedPassword(password), role, true);
     }
 
-    public CourseRequest courseRequest(Integer instructorId) {
-        return new CourseRequest(
-            "Computer Science",
-            "CS101",
-            "Intro to CS",
-            "An introductory course",
-            3,
-            30,
-            instructorId
-        );
-    }
-
-    public CourseEntity courseEntity(InstructorEntity instructor) {
-        return CourseEntity.builder()
-            .department("Computer Science")
-            .code("CS101")
-            .title("Intro to CS")
-            .description("An introductory course")
-            .credits(3)
-            .capacity(30)
-            .active(true)
-            .instructor(instructor)
-            .build();
-    }
-
     public String getDefaultPassword() {
         return defaultPassword;
     }

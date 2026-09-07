@@ -4,6 +4,7 @@ import com.sarthak.universityManagement.common.types.Role;
 import com.sarthak.universityManagement.course.dto.CourseRequest;
 import com.sarthak.universityManagement.instructor.InstructorEntity;
 import com.sarthak.universityManagement.testUtils.TestSecurityUtils;
+import com.sarthak.universityManagement.testUtils.fixtures.CourseFixtures;
 import com.sarthak.universityManagement.testUtils.fixtures.UserFixtures;
 import com.sarthak.universityManagement.testUtils.seeders.DepartmentSeeder;
 import com.sarthak.universityManagement.testUtils.seeders.InstructorSeeder;
@@ -54,7 +55,8 @@ public class CourseServiceAuthorizationTests {
         setupUser(Role.ADMIN);
         var department = departmentSeeder.saveDefault("cs-1");
         InstructorEntity instructor = instructorSeeder.saveDefaultInstructorWithDepartment(department);
-        CourseRequest req = new CourseRequest("Computer Science", "CS101", "Intro to CS", "An intro course", 3, 30, instructor.getId());
+
+        var req = CourseFixtures.courseRequest(instructor.getId(), department.getId()).build();
 
         assertDoesNotThrow(() -> courseService.createCourse(req));
     }
@@ -64,7 +66,8 @@ public class CourseServiceAuthorizationTests {
         setupUser(Role.STUDENT);
         var department = departmentSeeder.saveDefault("cs-1");
         InstructorEntity instructor = instructorSeeder.saveDefaultInstructorWithDepartment(department);
-        CourseRequest req = new CourseRequest("Computer Science", "CS101", "Intro to CS", "An intro course", 3, 30, instructor.getId());
+
+        var req = CourseFixtures.courseRequest(instructor.getId(), department.getId()).build();
 
         assertThrows(AuthorizationDeniedException.class, () -> courseService.createCourse(req));
     }
@@ -74,7 +77,8 @@ public class CourseServiceAuthorizationTests {
         setupUser(Role.INSTRUCTOR);
         var department = departmentSeeder.saveDefault("cs-1");
         InstructorEntity instructor = instructorSeeder.saveDefaultInstructorWithDepartment(department);
-        CourseRequest req = new CourseRequest("Computer Science", "CS101", "Intro to CS", "An intro course", 3, 30, instructor.getId());
+
+        var req = CourseFixtures.courseRequest(instructor.getId(), department.getId()).build();
 
         assertThrows(AuthorizationDeniedException.class, () -> courseService.createCourse(req));
     }
@@ -83,7 +87,8 @@ public class CourseServiceAuthorizationTests {
     void createCourse_whenAnonymous_shouldDeny() {
         var department = departmentSeeder.saveDefault("cs-1");
         InstructorEntity instructor = instructorSeeder.saveDefaultInstructorWithDepartment(department);
-        CourseRequest req = new CourseRequest("Computer Science", "CS101", "Intro to CS", "An intro course", 3, 30, instructor.getId());
+
+        var req = CourseFixtures.courseRequest(instructor.getId(), department.getId()).build();
 
         assertThrows(AuthenticationCredentialsNotFoundException.class, () -> courseService.createCourse(req));
     }
