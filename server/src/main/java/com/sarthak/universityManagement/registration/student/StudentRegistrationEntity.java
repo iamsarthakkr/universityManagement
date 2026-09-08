@@ -55,14 +55,14 @@ public class StudentRegistrationEntity extends BaseEntity {
     @Column(name = "reviewedAt")
     private Instant reviewedAt;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reviewedBy")
     private UserEntity reviewedBy;
 
     @Column(name = "username", length = 50, nullable = false)
     private String username;
 
-    @Column(name = "password", length = 200, nullable = false)
+    @Column(name = "password", length = 255, nullable = false)
     private String password;
 
     @Column(name = "email", length = 100, nullable = false)

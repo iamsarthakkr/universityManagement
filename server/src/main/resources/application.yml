@@ -1,14 +1,21 @@
 spring:
+  application:
+    name: universityManagement
   jpa:
     hibernate:
       ddl-auto: validate
       naming:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    show-sql: true
     properties:
       hibernate:
         format_sql: false
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
   flyway:
     enabled: true
     locations: classpath:db/migration
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+app:
+  jwt:
+    expiration-ms: 1800000

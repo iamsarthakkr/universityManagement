@@ -1,8 +1,4 @@
 spring:
-  application:
-    name: universityManagement
-  jpa:
-    show-sql: true
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME}

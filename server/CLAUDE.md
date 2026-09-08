@@ -81,7 +81,7 @@ common/        — rest (Res, ApiResponse, ErrorCode, SuccessCode), exceptions, 
 
 **Migration to Flyway is in progress.** Schema is now defined via versioned migrations in `src/main/resources/db/migration/` (e.g. `V1__intitial_schema.sql`), replacing the old `src/main/resources/sql/*.sql` scripts (`schema.sql`, `admin.sql`, `reset.sql`), which have been deleted. `flyway-core` and `flyway-mysql` are on the classpath (`pom.xml`), so Flyway auto-runs migrations on startup by default in every profile unless explicitly disabled.
 
-- `prod` profile: `spring.flyway.enabled=true`, `locations=classpath:db/migration`, `baseline-on-migrate=true`, `ddl-auto=validate` — Flyway owns the schema, Hibernate only validates entity mappings against it.
+- `prod` profile: `spring.flyway.enabled=true`, `locations=classpath:db/migration`, `ddl-auto=validate` — Flyway owns the schema, Hibernate only validates entity mappings against it.
 - `dev` profile: no Flyway override (so it inherits the default enabled behavior and runs the same migrations against `localhost:3306/universityManagementDev`), `ddl-auto=validate`, `sql.init.mode=never` — dev no longer uses `ddl-auto=update`; schema changes must go through a new migration file.
 
 JPA uses `PhysicalNamingStrategyStandardImpl` so column/table names match exactly what you write in the entity (no automatic camelCase → snake_case conversion). When adding/changing entities, add a new `V{n}__description.sql` migration under `db/migration` rather than relying on Hibernate to generate the schema.
