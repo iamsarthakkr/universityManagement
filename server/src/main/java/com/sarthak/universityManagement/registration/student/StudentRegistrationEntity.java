@@ -44,7 +44,7 @@ public class StudentRegistrationEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "registration_status", nullable = false)
+    @Column(name = "registrationStatus", nullable = false)
     @Enumerated(EnumType.STRING)
     private RegistrationStatus registrationStatus;
 

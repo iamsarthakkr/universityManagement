@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Stack
 
-Spring Boot 4.x (Java 21), Spring Security (JWT, stateless), Spring Data JPA, MySQL, Lombok, JUnit Jupiter 6.
+Spring Boot 4.x (Java 21), Spring Security (JWT, stateless), Spring Data JPA, MySQL, Flyway, Lombok, JUnit Jupiter 6.
 
 ## Commands
 
@@ -27,7 +27,7 @@ Spring Boot 4.x (Java 21), Spring Security (JWT, stateless), Spring Data JPA, My
 
 ## Configuration
 
-`application.properties` contains placeholder values. The `dev` profile (`application-dev.properties`) connects to a local MySQL DB at `localhost:3306/universityManagementDev` with credentials `test/test`. Set `SPRING_PROFILES_ACTIVE=dev` or pass `-Dspring-boot.run.profiles=dev` to activate it.
+`application.yml` contains the shared base config. The `dev` profile (`application-dev.yml`) connects to a local MySQL DB at `localhost:3306/universityManagementDev` with credentials `test/test`, and the `prod` profile (`application-prod.yml`) reads its sensitive values from environment variables. Set `SPRING_PROFILES_ACTIVE=dev` or `SPRING_PROFILES_ACTIVE=prod` (or pass `-Dspring-boot.run.profiles=...`) to activate a profile.
 
 Required properties (all overridden in dev profile):
 - `spring.datasource.url/username/password`
@@ -79,4 +79,9 @@ common/        — rest (Res, ApiResponse, ErrorCode, SuccessCode), exceptions, 
 
 ### Database
 
-Schema is defined in `src/main/resources/sql/schema.sql` and applied with `spring.sql.init.mode=always` in production. In the dev profile, `ddl-auto=update` is used instead and `sql.init.mode=never`. JPA uses `PhysicalNamingStrategyStandardImpl` so column/table names match exactly what you write in the entity (no automatic camelCase → snake_case conversion).
+**Migration to Flyway is in progress.** Schema is now defined via versioned migrations in `src/main/resources/db/migration/` (e.g. `V1__intitial_schema.sql`), replacing the old `src/main/resources/sql/*.sql` scripts (`schema.sql`, `admin.sql`, `reset.sql`), which have been deleted. `flyway-core` and `flyway-mysql` are on the classpath (`pom.xml`), so Flyway auto-runs migrations on startup by default in every profile unless explicitly disabled.
+
+- `prod` profile: `spring.flyway.enabled=true`, `locations=classpath:db/migration`, `baseline-on-migrate=true`, `ddl-auto=validate` — Flyway owns the schema, Hibernate only validates entity mappings against it.
+- `dev` profile: no Flyway override (so it inherits the default enabled behavior and runs the same migrations against `localhost:3306/universityManagementDev`), `ddl-auto=validate`, `sql.init.mode=never` — dev no longer uses `ddl-auto=update`; schema changes must go through a new migration file.
+
+JPA uses `PhysicalNamingStrategyStandardImpl` so column/table names match exactly what you write in the entity (no automatic camelCase → snake_case conversion). When adding/changing entities, add a new `V{n}__description.sql` migration under `db/migration` rather than relying on Hibernate to generate the schema.
