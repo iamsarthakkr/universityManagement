@@ -7,6 +7,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -54,7 +55,13 @@ public class GlobalExceptionHandler {
         LOG.error(ex.getMessage(), ex);
         return Res.error(ErrorCode.UNAUTHORIZED, "Login failed");
     }
-    
+
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    public ResponseEntity<ApiErrorResponse<Void>> handleAuthException(AuthorizationDeniedException ex) {
+        LOG.error(ex.getMessage(), ex);
+        return Res.error(ErrorCode.FORBIDDEN, "Access Denied");
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiErrorResponse<Map<String, String>>> handleValidationException(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
