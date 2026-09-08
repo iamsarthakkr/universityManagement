@@ -22,37 +22,37 @@ import lombok.Setter;
 @Builder
 @Entity
 @Table(
-    name = "courses",
-    check = {
-        @CheckConstraint(name = "valid_credits", constraint = "credits > 0 AND credits < 10"),
-    },
-    uniqueConstraints = {
-        @UniqueConstraint(name = "unique_course_code", columnNames = "code")
-    }
+        name = "course",
+        check = {
+                @CheckConstraint(name = "chk_course_credits", constraint = "credits > 0 AND credits < 10"),
+        },
+        uniqueConstraints = {
+                @UniqueConstraint(name = "unique_course_code", columnNames = "code")
+        }
 )
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class CourseEntity extends BaseEntity {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "department", nullable = false)
+    @JoinColumn(name = "departmentId", nullable = false)
     private DepartmentEntity department;
-    
-    @Column(name = "code", nullable = false)
+
+    @Column(name = "code", length = 10, nullable = false)
     private String code;
-    
-    @Column(name = "title", nullable = false)
+
+    @Column(name = "title", length = 100, nullable = false)
     private String title;
-    
-    @Column(name = "description", nullable = false)
+
+    @Column(name = "description", length = 255, nullable = false)
     private String description;
-    
+
     @Column(name = "credits", nullable = false)
     private Integer credits;
 

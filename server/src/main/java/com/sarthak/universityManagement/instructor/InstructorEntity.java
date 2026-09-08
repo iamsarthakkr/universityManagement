@@ -1,5 +1,6 @@
 package com.sarthak.universityManagement.instructor;
 
+import com.sarthak.universityManagement.common.entity.BaseEntity;
 import com.sarthak.universityManagement.department.DepartmentEntity;
 import com.sarthak.universityManagement.user.UserEntity;
 import jakarta.persistence.Entity;
@@ -22,23 +23,27 @@ import lombok.Setter;
 @Builder
 @Entity
 @Table(
-    name = "instructor",
-    uniqueConstraints = {
-        @UniqueConstraint(name = "unique_user", columnNames = { "user_id" })
-    }
+        name = "instructor",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "unique_user", columnNames = { "user_id" })
+        }
 )
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class InstructorEntity {
+public class InstructorEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    
+
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "userId", nullable = false)
     private UserEntity user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "departmentId", nullable = false)
+    private DepartmentEntity department;
 
     @Column(name = "firstName", length = 50, nullable = false)
     private String firstName;
@@ -46,10 +51,6 @@ public class InstructorEntity {
     @Column(name = "lastName", length = 50)
     private String lastName;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "department", nullable = false)
-    private DepartmentEntity department;
-
-    @Column(name = "phoneNumber", length = 10)
+    @Column(name = "phoneNumber", length = 10, nullable = false)
     private String phoneNumber;
 }
