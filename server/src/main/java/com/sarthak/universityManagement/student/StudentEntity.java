@@ -1,5 +1,6 @@
 package com.sarthak.universityManagement.student;
 
+import com.sarthak.universityManagement.common.entity.BaseEntity;
 import com.sarthak.universityManagement.department.DepartmentEntity;
 import com.sarthak.universityManagement.user.UserEntity;
 import jakarta.persistence.Entity;
@@ -24,47 +25,47 @@ import java.time.LocalDate;
 @Builder
 @Entity
 @Table(
-    name = "student",
-    uniqueConstraints = {
-        @UniqueConstraint(name = "unique_user", columnNames = { "user_id" })
-    }
+        name = "student",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "unique_student_user", columnNames = { "userId" })
+        }
 )
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class StudentEntity {
+public class StudentEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    
+
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "userId", nullable = false)
     private UserEntity user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "departmentId", nullable = false)
+    private DepartmentEntity department;
 
     @Column(name = "firstName", length = 50, nullable = false)
     private String firstName;
 
     @Column(name = "lastName", length = 50)
     private String lastName;
-    
+
     @Column(name = "dateOfBirth", nullable = false)
     private LocalDate dateOfBirth;
-    
+
     @Column(name = "phoneNumber", length = 10)
     private String phoneNumber;
-    
+
     @Column(name = "address", length = 100)
     private String address;
-    
+
     @Column(name = "fatherName", length = 50)
     private String fatherName;
-    
+
     @Column(name = "motherName", length = 50)
     private String motherName;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "department", nullable = false)
-    private DepartmentEntity department;
-    
 }

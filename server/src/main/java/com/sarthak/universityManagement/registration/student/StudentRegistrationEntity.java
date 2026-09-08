@@ -29,11 +29,11 @@ import java.time.LocalDate;
 @Builder
 @Entity
 @Table(
-    name = "student_registration_requests",
-    uniqueConstraints = {
-        @UniqueConstraint(name = "unique_student_registration", columnNames = { "username" }),
-        @UniqueConstraint(name = "unique_student_registration_email", columnNames = { "email" })
-    }
+        name = "student_registration",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "unique_student_registration_username", columnNames = { "username" }),
+                @UniqueConstraint(name = "unique_student_registration_email", columnNames = { "email" })
+        }
 )
 @Getter
 @Setter
@@ -43,38 +43,38 @@ public class StudentRegistrationEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    
-    @Column(name = "registration_status", nullable = false)
+
+    @Column(name = "registrationStatus", nullable = false)
     @Enumerated(EnumType.STRING)
     private RegistrationStatus registrationStatus;
-    
-    @Column(name = "reviewed_at")
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "departmentId", nullable = false)
+    private DepartmentEntity department;
+
+    @Column(name = "reviewedAt")
     private Instant reviewedAt;
-    
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "reviewed_by")
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "reviewedBy")
     private UserEntity reviewedBy;
-    
+
     @Column(name = "username", length = 50, nullable = false)
     private String username;
-    
-    @Column(name = "password", length = 200, nullable = false)
+
+    @Column(name = "password", length = 255, nullable = false)
     private String password;
-    
-    @Column(name = "firstName", length = 50, nullable = false)
-    private String firstName;
-    
-    @Column(name = "lastName", length = 50)
-    private String lastName;
-    
+
     @Column(name = "email", length = 100, nullable = false)
     private String email;
-    
+
+    @Column(name = "firstName", length = 50, nullable = false)
+    private String firstName;
+
+    @Column(name = "lastName", length = 50)
+    private String lastName;
+
     @Column(name = "dateOfBirth", nullable = false)
     private LocalDate dateOfBirth;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "department", nullable = false)
-    private DepartmentEntity department;
-    
 }

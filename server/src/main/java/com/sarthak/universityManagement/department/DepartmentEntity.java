@@ -17,10 +17,10 @@ import lombok.Setter;
 @Builder
 @Entity
 @Table(
-    name = "department",
-    uniqueConstraints = {
-        @UniqueConstraint(name = "unique_department_code", columnNames = "code")
-    }
+        name = "department",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "unique_department_code", columnNames = "code")
+        }
 )
 @Getter
 @Setter
@@ -32,9 +32,9 @@ public class DepartmentEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "name", nullable = false)
+    @Column(name = "name", length = 100, nullable = false)
     private String name;
 
-    @Column(name = "code", nullable = false)
+    @Column(name = "code", length = 10, nullable = false)
     private String code;
 }

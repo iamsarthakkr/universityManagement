@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: universityManagementTest
+  sql:
+    init:
+      mode: never
+  datasource:
+    url: jdbc:mysql://localhost:3306/universityManagementTest
+    username: test
+    password: test
+
+app:
+  jwt:
+    secret: replace-this-with-a-long-random-secret-at-least-256-bits
+    expiration-ms: 10000
+  admin:
+    username: admin
+    password: admin
+    email: admin@gmail.com

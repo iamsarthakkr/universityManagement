@@ -37,6 +37,7 @@ Thumbs.db
 .env
 .env.*
 application-local.properties
+application-dev.yml
 application-dev.properties
 
 # =========================

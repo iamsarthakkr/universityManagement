@@ -28,10 +28,10 @@ import java.time.Instant;
 @Builder
 @Entity
 @Table(
-    name = "instructor_registration_requests",
+    name = "instructor_registration",
     uniqueConstraints = {
-        @UniqueConstraint(name = "unique_instructor_registration", columnNames = { "username" }),
-        @UniqueConstraint(name = "unique_instructor_email", columnNames = { "email" })
+        @UniqueConstraint(name = "unique_instructor_registration_username", columnNames = { "username" }),
+        @UniqueConstraint(name = "unique_instructor_registration_email", columnNames = { "email" })
     }
 )
 @Getter
@@ -43,33 +43,34 @@ public class InstructorRegistrationEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     
-    @Column(name = "registration_status", nullable = false)
+    @Column(name = "registrationStatus", nullable = false)
     @Enumerated(EnumType.STRING)
     private RegistrationStatus registrationStatus;
-    
-    @Column(name = "reviewed_at")
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "departmentId", nullable = false)
+    private DepartmentEntity department;
+
+    @Column(name = "reviewedAt")
     private Instant reviewedAt;
     
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "reviewed_by")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "reviewedBy")
     private UserEntity reviewedBy;
     
     @Column(name = "username", length = 50, nullable = false)
     private String username;
     
-    @Column(name = "password", length = 200, nullable = false)
+    @Column(name = "password", length = 255, nullable = false)
     private String password;
-    
+
+    @Column(name = "email", length = 100, nullable = false)
+    private String email;
+
     @Column(name = "firstName", length = 50, nullable = false)
     private String firstName;
     
     @Column(name = "lastName", length = 50)
     private String lastName;
     
-    @Column(name = "email", length = 100, nullable = false)
-    private String email;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "department", nullable = false)
-    private DepartmentEntity department;
 }

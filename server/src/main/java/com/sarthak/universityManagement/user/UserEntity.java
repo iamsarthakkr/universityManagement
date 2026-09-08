@@ -20,11 +20,11 @@ import lombok.Setter;
 @Builder
 @Entity
 @Table(
-    name = "users",
-    uniqueConstraints = {
-        @UniqueConstraint(name = "unique_user", columnNames = { "username" }),
-        @UniqueConstraint(name = "unique_user_email", columnNames = { "email" })
-    }
+        name = "users",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "unique_user_username", columnNames = { "username" }),
+                @UniqueConstraint(name = "unique_user_email", columnNames = { "email" })
+        }
 )
 @Getter
 @Setter
@@ -34,21 +34,21 @@ public class UserEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    
+
     @Column(name = "username", length = 50, nullable = false)
     private String username;
-    
-    @Column(name = "password", length = 200, nullable = false)
+
+    @Column(name = "password", length = 255, nullable = false)
     private String password;
-    
+
     @Column(name = "email", length = 100, nullable = false)
     private String email;
-    
-    @Column(name = "role", nullable = false)
+
+    @Column(name = "role", length = 20, nullable = false)
     @Enumerated(EnumType.STRING)
     private Role role;
-    
+
     @Column(name = "active", nullable = false)
     private boolean active;
-    
+
 }
