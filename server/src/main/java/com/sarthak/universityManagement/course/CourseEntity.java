@@ -2,7 +2,6 @@ package com.sarthak.universityManagement.course;
 
 import com.sarthak.universityManagement.common.entity.BaseEntity;
 import com.sarthak.universityManagement.department.DepartmentEntity;
-import com.sarthak.universityManagement.instructor.InstructorEntity;
 import jakarta.persistence.CheckConstraint;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -19,8 +18,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 
 @Builder
 @Entity
@@ -28,7 +25,6 @@ import org.hibernate.annotations.OnDeleteAction;
     name = "courses",
     check = {
         @CheckConstraint(name = "valid_credits", constraint = "credits > 0 AND credits < 10"),
-        @CheckConstraint(name = "valid_capacity", constraint = "capacity > 0")
     },
     uniqueConstraints = {
         @UniqueConstraint(name = "unique_course_code", columnNames = "code")
@@ -59,16 +55,5 @@ public class CourseEntity extends BaseEntity {
     
     @Column(name = "credits", nullable = false)
     private Integer credits;
-    
-    @Column(name = "capacity", nullable = false)
-    private Integer capacity;
-    
-    @Column(name = "active", nullable = false)
-    private boolean active;
-    
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "instructor_id")
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    private InstructorEntity instructor;
-    
+
 }

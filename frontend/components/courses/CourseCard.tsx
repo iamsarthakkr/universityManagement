@@ -46,14 +46,6 @@ export function CourseCard({ course }: { course: CourseResponse }) {
                             <span className="font-medium text-text">Credits:</span>{' '}
                             <span className="text-text-muted">{course.credits}</span>
                         </span>
-                        <span>
-                            <span className="font-medium text-text">Capacity:</span>{' '}
-                            <span className="text-text-muted">{course.capacity}</span>
-                        </span>
-                        <span>
-                            <span className="font-medium text-text">Instructor:</span>{' '}
-                            <span className="text-text-muted">{course.instructor}</span>
-                        </span>
                     </div>
                 </div>
             )}

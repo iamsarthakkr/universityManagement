@@ -23,9 +23,9 @@ public class CourseSeeder {
         return courseRepo.saveAndFlush(course);
     }
 
-    public CourseEntity saveDefault(InstructorEntity instructor, DepartmentEntity department) {
+    public CourseEntity saveDefault(DepartmentEntity department) {
         return courseRepo.saveAndFlush(
-                CourseFixtures.course(instructor, department).build()
+                CourseFixtures.course(department).build()
         );
     }
 

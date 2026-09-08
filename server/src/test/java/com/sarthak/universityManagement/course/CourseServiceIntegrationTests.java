@@ -64,34 +64,21 @@ public class CourseServiceIntegrationTests {
         @Test
         void shouldCreateCourseSuccessfully() {
             var department = departmentSeeder.saveDefault("test-department");
-            InstructorEntity instructor = instructorSeeder.saveDefaultInstructorWithDepartment(department);
 
-            CourseRequest req = CourseFixtures.courseRequest(instructor.getId(), department.getId()).build();
+            CourseRequest req = CourseFixtures.courseRequest(department.getId()).build();
             CourseResponse resp = courseService.createCourse(req);
 
             assertNotNull(resp);
             assertEquals(req.code(), resp.code());
             assertEquals(req.title(), resp.title());
             assertEquals(req.credits(), resp.credits());
-            assertEquals(req.capacity(), resp.capacity());
 
             assertNotNull(courseRepo.findById(resp.courseId()));
         }
 
         @Test
-        void shouldThrowWhenInstructorDoesNotExist() {
-            var department = departmentSeeder.saveDefault("test-department");
-            CourseRequest req = CourseFixtures.courseRequest(9999, department.getId()).build();
-
-            assertThrows(ResourceNotFoundException.class, () -> courseService.createCourse(req));
-        }
-
-        @Test
         void shouldThrowWhenDepartmentDoesNotExist() {
-            var department = departmentSeeder.saveDefault("test-department");
-            var instructor = instructorSeeder.saveDefaultInstructorWithDepartment(department);
-
-            CourseRequest req = CourseFixtures.courseRequest(instructor.getId(), 9999).build();
+            CourseRequest req = CourseFixtures.courseRequest(9999).build();
 
             assertThrows(ResourceNotFoundException.class, () -> courseService.createCourse(req));
         }
@@ -113,15 +100,9 @@ public class CourseServiceIntegrationTests {
             var department1 = departmentSeeder.save(DepartmentFixtures.departmentWithCode("cse").name("Computer Science").build());
             var department2 = departmentSeeder.save(DepartmentFixtures.departmentWithCode("maths").name("Mathematics").build());
 
-            var instructor1 = InstructorFixtures.instructor().firstName("name-1").department(department1).build();
-            var instructor2 = InstructorFixtures.instructor().firstName("name-2").department(department2).build();
-
-            instructorSeeder.saveInstructor(instructor1);
-            instructorSeeder.saveInstructor(instructor2);
-
-            courseSeeder.save(CourseFixtures.course(instructor1, department1).code("CS100").build());
-            courseSeeder.save(CourseFixtures.course(instructor1, department1).code("CS101").build());
-            courseSeeder.save(CourseFixtures.course(instructor2, department2).code("MT101").build());
+            courseSeeder.save(CourseFixtures.course(department1).code("CS100").build());
+            courseSeeder.save(CourseFixtures.course(department1).code("CS101").build());
+            courseSeeder.save(CourseFixtures.course(department2).code("MT101").build());
 
             List<CourseCatalogueResponse> catalogue = courseService.getCoursesCatalogue();
 

@@ -18,7 +18,6 @@ public class CourseMapper {
             .title(courseRequest.title())
             .description(courseRequest.description())
             .credits(courseRequest.credits())
-            .capacity(courseRequest.capacity())
             .build();
     }
 
@@ -27,14 +26,10 @@ public class CourseMapper {
             .builder()
             .courseId(courseEntity.getId())
             .departmentId(courseEntity.getDepartment().getId())
-            .departmentName(courseEntity.getDepartment().getName())
             .code(courseEntity.getCode())
             .title(courseEntity.getTitle())
             .description(courseEntity.getDescription())
             .credits(courseEntity.getCredits())
-            .capacity(courseEntity.getCapacity())
-            .instructorId(courseEntity.getInstructor().getId())
-            .instructor(courseEntity.getInstructor().getFirstName())
             .build();
     }
     

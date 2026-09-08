@@ -54,9 +54,8 @@ public class CourseServiceAuthorizationTests {
     void createCourse_whenAdmin_shouldAllow() {
         setupUser(Role.ADMIN);
         var department = departmentSeeder.saveDefault("cs-1");
-        InstructorEntity instructor = instructorSeeder.saveDefaultInstructorWithDepartment(department);
 
-        var req = CourseFixtures.courseRequest(instructor.getId(), department.getId()).build();
+        var req = CourseFixtures.courseRequest(department.getId()).build();
 
         assertDoesNotThrow(() -> courseService.createCourse(req));
     }
@@ -65,9 +64,8 @@ public class CourseServiceAuthorizationTests {
     void createCourse_whenStudent_shouldDeny() {
         setupUser(Role.STUDENT);
         var department = departmentSeeder.saveDefault("cs-1");
-        InstructorEntity instructor = instructorSeeder.saveDefaultInstructorWithDepartment(department);
 
-        var req = CourseFixtures.courseRequest(instructor.getId(), department.getId()).build();
+        var req = CourseFixtures.courseRequest(department.getId()).build();
 
         assertThrows(AuthorizationDeniedException.class, () -> courseService.createCourse(req));
     }
@@ -76,9 +74,8 @@ public class CourseServiceAuthorizationTests {
     void createCourse_whenInstructor_shouldDeny() {
         setupUser(Role.INSTRUCTOR);
         var department = departmentSeeder.saveDefault("cs-1");
-        InstructorEntity instructor = instructorSeeder.saveDefaultInstructorWithDepartment(department);
 
-        var req = CourseFixtures.courseRequest(instructor.getId(), department.getId()).build();
+        var req = CourseFixtures.courseRequest(department.getId()).build();
 
         assertThrows(AuthorizationDeniedException.class, () -> courseService.createCourse(req));
     }
@@ -88,7 +85,7 @@ public class CourseServiceAuthorizationTests {
         var department = departmentSeeder.saveDefault("cs-1");
         InstructorEntity instructor = instructorSeeder.saveDefaultInstructorWithDepartment(department);
 
-        var req = CourseFixtures.courseRequest(instructor.getId(), department.getId()).build();
+        var req = CourseFixtures.courseRequest(department.getId()).build();
 
         assertThrows(AuthenticationCredentialsNotFoundException.class, () -> courseService.createCourse(req));
     }

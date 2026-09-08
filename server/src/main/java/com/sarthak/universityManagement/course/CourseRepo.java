@@ -9,6 +9,6 @@ import java.util.List;
 
 @Repository
 public interface CourseRepo extends JpaRepository<CourseEntity, Integer> {
-    @EntityGraph(attributePaths = {"instructor", "department"})
+    @EntityGraph(attributePaths = "department")
     List<CourseEntity> findAllByOrderByDepartmentNameAsc();
 }

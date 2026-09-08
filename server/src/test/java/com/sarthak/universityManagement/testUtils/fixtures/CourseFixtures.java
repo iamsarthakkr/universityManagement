@@ -7,26 +7,21 @@ import com.sarthak.universityManagement.instructor.InstructorEntity;
 
 public class CourseFixtures {
 
-    public static CourseEntity.CourseEntityBuilder course(InstructorEntity instructor, DepartmentEntity department) {
+    public static CourseEntity.CourseEntityBuilder course(DepartmentEntity department) {
         return CourseEntity.builder()
                 .code("test-code")
                 .title("test title")
                 .description("test description")
                 .credits(3)
-                .capacity(30)
-                .active(true)
-                .department(department)
-                .instructor(instructor);
+                .department(department);
     }
 
-    public static CourseRequest.CourseRequestBuilder courseRequest(Integer instructorId, Integer departmentId) {
+    public static CourseRequest.CourseRequestBuilder courseRequest(Integer departmentId) {
         return CourseRequest.builder()
                 .code("test-code")
                 .title("test title")
                 .description("test description")
                 .credits(3)
-                .capacity(30)
-                .departmentId(departmentId)
-                .instructorId(instructorId);
+                .departmentId(departmentId);
     }
 }

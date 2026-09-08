@@ -23,13 +23,6 @@ public record CourseRequest(
     @Max(value = 10, message = "credits must be between 1 and 10")
     Integer credits,
     
-    @NotNull(message = "course capacity required")
-    @Min(value = 1, message = "course capacity has to be positive")
-    Integer capacity,
-    
-    @NotNull(message = "Instructor required")
-    Integer instructorId,
-
     @NotNull(message = "department required")
     Integer departmentId
 ) {
