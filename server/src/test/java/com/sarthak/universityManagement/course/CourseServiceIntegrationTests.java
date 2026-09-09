@@ -63,7 +63,7 @@ public class CourseServiceIntegrationTests {
     class CreationTests {
         @Test
         void shouldCreateCourseSuccessfully() {
-            var department = departmentSeeder.saveDefault("test-department");
+            var department = departmentSeeder.saveDefault("dep-test");
 
             CourseRequest req = CourseFixtures.courseRequest(department.getId()).build();
             CourseResponse resp = courseService.createCourse(req);

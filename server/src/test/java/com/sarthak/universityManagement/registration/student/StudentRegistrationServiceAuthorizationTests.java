@@ -76,7 +76,7 @@ public class StudentRegistrationServiceAuthorizationTests {
     @Test
     void approveRegistration_whenAdmin_shouldAllow() {
         setupUser(Role.ADMIN);
-        StudentRegistrationEntity saved = studentRegistrationSeeder.saveDefaultStudentRegistration("test-department");
+        StudentRegistrationEntity saved = studentRegistrationSeeder.saveDefaultStudentRegistration("dep-test");
         
         StudentRegistrationResponse response =
             studentRegistrationService.approveRegistration(saved.getId());
@@ -86,7 +86,7 @@ public class StudentRegistrationServiceAuthorizationTests {
     @Test
     void RejectRegistration_whenAdmin_shouldAllow() {
         setupUser(Role.ADMIN);
-        StudentRegistrationEntity saved = studentRegistrationSeeder.saveDefaultStudentRegistration("test-department");
+        StudentRegistrationEntity saved = studentRegistrationSeeder.saveDefaultStudentRegistration("dep-test");
 
         StudentRegistrationResponse response =
             studentRegistrationService.rejectRegistration(saved.getId());
@@ -96,7 +96,7 @@ public class StudentRegistrationServiceAuthorizationTests {
     @Test
     void approveRegistration_whenStudent_shouldDeny() {
         setupUser(Role.STUDENT);
-        StudentRegistrationEntity saved = studentRegistrationSeeder.saveDefaultStudentRegistration("test-department");
+        StudentRegistrationEntity saved = studentRegistrationSeeder.saveDefaultStudentRegistration("dep-test");
 
         assertThrows(
             AuthorizationDeniedException.class,
@@ -107,7 +107,7 @@ public class StudentRegistrationServiceAuthorizationTests {
     @Test
     void rejectRegistration_whenStudent_shouldDeny() {
         setupUser(Role.STUDENT);
-        StudentRegistrationEntity saved = studentRegistrationSeeder.saveDefaultStudentRegistration("test-department");
+        StudentRegistrationEntity saved = studentRegistrationSeeder.saveDefaultStudentRegistration("dep-test");
 
         assertThrows(
             AuthorizationDeniedException.class,

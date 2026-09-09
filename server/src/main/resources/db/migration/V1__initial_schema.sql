@@ -76,7 +76,7 @@ CREATE TABLE instructor (
 
     firstName VARCHAR(50) NOT NULL,
     lastName VARCHAR(50),
-    phoneNumber VARCHAR(10) NOT NULL,
+    phoneNumber VARCHAR(10),
     
     createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -124,7 +124,6 @@ CREATE TABLE instructor_registration (
     email VARCHAR(100) NOT NULL,
     firstName VARCHAR(50) NOT NULL,
     lastName VARCHAR(50),
-    phoneNumber VARCHAR(10) NOT NULL,
 
     reviewedAt TIMESTAMP,
     reviewedBy INT,

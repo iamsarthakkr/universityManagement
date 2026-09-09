@@ -51,6 +51,6 @@ public class InstructorEntity extends BaseEntity {
     @Column(name = "lastName", length = 50)
     private String lastName;
 
-    @Column(name = "phoneNumber", length = 10, nullable = false)
+    @Column(name = "phoneNumber", length = 10)
     private String phoneNumber;
 }

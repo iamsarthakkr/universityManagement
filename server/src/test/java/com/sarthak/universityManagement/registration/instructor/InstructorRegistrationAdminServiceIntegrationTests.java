@@ -64,7 +64,7 @@ public class InstructorRegistrationAdminServiceIntegrationTests {
     class Registration {
         @Test
         void shouldApprovePendingInstructorRegistration() {
-            var saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("test-department");
+            var saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("dep-test");
             service.approveRegistration(saved.getId());
 
             var updated = instructorRegistrationRepo.findById(saved.getId()).orElseThrow();
@@ -78,7 +78,7 @@ public class InstructorRegistrationAdminServiceIntegrationTests {
 
         @Test
         void shouldSetCorrectReviewerAndReviewedAtWhenApproved() {
-            var saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("test-department");
+            var saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("dep-test");
             service.approveRegistration(saved.getId());
 
             var updated = instructorRegistrationRepo.findById(saved.getId()).orElseThrow();
@@ -89,7 +89,7 @@ public class InstructorRegistrationAdminServiceIntegrationTests {
 
         @Test
         void shouldCreateUserWhenRegistrationApproved() {
-            var saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("test-department");
+            var saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("dep-test");
             service.approveRegistration(saved.getId());
 
             assertTrue(userRepo.existsByUsername(saved.getUsername()));
@@ -98,7 +98,7 @@ public class InstructorRegistrationAdminServiceIntegrationTests {
 
         @Test
         void shouldCreateInstructorWhenRegistrationApproved() {
-            var saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("test-department");
+            var saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("dep-test");
             service.approveRegistration(saved.getId());
 
             var user = userRepo.findByUsername(saved.getUsername()).orElseThrow();
@@ -107,7 +107,7 @@ public class InstructorRegistrationAdminServiceIntegrationTests {
 
         @Test
         void shouldCreateInstructorWithCorrectDepartmentWhenRegistrationApproved() {
-            var saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("test-department");
+            var saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("dep-test");
             service.approveRegistration(saved.getId());
 
             var user = userRepo.findByUsername(saved.getUsername()).orElseThrow();
@@ -122,7 +122,7 @@ public class InstructorRegistrationAdminServiceIntegrationTests {
     class RejectInstructorRegistration {
         @Test
         void shouldMarkRegistrationAsRejected() {
-            var saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("test-department");
+            var saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("dep-test");
             service.rejectRegistration(saved.getId());
 
             var updated = instructorRegistrationRepo.findById(saved.getId()).orElseThrow();
@@ -131,7 +131,7 @@ public class InstructorRegistrationAdminServiceIntegrationTests {
 
         @Test
         void shouldSetCorrectReviewerAndReviewedAtWhenRejected() {
-            var saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("test-department");
+            var saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("dep-test");
             service.rejectRegistration(saved.getId());
 
             var updated = instructorRegistrationRepo.findById(saved.getId()).orElseThrow();
@@ -142,7 +142,7 @@ public class InstructorRegistrationAdminServiceIntegrationTests {
 
         @Test
         void shouldNotCreateUserWhenRegistrationRejected() {
-            var saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("test-department");
+            var saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("dep-test");
             service.rejectRegistration(saved.getId());
 
             assertFalse(userRepo.existsByUsername(saved.getUsername()));
@@ -162,7 +162,7 @@ public class InstructorRegistrationAdminServiceIntegrationTests {
 
         @Test
         void shouldRejectApprovingApprovedRegistration() {
-            var saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("test-department");
+            var saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("dep-test");
             service.approveRegistration(saved.getId());
 
             assertThrows(ConflictException.class, () -> service.approveRegistration(saved.getId()));
@@ -170,7 +170,7 @@ public class InstructorRegistrationAdminServiceIntegrationTests {
 
         @Test
         void shouldRejectApprovingRejectedRegistration() {
-            var saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("test-department");
+            var saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("dep-test");
             service.rejectRegistration(saved.getId());
 
             assertThrows(ConflictException.class, () -> service.approveRegistration(saved.getId()));
@@ -178,7 +178,7 @@ public class InstructorRegistrationAdminServiceIntegrationTests {
 
         @Test
         void shouldRejectRejectingApprovedRegistration() {
-            var saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("test-department");
+            var saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("dep-test");
             service.approveRegistration(saved.getId());
 
             assertThrows(ConflictException.class, () -> service.rejectRegistration(saved.getId()));
@@ -186,7 +186,7 @@ public class InstructorRegistrationAdminServiceIntegrationTests {
 
         @Test
         void shouldRejectRejectingRejectedRegistration() {
-            var saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("test-department");
+            var saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("dep-test");
             service.rejectRegistration(saved.getId());
 
             assertThrows(ConflictException.class, () -> service.rejectRegistration(saved.getId()));

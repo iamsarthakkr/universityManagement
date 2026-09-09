@@ -46,7 +46,7 @@ public class InstructorRegistrationServiceIntegrationTests {
 
     @BeforeEach
     void beforeEach() {
-        var savedDepartment = departmentSeeder.saveDefault("test-department");
+        var savedDepartment = departmentSeeder.saveDefault("dep-test");
         instructorRegistrationRequestBuilder = InstructorRegistrationFixtures
                 .instructorRegistrationRequest(savedDepartment.getId());
         studentRegistrationEntityBuilder = StudentRegistrationFixtures
