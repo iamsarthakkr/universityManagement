@@ -17,6 +17,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import lombok.Setter;
 
 import java.time.LocalDate;
@@ -65,4 +66,24 @@ public class SemesterEntity extends BaseEntity {
 
     @Column(name = "endDate", nullable = false)
     private LocalDate endDate;
+
+    public boolean isRegistrationOpen(LocalDate today) {
+        return (status != SemesterStatus.COMPLETED &&
+            status != SemesterStatus.CANCELLED &&
+            !today.isBefore(registrationStartDate) &&
+            !today.isAfter(registrationEndDate)
+        );
+    }
+
+    public boolean canTransitionTo(
+        @NonNull SemesterStatus newStatus
+    ) {
+        return switch (newStatus) {
+            case PLANNED -> false;
+            case ACTIVE -> status == SemesterStatus.PLANNED;
+            case COMPLETED -> status == SemesterStatus.ACTIVE;
+            case CANCELLED -> status == SemesterStatus.ACTIVE ||
+                status == SemesterStatus.PLANNED;
+        };
+    }
 }
