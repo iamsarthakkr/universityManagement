@@ -22,12 +22,12 @@ public class CourseService {
         this.courseRepo = courseRepo;
         this.departmentService = departmentService;
     }
-    
+
     public List<CourseCatalogueResponse> getCoursesCatalogue() {
         var courses = courseRepo.findAllByOrderByDepartmentNameAsc();
         return CourseMapper.toCatalogue(courses);
     }
-    
+
     @Transactional
     @PreAuthorize(AuthorizationExpressions.ADMIN)
     public CourseResponse createCourse(CourseRequest courseRequest) {
@@ -39,5 +39,5 @@ public class CourseService {
 
         return CourseMapper.toResponse(courseRepo.save(course));
     }
-    
+
 }
