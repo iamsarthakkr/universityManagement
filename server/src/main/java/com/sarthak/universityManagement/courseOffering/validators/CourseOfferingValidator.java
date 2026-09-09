@@ -8,7 +8,7 @@ import com.sarthak.universityManagement.semester.types.SemesterStatus;
 
 public final class CourseOfferingValidator {
 
-    public static void validateSemesterAllowOfferings(SemesterEntity semester) {
+    public static void validateSemesterAllowsOfferings(SemesterEntity semester) {
         var status = semester.getStatus();
         if( status == SemesterStatus.COMPLETED || status == SemesterStatus.CANCELLED) {
             throw new BadRequestException("Semester doesn't allow offerings");

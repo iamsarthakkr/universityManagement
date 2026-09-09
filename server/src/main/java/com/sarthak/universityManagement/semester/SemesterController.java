@@ -47,7 +47,7 @@ public class SemesterController {
     }
 
     @PatchMapping("/{semesterId}/status")
-    public ResponseEntity<ApiResponse<Void>> pathStatus(
+    public ResponseEntity<ApiResponse<Void>> transitionStatus(
         @PathVariable Integer semesterId,
         @Valid @RequestBody SemesterTransitionRequest semesterTransitionRequest
     ) {

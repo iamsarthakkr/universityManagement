@@ -45,13 +45,16 @@ public class CourseOfferingService {
         var instructor = instructorService.getInstructorEntity(instructorId);
         var semester =  semesterService.getSemesterEntity(semesterId);
 
-        CourseOfferingValidator.validateSemesterAllowOfferings(semester);
+        CourseOfferingValidator.validateSemesterAllowsOfferings(semester);
         CourseOfferingValidator.validateInstructorForCourse(course, instructor);
-        if(courseOfferingRepo.existsByCourseIdAndInstructorIdAndSection(courseId, instructorId, section)) {
+        if(courseOfferingRepo.existsByCourseIdAndSemesterIdAndSection(courseId, semesterId, section)) {
             throw new BadRequestException("course offering already exists");
         }
 
         var entity = CourseOfferingMapper.toEntity(courseOfferingRequest);
+        entity.setCourse(course);
+        entity.setInstructor(instructor);
+        entity.setSemester(semester);
         return CourseOfferingMapper.toResponse(courseOfferingRepo.save(entity));
     }
 

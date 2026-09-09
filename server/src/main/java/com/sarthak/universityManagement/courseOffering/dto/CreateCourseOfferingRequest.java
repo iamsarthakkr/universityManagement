@@ -18,6 +18,6 @@ public record CreateCourseOfferingRequest(
     String section,
 
     @NotNull(message = "capacity required")
-    @Min(value = 0, message = "capacity has to be positive")
+    @Min(value = 1, message = "capacity has to be positive")
     Integer capacity
 ) {}

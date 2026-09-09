@@ -51,11 +51,17 @@ public class SemesterService {
         return getSemesterOrThrow(semesterId);
     }
 
+    @PreAuthorize(AuthorizationExpressions.ADMIN)
     public void transition(Integer semesterId, SemesterStatus newStatus) {
         var semester = getSemesterOrThrow(semesterId);
 
-        if(!semester.canTransitionTo(SemesterStatus.CANCELLED)) {
-            throw new BadRequestException("Semester can't be " + newStatus.toString());
+        if(!semester.canTransitionTo(newStatus)) {
+            throw new BadRequestException(
+                "Invalid semester transition: "
+                    + semester.getStatus()
+                    + " -> "
+                    + newStatus
+            );
         }
 
         semester.setStatus(newStatus);

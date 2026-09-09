@@ -7,6 +7,6 @@ import java.util.List;
 
 @Repository
 public interface CourseOfferingRepo extends JpaRepository<CourseOfferingEntity, Integer> {
-    boolean existsByCourseIdAndInstructorIdAndSection(Integer courseId, Integer instructorId, String section);
+    boolean existsByCourseIdAndSemesterIdAndSection(Integer courseId, Integer semesterId, String section);
     List<CourseOfferingEntity> findAllBySemesterId(Integer semesterId);
 }
