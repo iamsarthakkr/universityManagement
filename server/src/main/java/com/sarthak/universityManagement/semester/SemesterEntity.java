@@ -29,7 +29,7 @@ import java.time.Year;
         @UniqueConstraint(name = "unique_semester_term_year", columnNames = {"term", "year"})
     },
     check = {
-        @CheckConstraint(name = "chk_semester_dates", constraint = "registrationStartDate < registrationEndDate AND startDate < endDate AND registrationEndDate < startDate")
+        @CheckConstraint(name = "chk_semester_dates", constraint = "registrationStartDate < registrationEndDate AND startDate < endDate")
     }
 )
 @Getter

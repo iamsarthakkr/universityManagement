@@ -17,11 +17,11 @@ CREATE TABLE semester (
     CONSTRAINT pk_semester PRIMARY KEY (id),
     CONSTRAINT unique_semester_term_year UNIQUE (term, year),
     CONSTRAINT chk_semester_dates CHECK (
-        registrationStartDate < registrationEndDate AND startDate < endDate AND registrationEndDate < startDate
+        registrationStartDate < registrationEndDate AND startDate < endDate
     ),
     
     CONSTRAINT chk_semester_term CHECK (term IN ('SUMMER', 'WINTER')),
     CONSTRAINT chk_semester_status CHECK (status IN (
-        'PENDING', 'REGISTRATION_OPEN', 'REGISTRATION_CLOSED', 'IN_PROGRESS', 'COMPLETED'
+        'PLANNED', 'ACTIVE', 'COMPLETED', 'CANCELLED'
     ))
-)
+);

@@ -4,6 +4,7 @@ CREATE TABLE course_offering (
     semesterId INT NOT NULL,
     instructorId INT NOT NULL,
     capacity INT NOT NULL,
+    section VARCHAR(10) NOT NULL,
 
     createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -13,6 +14,6 @@ CREATE TABLE course_offering (
     CONSTRAINT fk_course_offering_semester FOREIGN KEY (semesterId) REFERENCES semester (id),
     CONSTRAINT fk_course_offering_instructor FOREIGN KEY (instructorId) REFERENCES instructor (id),
 
-    CONSTRAINT unique_course_offering UNIQUE (courseId, semesterId, instructorId),
+    CONSTRAINT unique_course_offering UNIQUE (courseId, semesterId, section),
     CONSTRAINT chk_course_offering_capacity CHECK (capacity > 0)
 );

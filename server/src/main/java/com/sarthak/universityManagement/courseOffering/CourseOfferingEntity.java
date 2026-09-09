@@ -15,20 +15,26 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(
     name = "course_offering",
     uniqueConstraints = {
-        @UniqueConstraint(name = "unique_course_offering", columnNames = {"courseId", "semesterId", "instructorId"})
+        @UniqueConstraint(name = "unique_course_offering", columnNames = {"courseId", "semesterId", "section"})
     },
     check = {
         @CheckConstraint(name = "chk_course_offering_capacity", constraint = "capacity > 0")
     }
 )
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class CourseOfferingEntity extends BaseEntity {
 
@@ -38,7 +44,6 @@ public class CourseOfferingEntity extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "courseId", nullable = false)
-    @OnDelete(action = OnDeleteAction.CASCADE)
     private CourseEntity course;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -52,4 +57,6 @@ public class CourseOfferingEntity extends BaseEntity {
     @Column(name = "capacity", nullable = false)
     private Integer capacity;
 
+    @Column(name = "section", length = 10, nullable = false)
+    private String section;
 }
