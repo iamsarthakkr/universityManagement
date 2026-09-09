@@ -54,9 +54,10 @@ public class CourseOfferingEntity extends BaseEntity {
     @JoinColumn(name = "semesterId", nullable = false)
     private SemesterEntity semester;
 
+    @Column(name = "section", length = 10, nullable = false)
+    private String section;
+
     @Column(name = "capacity", nullable = false)
     private Integer capacity;
 
-    @Column(name = "section", length = 10, nullable = false)
-    private String section;
 }
