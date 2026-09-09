@@ -34,7 +34,7 @@ class StudentRegistrationRepoTests {
 
     @BeforeEach
     void setUp() {
-        var department = departmentSeeder.saveDefault("test-department");
+        var department = departmentSeeder.saveDefault("dep-test");
         studentRegistrationEntityBuilder = StudentRegistrationFixtures.studentRegistration().department(department);
     }
 

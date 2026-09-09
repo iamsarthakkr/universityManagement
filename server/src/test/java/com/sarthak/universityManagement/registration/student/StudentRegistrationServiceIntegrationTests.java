@@ -49,7 +49,7 @@ public class StudentRegistrationServiceIntegrationTests {
 
     @BeforeEach
     public void setup() {
-        department = departmentSeeder.saveDefault("test-department");
+        department = departmentSeeder.saveDefault("dep-test");
         studentRegistrationRequestBuilder = StudentRegistrationFixtures.studentRegistrationRequest(department.getId());
         instructorRegistrationEntityBuilder = InstructorRegistrationFixtures.instructorRegistration().department(department);
     }

@@ -62,7 +62,7 @@ public class StudentRegistrationAdminServiceIntegrationTests {
     @Test
     void shouldMarkRegistrationAsApproved() {
 
-        var saved = studentRegistrationSeeder.saveDefaultStudentRegistration("test-department");
+        var saved = studentRegistrationSeeder.saveDefaultStudentRegistration("dep-test");
         service.approveRegistration(saved.getId());
         
         var updated = studentRegistrationRepo.findById(saved.getId()).orElseThrow();
@@ -71,7 +71,7 @@ public class StudentRegistrationAdminServiceIntegrationTests {
     
     @Test
     void shouldSetCorrectReviewerAndReviewedAtWhenApproved() {
-        var saved = studentRegistrationSeeder.saveDefaultStudentRegistration("test-department");
+        var saved = studentRegistrationSeeder.saveDefaultStudentRegistration("dep-test");
         service.approveRegistration(saved.getId());
         
         var updated = studentRegistrationRepo.findById(saved.getId()).orElseThrow();
@@ -82,7 +82,7 @@ public class StudentRegistrationAdminServiceIntegrationTests {
     
     @Test
     void shouldCreateUserWhenRegistrationApproved() {
-        var saved = studentRegistrationSeeder.saveDefaultStudentRegistration("test-department");
+        var saved = studentRegistrationSeeder.saveDefaultStudentRegistration("dep-test");
         service.approveRegistration(saved.getId());
         
         assertTrue(userRepo.existsByUsername(saved.getUsername()));
@@ -91,7 +91,7 @@ public class StudentRegistrationAdminServiceIntegrationTests {
     
     @Test
     void shouldCreateStudentWhenRegistrationApproved() {
-        var saved = studentRegistrationSeeder.saveDefaultStudentRegistration("test-department");
+        var saved = studentRegistrationSeeder.saveDefaultStudentRegistration("dep-test");
         service.approveRegistration(saved.getId());
         
         var user = userRepo.findByUsername(saved.getUsername()).orElseThrow();
@@ -101,7 +101,7 @@ public class StudentRegistrationAdminServiceIntegrationTests {
     
     @Test
     void shouldMarkRegistrationAsRejected() {
-        var saved = studentRegistrationSeeder.saveDefaultStudentRegistration("test-department");
+        var saved = studentRegistrationSeeder.saveDefaultStudentRegistration("dep-test");
         service.rejectRegistration(saved.getId());
         
         var updated = studentRegistrationRepo.findById(saved.getId()).orElseThrow();
@@ -111,7 +111,7 @@ public class StudentRegistrationAdminServiceIntegrationTests {
     
     @Test
     void shouldSetCorrectReviewerAndReviewedAtWhenRejected() {
-        var saved = studentRegistrationSeeder.saveDefaultStudentRegistration("test-department");
+        var saved = studentRegistrationSeeder.saveDefaultStudentRegistration("dep-test");
         service.rejectRegistration(saved.getId());
         
         var updated = studentRegistrationRepo.findById(saved.getId()).orElseThrow();
@@ -122,7 +122,7 @@ public class StudentRegistrationAdminServiceIntegrationTests {
     
     @Test
     void shouldNotCreateUserOrStudentWhenRegistrationRejected() {
-        var registration = studentRegistrationSeeder.saveDefaultStudentRegistration("test-department");
+        var registration = studentRegistrationSeeder.saveDefaultStudentRegistration("dep-test");
         service.rejectRegistration(registration.getId());
         
         assertFalse(userRepo.existsByUsername(registration.getUsername()));
@@ -141,7 +141,7 @@ public class StudentRegistrationAdminServiceIntegrationTests {
     
     @Test
     void shouldRejectApprovingApprovedRegistration() {
-        var saved = studentRegistrationSeeder.saveDefaultStudentRegistration("test-department");
+        var saved = studentRegistrationSeeder.saveDefaultStudentRegistration("dep-test");
         service.approveRegistration(saved.getId());
         
         assertThrows(ConflictException.class, () -> service.approveRegistration(saved.getId()));
@@ -149,7 +149,7 @@ public class StudentRegistrationAdminServiceIntegrationTests {
     
     @Test
     void shouldRejectApprovingRejectedRegistration() {
-        var saved = studentRegistrationSeeder.saveDefaultStudentRegistration("test-department");
+        var saved = studentRegistrationSeeder.saveDefaultStudentRegistration("dep-test");
         service.rejectRegistration(saved.getId());
         
         assertThrows(ConflictException.class, () -> service.approveRegistration(saved.getId()));
@@ -157,7 +157,7 @@ public class StudentRegistrationAdminServiceIntegrationTests {
     
     @Test
     void shouldRejectRejectingApprovedRegistration() {
-        var saved = studentRegistrationSeeder.saveDefaultStudentRegistration("test-department");
+        var saved = studentRegistrationSeeder.saveDefaultStudentRegistration("dep-test");
         service.approveRegistration(saved.getId());
         
         assertThrows(ConflictException.class, () -> service.rejectRegistration(saved.getId()));
@@ -165,7 +165,7 @@ public class StudentRegistrationAdminServiceIntegrationTests {
     
     @Test
     void shouldRejectRejectingRejectedRegistration() {
-        var saved = studentRegistrationSeeder.saveDefaultStudentRegistration("test-department");
+        var saved = studentRegistrationSeeder.saveDefaultStudentRegistration("dep-test");
         service.rejectRegistration(saved.getId());
         
         assertThrows(ConflictException.class, () -> service.rejectRegistration(saved.getId()));
@@ -173,7 +173,7 @@ public class StudentRegistrationAdminServiceIntegrationTests {
     
     @Test
     void shouldCopyRegistrationDetailsToStudentWhenApproved() {
-        var saved = studentRegistrationSeeder.saveDefaultStudentRegistration("test-department");
+        var saved = studentRegistrationSeeder.saveDefaultStudentRegistration("dep-test");
         service.approveRegistration(saved.getId());
         
         var user = userRepo.findByUsername(saved.getUsername()).orElseThrow();

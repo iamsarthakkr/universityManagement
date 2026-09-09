@@ -75,7 +75,7 @@ public class InstructorRegistrationServiceAuthorizationTests {
     @Test
     void approveRegistration_whenAdmin_shouldAllow() {
         setupUser(Role.ADMIN);
-        InstructorRegistrationEntity saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("test-department");
+        InstructorRegistrationEntity saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("dep-test");
 
         InstructorRegistrationResponse response =
             instructorRegistrationService.approveRegistration(saved.getId());
@@ -85,7 +85,7 @@ public class InstructorRegistrationServiceAuthorizationTests {
     @Test
     void rejectRegistration_whenAdmin_shouldAllow() {
         setupUser(Role.ADMIN);
-        InstructorRegistrationEntity saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("test-department");
+        InstructorRegistrationEntity saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("dep-test");
 
         InstructorRegistrationResponse response =
             instructorRegistrationService.rejectRegistration(saved.getId());
@@ -95,7 +95,7 @@ public class InstructorRegistrationServiceAuthorizationTests {
     @Test
     void approveRegistration_whenInstructor_shouldDeny() {
         setupUser(Role.INSTRUCTOR);
-        InstructorRegistrationEntity saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("test-department");
+        InstructorRegistrationEntity saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("dep-test");
         
         assertThrows(
             AuthorizationDeniedException.class,
@@ -106,7 +106,7 @@ public class InstructorRegistrationServiceAuthorizationTests {
     @Test
     void rejectRegistration_whenInstructor_shouldDeny() {
         setupUser(Role.INSTRUCTOR);
-        InstructorRegistrationEntity saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("test-department");
+        InstructorRegistrationEntity saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("dep-test");
         
         assertThrows(
             AuthorizationDeniedException.class,
