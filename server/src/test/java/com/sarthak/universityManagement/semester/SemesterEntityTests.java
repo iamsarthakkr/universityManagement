@@ -5,6 +5,7 @@ import com.sarthak.universityManagement.testUtils.fixtures.SemesterFixtures;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
 
 import java.time.LocalDate;
@@ -62,56 +63,38 @@ public class SemesterEntityTests {
     class StatusTransitionTests {
 
         @ParameterizedTest
-        @EnumSource(
-            value = SemesterStatus.class,
-            names = {"ACTIVE", "CANCELLED"}
-        )
-        void shouldTransitionFromPlanned(SemesterStatus newStatus) {
-            var semesterEntity = SemesterFixtures.semester().status(SemesterStatus.PLANNED).build();
-
-            assertTrue(semesterEntity.canTransitionTo(newStatus));
+        @CsvSource({
+            "PLANNED, ACTIVE",
+            "PLANNED, CANCELLED",
+            "ACTIVE, COMPLETED",
+            "ACTIVE, CANCELLED",
+        })
+        void shouldTransition(SemesterStatus from, SemesterStatus to) {
+            var semesterEntity = SemesterFixtures.semester().status(from).build();
+            assertTrue(semesterEntity.canTransitionTo(to));
         }
 
         @ParameterizedTest
-        @EnumSource(
-            value = SemesterStatus.class,
-            names = {"COMPLETED", "CANCELLED"}
-        )
-        void shouldTransitionFromActive(SemesterStatus newStatus) {
-            var semesterEntity = SemesterFixtures.semester().status(SemesterStatus.ACTIVE).build();
+        @CsvSource({
+            "PLANNED, PLANNED",
+            "PLANNED, COMPLETED",
+            "ACTIVE, PLANNED",
+            "ACTIVE, ACTIVE",
+            "COMPLETED, PLANNED",
+            "COMPLETED, ACTIVE",
+            "COMPLETED, CANCELLED",
+            "COMPLETED, COMPLETED",
+            "CANCELLED, PLANNED",
+            "CANCELLED, ACTIVE",
+            "CANCELLED, COMPLETED",
+            "CANCELLED, CANCELLED",
+        })
+        void shouldNotTransition(SemesterStatus from, SemesterStatus to) {
+            var semesterEntity = SemesterFixtures.semester().status(from).build();
 
-            assertTrue(semesterEntity.canTransitionTo(newStatus));
+            assertFalse(semesterEntity.canTransitionTo(to));
         }
 
-        @Test
-        void shouldNotTransitionFromActive() {
-            var semesterEntity = SemesterFixtures.semester().status(SemesterStatus.ACTIVE).build();
-
-            assertFalse(semesterEntity.canTransitionTo(SemesterStatus.PLANNED));
-        }
-
-
-        @ParameterizedTest
-        @EnumSource(
-            value = SemesterStatus.class,
-            names = {"PLANNED", "ACTIVE", "CANCELLED"}
-        )
-        void shouldNotTransitionFromCompleted(SemesterStatus newStatus) {
-            var semesterEntity = SemesterFixtures.semester().status(SemesterStatus.COMPLETED).build();
-
-            assertFalse(semesterEntity.canTransitionTo(newStatus));
-        }
-
-        @ParameterizedTest
-        @EnumSource(
-            value = SemesterStatus.class,
-            names = {"PLANNED", "ACTIVE", "COMPLETED"}
-        )
-        void shouldNotTransitionFromCancelled(SemesterStatus newStatus) {
-            var semesterEntity = SemesterFixtures.semester().status(SemesterStatus.CANCELLED).build();
-
-            assertFalse(semesterEntity.canTransitionTo(newStatus));
-        }
     }
 
 }

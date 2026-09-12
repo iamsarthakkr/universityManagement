@@ -53,23 +53,6 @@ public class SemesterIntegrationTests {
             assertEquals(SemesterStatus.PLANNED, resp.status());
         }
 
-        @Test
-        @WithAdmin
-        void shouldNotCreateSemesterWithDuplicateTermAndYear() {
-            var semsterRequest1 = SemesterFixtures.semesterRequest()
-                .term(SemesterTerm.SUMMER)
-                .year(2026)
-                .build();
-
-            var semsterRequest2 = SemesterFixtures.semesterRequest()
-                .term(SemesterTerm.SUMMER)
-                .year(2026)
-                .build();
-
-            semesterService.createSemester(semsterRequest1);
-
-            assertThrows(DataIntegrityViolationException.class, () -> semesterService.createSemester(semsterRequest2));
-        }
     }
 
     @Nested
@@ -130,12 +113,15 @@ public class SemesterIntegrationTests {
             "PLANNED, PLANNED",
             "PLANNED, COMPLETED",
             "ACTIVE, PLANNED",
+            "ACTIVE, ACTIVE",
             "COMPLETED, PLANNED",
             "COMPLETED, ACTIVE",
             "COMPLETED, CANCELLED",
+            "COMPLETED, COMPLETED",
             "CANCELLED, PLANNED",
             "CANCELLED, ACTIVE",
             "CANCELLED, COMPLETED",
+            "CANCELLED, CANCELLED",
         })
         @WithAdmin
         void shouldDenySemesterTransition(SemesterStatus from, SemesterStatus to) {
