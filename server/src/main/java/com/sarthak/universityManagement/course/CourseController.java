@@ -21,17 +21,17 @@ import java.util.List;
 @RequestMapping("courses")
 public class CourseController {
     private final CourseService courseService;
-    
+
     @Autowired
     public CourseController(CourseService courseService) {
         this.courseService = courseService;
     }
-    
+
     @GetMapping("/catalogue")
     public ResponseEntity<ApiResponse<List<CourseCatalogueResponse>>> getCoursesCatalogue() {
         return Res.success(courseService.getCoursesCatalogue());
     }
-    
+
     @PostMapping
     public ResponseEntity<ApiResponse<CourseResponse>> createNewCourse(@Valid @RequestBody CourseRequest courseRequest) {
         return Res.success(SuccessCode.CREATED, courseService.createCourse(courseRequest));
