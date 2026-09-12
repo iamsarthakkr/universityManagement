@@ -36,14 +36,17 @@ public class SemesterRepoTests {
     }
 
     @Test
-    void shouldRejectInvalidDates() {
+    void shouldRejectInvalidRegistrationDates() {
         assertThrows(DataIntegrityViolationException.class, () -> semesterRepo.saveAndFlush(
             SemesterFixtures.semester()
                 .registrationStartDate(LocalDate.of(2026, 1, 20))
                 .registrationEndDate(LocalDate.of(2026, 1, 19))
                 .build()
         ));
+    }
 
+    @Test
+    void shouldRejectInvalidSemesterDates() {
         assertThrows(DataIntegrityViolationException.class, () -> semesterRepo.saveAndFlush(
             SemesterFixtures.semester()
                 .startDate(LocalDate.of(2026, 1, 20))

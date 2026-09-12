@@ -6,15 +6,11 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@ActiveProfiles("test")
-@Transactional
 public class SemesterEntityTests {
 
     @Nested

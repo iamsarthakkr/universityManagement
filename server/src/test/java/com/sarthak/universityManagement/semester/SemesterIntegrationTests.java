@@ -1,6 +1,7 @@
 package com.sarthak.universityManagement.semester;
 
 import com.sarthak.universityManagement.common.exceptions.BadRequestException;
+import com.sarthak.universityManagement.common.exceptions.ResourceNotFoundException;
 import com.sarthak.universityManagement.semester.types.SemesterStatus;
 import com.sarthak.universityManagement.semester.types.SemesterTerm;
 import com.sarthak.universityManagement.testUtils.fixtures.SemesterFixtures;
@@ -96,6 +97,11 @@ public class SemesterIntegrationTests {
 
             assertNotNull(got);
             assertEquals(4, got.size());
+        }
+
+        @Test
+        void shouldThrowWhenSemesterNotFound() {
+            assertThrows(ResourceNotFoundException.class, () -> semesterService.getSemester(-1));
         }
     }
 
