@@ -2,7 +2,7 @@ CREATE TABLE semester (
     id INT NOT NULL AUTO_INCREMENT,
     
     term VARCHAR(10) NOT NULL,
-    year YEAR NOT NULL,
+    year INT NOT NULL,
     status VARCHAR(50) NOT NULL,
     
     registrationStartDate DATE NOT NULL,

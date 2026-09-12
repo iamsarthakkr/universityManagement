@@ -2,16 +2,17 @@ package com.sarthak.universityManagement.semester.dto;
 
 import com.sarthak.universityManagement.semester.types.SemesterTerm;
 import jakarta.validation.constraints.NotNull;
+import lombok.Builder;
 
 import java.time.LocalDate;
-import java.time.Year;
 
+@Builder
 public record CreateSemesterRequest(
     @NotNull(message = "term is required")
     SemesterTerm term,
 
     @NotNull(message = "year is required")
-    Year year,
+    Integer year,
 
     @NotNull(message = "registration start date required")
     LocalDate registrationStartDate,

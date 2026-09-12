@@ -10,7 +10,7 @@ import java.time.Year;
 @Builder
 public record SemesterResponse(
     SemesterTerm term,
-    Year year,
+    Integer year,
     SemesterStatus status,
     LocalDate registrationStartDate,
     LocalDate registrationEndDate,

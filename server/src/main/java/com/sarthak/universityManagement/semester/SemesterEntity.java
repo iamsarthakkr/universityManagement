@@ -49,7 +49,7 @@ public class SemesterEntity extends BaseEntity {
     private SemesterTerm term;
 
     @Column(name = "year", nullable = false)
-    private Year year;
+    private Integer year;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
