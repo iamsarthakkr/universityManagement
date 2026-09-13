@@ -5,9 +5,10 @@ import com.sarthak.universityManagement.common.exceptions.ResourceNotFoundExcept
 import com.sarthak.universityManagement.course.CourseService;
 import com.sarthak.universityManagement.courseOffering.dto.CourseOfferingResponse;
 import com.sarthak.universityManagement.courseOffering.dto.CreateCourseOfferingRequest;
-import com.sarthak.universityManagement.courseOffering.validators.CourseOfferingValidator;
 import com.sarthak.universityManagement.instructor.InstructorService;
+import com.sarthak.universityManagement.instructor.validators.InstructorValidator;
 import com.sarthak.universityManagement.semester.SemesterService;
+import com.sarthak.universityManagement.semester.validators.SemesterValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,8 +46,8 @@ public class CourseOfferingService {
         var instructor = instructorService.getInstructorEntity(instructorId);
         var semester =  semesterService.getSemesterEntity(semesterId);
 
-        CourseOfferingValidator.validateSemesterAllowsOfferings(semester);
-        CourseOfferingValidator.validateInstructorForCourse(course, instructor);
+        SemesterValidator.validateSemesterAllowsOfferings(semester);
+        InstructorValidator.validateInstructorForCourse(course, instructor);
         if(courseOfferingRepo.existsByCourseIdAndSemesterIdAndSection(courseId, semesterId, section)) {
             throw new BadRequestException("course offering already exists");
         }
