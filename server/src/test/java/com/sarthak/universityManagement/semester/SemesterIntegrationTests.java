@@ -37,18 +37,18 @@ public class SemesterIntegrationTests {
         @Test
         @WithAdmin
         void shouldCreateSemesterWithCorrectFields() {
-            var semsterRequest = SemesterFixtures.semesterRequest().build();
+            var semesterRequest = SemesterFixtures.semesterRequest().build();
 
-            var resp = semesterService.createSemester(semsterRequest);
+            var resp = semesterService.createSemester(semesterRequest);
 
             assertNotNull(resp);
 
-            assertEquals(resp.term(), semsterRequest.term());
-            assertEquals(resp.year(), semsterRequest.year());
-            assertEquals(resp.registrationStartDate(), semsterRequest.registrationStartDate());
-            assertEquals(resp.registrationEndDate(), semsterRequest.registrationEndDate());
-            assertEquals(resp.startDate(), semsterRequest.startDate());
-            assertEquals(resp.endDate(), semsterRequest.endDate());
+            assertEquals(resp.term(), semesterRequest.term());
+            assertEquals(resp.year(), semesterRequest.year());
+            assertEquals(resp.registrationStartDate(), semesterRequest.registrationStartDate());
+            assertEquals(resp.registrationEndDate(), semesterRequest.registrationEndDate());
+            assertEquals(resp.startDate(), semesterRequest.startDate());
+            assertEquals(resp.endDate(), semesterRequest.endDate());
 
             assertEquals(SemesterStatus.PLANNED, resp.status());
         }

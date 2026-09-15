@@ -17,6 +17,7 @@ public final class SemesterMapper {
 
     public static SemesterResponse toResponse(SemesterEntity semesterEntity) {
         return SemesterResponse.builder()
+            .id(semesterEntity.getId())
             .term(semesterEntity.getTerm())
             .year(semesterEntity.getYear())
             .status(semesterEntity.getStatus())
