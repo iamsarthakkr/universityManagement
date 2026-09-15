@@ -150,7 +150,7 @@ public class CourseOfferingIntegrationTests {
 
         @ParameterizedTest
         @CsvSource({"ACTIVE", "COMPLETED", "CANCELLED"})
-        void shouldThrowWhenSemesterIsNotActive(SemesterStatus semesterStatus) {
+        void shouldThrowWhenSemesterIsNotPlanned(SemesterStatus semesterStatus) {
             var sem2 = semesterSeeder.saveSemester(
                 SemesterFixtures.semester()
                     .year(2027)
@@ -182,8 +182,7 @@ public class CourseOfferingIntegrationTests {
 
             courseOfferingService.createOffering(courseOfferingReq1);
 
-            var dep2 =  departmentSeeder.saveDefault("dep2");
-            var instructor2 = instructorSeeder.saveDefaultInstructor(dep2);
+            var instructor2 = instructorSeeder.saveDefaultInstructor(department);
 
             var courseOfferingReq2 = CourseOfferingFixtures.courseOfferingRequest()
                 .capacity(100)
@@ -209,6 +208,11 @@ public class CourseOfferingIntegrationTests {
             assertNotNull(ret);
             assertEquals(CourseOfferingMapper.toResponse(offering), ret);
 
+        }
+
+        @Test
+        void shouldReturnEmptyForNonExistentCourseOffering() {
+            assertThrows(ResourceNotFoundException.class, () -> courseOfferingService.getOffering(-1));
         }
 
         @Test
@@ -243,6 +247,15 @@ public class CourseOfferingIntegrationTests {
             assertTrue(ids.contains(offering1.getId()));
             assertTrue(ids.contains(offering2.getId()));
 
+        }
+
+        @Test
+        void shouldReturnEmptyListForNonExistentCourseOfferings() {
+            var sem = semesterSeeder.saveDefaultSemester(SemesterTerm.SUMMER, 2027);
+
+            var ret = courseOfferingService.getOfferingsBySemester(sem.getId());
+            assertNotNull(ret);
+            assertEquals(0, ret.size());
         }
 
     }
