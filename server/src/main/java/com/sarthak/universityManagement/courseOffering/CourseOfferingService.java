@@ -1,5 +1,6 @@
 package com.sarthak.universityManagement.courseOffering;
 
+import com.sarthak.universityManagement.auth.AuthorizationExpressions;
 import com.sarthak.universityManagement.common.exceptions.BadRequestException;
 import com.sarthak.universityManagement.common.exceptions.ResourceNotFoundException;
 import com.sarthak.universityManagement.course.CourseService;
@@ -10,6 +11,7 @@ import com.sarthak.universityManagement.instructor.validators.InstructorValidato
 import com.sarthak.universityManagement.semester.SemesterService;
 import com.sarthak.universityManagement.semester.validators.SemesterValidator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,6 +38,7 @@ public class CourseOfferingService {
         this.semesterService = semesterService;
     }
 
+    @PreAuthorize(AuthorizationExpressions.ADMIN)
     public CourseOfferingResponse createOffering(CreateCourseOfferingRequest courseOfferingRequest) {
         var courseId = courseOfferingRequest.courseId();
         var instructorId = courseOfferingRequest.instructorId();
