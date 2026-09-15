@@ -2,7 +2,6 @@ package com.sarthak.universityManagement.testUtils.seeders;
 
 import com.sarthak.universityManagement.semester.SemesterEntity;
 import com.sarthak.universityManagement.semester.SemesterRepo;
-import com.sarthak.universityManagement.semester.types.SemesterStatus;
 import com.sarthak.universityManagement.semester.types.SemesterTerm;
 import com.sarthak.universityManagement.testUtils.fixtures.SemesterFixtures;
 import org.springframework.beans.factory.annotation.Autowired;

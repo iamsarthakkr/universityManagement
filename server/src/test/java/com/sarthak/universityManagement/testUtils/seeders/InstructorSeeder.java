@@ -18,9 +18,9 @@ public final class InstructorSeeder {
 
     @Autowired
     public InstructorSeeder(
-            InstructorRepo instructorRepo,
-            DepartmentSeeder departmentSeeder,
-            UserSeeder userSeeder
+        InstructorRepo instructorRepo,
+        DepartmentSeeder departmentSeeder,
+        UserSeeder userSeeder
     ) {
         this.instructorRepo = instructorRepo;
         this.departmentSeeder = departmentSeeder;
@@ -31,20 +31,15 @@ public final class InstructorSeeder {
         return instructorRepo.saveAndFlush(instructorEntity);
     }
 
-    public InstructorEntity saveDefaultInstructorWithDepartment(DepartmentEntity department) {
-        var defaultUser = userSeeder.saveDefaultUser(Role.INSTRUCTOR);
+    public InstructorEntity saveDefaultInstructor(DepartmentEntity department) {
+        var defaultUser = userSeeder.saveDefault(Role.INSTRUCTOR);
         return saveInstructor(
-                InstructorFixtures
-                        .instructor()
-                        .user(defaultUser)
-                        .department(department)
-                        .build()
+            InstructorFixtures
+                .instructor()
+                .user(defaultUser)
+                .department(department)
+                .build()
         );
-    }
-
-    public InstructorEntity saveDefaultInstructor() {
-        var defaultDepartment = departmentSeeder.saveDefault("test-code");
-        return saveDefaultInstructorWithDepartment(defaultDepartment);
     }
 
 }
