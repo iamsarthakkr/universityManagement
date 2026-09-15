@@ -32,7 +32,7 @@ public class CourseMapper {
             .credits(courseEntity.getCredits())
             .build();
     }
-    
+
     public static List<CourseCatalogueResponse> toCatalogue(List<CourseEntity> courses) {
         Map<Integer, List<CourseEntity>> coursesMap = new HashMap<>();
         Map<Integer, String> departmentNameMap = new HashMap<>();
@@ -44,10 +44,10 @@ public class CourseMapper {
             }
             coursesMap.get(department.getId()).add(course);
         });
-        
+
         List<CourseCatalogueResponse> ret = new ArrayList<>();
         coursesMap.forEach((key, courseList) ->
-                ret.add(new CourseCatalogueResponse(key, departmentNameMap.get(key),  courseList.stream().map(CourseMapper::toResponse).toList()))
+            ret.add(new CourseCatalogueResponse(key, departmentNameMap.get(key),  courseList.stream().map(CourseMapper::toResponse).toList()))
         );
         return ret;
     }

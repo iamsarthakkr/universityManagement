@@ -15,10 +15,10 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class InstructorService {
     private final InstructorRepo instructorRepo;
     
-    @Transactional
     public InstructorEntity createInstructorForUser(CreateInstructorCommand createInstructorCommand, UserEntity user) {
         if(instructorRepo.existsByUserId(user.getId())) {
             throw new ConflictException("Instructor already exists for user with id " + user.getId());
@@ -32,19 +32,19 @@ public class InstructorService {
         return instructorRepo.save(newInstructor);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<InstructorResponse> getAllInstructors() {
         return instructorRepo.findAll().stream().map(InstructorMapper::toResponse).toList();
     }
 
     @Transactional(readOnly = true)
-    public InstructorEntity getInstructorById(Integer instructorId) {
+    public InstructorEntity getInstructorEntity(Integer instructorId) {
         return instructorRepo
                 .findById(instructorId)
                 .orElseThrow(() -> new ResourceNotFoundException("Instructor does not exist with id " + instructorId));
     }
     
-    @Transactional
+    @Transactional(readOnly = true)
     public InstructorEntity getInstructorByUserId(int userId) {
         return instructorRepo
             .findByUserId(userId)

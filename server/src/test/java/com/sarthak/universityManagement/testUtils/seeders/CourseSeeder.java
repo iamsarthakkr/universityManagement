@@ -9,10 +9,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestComponent;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 @TestComponent
 @ActiveProfiles("test")
 public class CourseSeeder {
     private final CourseRepo courseRepo;
+    private final AtomicInteger counter = new AtomicInteger(0);
 
     @Autowired
     public CourseSeeder(CourseRepo courseRepo) {
@@ -24,8 +27,12 @@ public class CourseSeeder {
     }
 
     public CourseEntity saveDefault(DepartmentEntity department) {
+        var cnt =  counter.incrementAndGet();
         return courseRepo.saveAndFlush(
-                CourseFixtures.course(department).build()
+            CourseFixtures
+                .course(department)
+                .code("code-" + cnt)
+                .build()
         );
     }
 
