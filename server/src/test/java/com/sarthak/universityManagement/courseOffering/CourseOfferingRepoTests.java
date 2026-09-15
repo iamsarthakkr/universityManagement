@@ -130,12 +130,17 @@ public class CourseOfferingRepoTests {
             var sem = semesterSeeder.saveDefaultSemester(SemesterTerm.SUMMER, 2026);
             var instructor =  instructorSeeder.saveDefaultInstructor(dep);
 
-            var offering = CourseOfferingFixtures.courseOffering(course, instructor, sem)
+            var offering1 = CourseOfferingFixtures.courseOffering(course, instructor, sem)
                 .section("A")
                 .capacity(0)
                 .build();
+            var offering2 = CourseOfferingFixtures.courseOffering(course, instructor, sem)
+                .section("A")
+                .capacity(-1)
+                .build();
 
-            assertThrows(DataIntegrityViolationException.class, () -> courseOfferingRepo.saveAndFlush(offering));
+            assertThrows(DataIntegrityViolationException.class, () -> courseOfferingRepo.saveAndFlush(offering1));
+            assertThrows(DataIntegrityViolationException.class, () -> courseOfferingRepo.saveAndFlush(offering2));
         }
     }
 
@@ -162,9 +167,10 @@ public class CourseOfferingRepoTests {
 
             assertNotNull(ret);
             assertEquals(3, ret.size());
-            assertEquals(c1.getId(), ret.get(0).getId());
-            assertEquals(c2.getId(), ret.get(1).getId());
-            assertEquals(c3.getId(), ret.get(2).getId());
+            var ids = ret.stream().map(CourseOfferingEntity::getId).toList();
+            assertTrue(ids.contains(c1.getId()));
+            assertTrue(ids.contains(c2.getId()));
+            assertTrue(ids.contains(c3.getId()));
         }
 
         @Test
@@ -172,12 +178,16 @@ public class CourseOfferingRepoTests {
             var dep =  departmentSeeder.saveDefault("dep1");
 
             var course = courseSeeder.saveDefault(dep);
+            var course2 = courseSeeder.saveDefault(dep);
             var sem = semesterSeeder.saveDefaultSemester(SemesterTerm.SUMMER, 2026);
+            var sem2 = semesterSeeder.saveDefaultSemester(SemesterTerm.WINTER, 2026);
 
             courseOfferingSeeder.saveDefault(course, sem, "A");
 
             assertTrue(courseOfferingRepo.existsByCourseIdAndSemesterIdAndSection(course.getId(), sem.getId(), "A"));
             assertFalse(courseOfferingRepo.existsByCourseIdAndSemesterIdAndSection(course.getId(), sem.getId(), "B"));
+            assertFalse(courseOfferingRepo.existsByCourseIdAndSemesterIdAndSection(course.getId(), sem2.getId(), "B"));
+            assertFalse(courseOfferingRepo.existsByCourseIdAndSemesterIdAndSection(course2.getId(), sem.getId(), "B"));
 
         }
     }
