@@ -62,7 +62,7 @@ public class EnrollmentService {
             throw new ConflictException("Course offering already full");
         }
 
-        courseOffering.setCapacity(courseOffering.getCapacity() + 1);
+        courseOffering.setEnrolled(courseOffering.getEnrolled() + 1);
         enrollment.setStatus(EnrollmentStatus.ENROLLED);
     }
 
@@ -89,7 +89,9 @@ public class EnrollmentService {
         if(!enrollment.canTransitionTo(EnrollmentStatus.DROPPED)) {
             throw new BadRequestException("Enrollment with id " + enrollmentId + " cannot be dropped");
         }
+        var courseOffering = courseOfferingService.getCourseOfferingForEnrollment(enrollment.getCourseOffering().getId());
         enrollment.setStatus(EnrollmentStatus.DROPPED);
+        courseOffering.setEnrolled(courseOffering.getEnrolled() - 1);
     }
 
 

@@ -29,7 +29,7 @@ import lombok.Setter;
     },
     check = {
         @CheckConstraint(name = "chk_course_offering_capacity", constraint = "capacity > 0"),
-        @CheckConstraint(name = "chk_course_offering_enrolled", constraint = "enrolled <= 0 AND enrolled <= capacity")
+        @CheckConstraint(name = "chk_course_offering_enrolled", constraint = "0 <= enrolled AND enrolled <= capacity")
     }
 )
 @Getter
