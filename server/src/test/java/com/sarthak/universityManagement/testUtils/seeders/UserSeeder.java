@@ -8,10 +8,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestComponent;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 @TestComponent
 @ActiveProfiles("test")
 public final class UserSeeder {
     private final UserRepo userRepo;
+    private final AtomicInteger counter = new AtomicInteger(0);
 
     @Autowired
     public UserSeeder(UserRepo userRepo) {
@@ -22,12 +25,15 @@ public final class UserSeeder {
         return userRepo.saveAndFlush(userEntity);
     }
 
-    public UserEntity saveDefaultUser(Role role) {
+    public UserEntity saveDefault(Role role) {
+        var curr = counter.incrementAndGet();
         return saveUser(
-                UserFixtures
-                        .user()
-                        .role(role)
-                        .build()
+            UserFixtures
+                .user()
+                .username("seed-user-" +  curr)
+                .email("seedUser" + curr + "@abc")
+                .role(role)
+                .build()
         );
     }
 }

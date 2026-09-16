@@ -22,13 +22,13 @@ import lombok.Setter;
 @Builder
 @Entity
 @Table(
-        name = "course",
-        check = {
-                @CheckConstraint(name = "chk_course_credits", constraint = "credits > 0 AND credits < 10"),
-        },
-        uniqueConstraints = {
-                @UniqueConstraint(name = "unique_course_code", columnNames = "code")
-        }
+    name = "course",
+    check = {
+        @CheckConstraint(name = "chk_course_credits", constraint = "credits > 0 AND credits < 10"),
+    },
+    uniqueConstraints = {
+        @UniqueConstraint(name = "unique_course_code", columnNames = "code")
+    }
 )
 @Getter
 @Setter

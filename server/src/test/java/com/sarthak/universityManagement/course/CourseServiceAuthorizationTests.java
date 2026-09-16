@@ -1,13 +1,10 @@
 package com.sarthak.universityManagement.course;
 
 import com.sarthak.universityManagement.common.types.Role;
-import com.sarthak.universityManagement.course.dto.CourseRequest;
-import com.sarthak.universityManagement.instructor.InstructorEntity;
 import com.sarthak.universityManagement.testUtils.TestSecurityUtils;
 import com.sarthak.universityManagement.testUtils.fixtures.CourseFixtures;
 import com.sarthak.universityManagement.testUtils.fixtures.UserFixtures;
 import com.sarthak.universityManagement.testUtils.seeders.DepartmentSeeder;
-import com.sarthak.universityManagement.testUtils.seeders.InstructorSeeder;
 import com.sarthak.universityManagement.testUtils.seeders.UserSeeder;
 import com.sarthak.universityManagement.testUtils.testConfigs.RegistrationTestConfig;
 import org.junit.jupiter.api.AfterEach;
@@ -32,8 +29,6 @@ public class CourseServiceAuthorizationTests {
     private CourseService courseService;
     @Autowired
     private UserSeeder userSeeder;
-    @Autowired
-    private InstructorSeeder instructorSeeder;
     @Autowired
     private DepartmentSeeder departmentSeeder;
 
@@ -83,8 +78,6 @@ public class CourseServiceAuthorizationTests {
     @Test
     void createCourse_whenAnonymous_shouldDeny() {
         var department = departmentSeeder.saveDefault("cs-1");
-        InstructorEntity instructor = instructorSeeder.saveDefaultInstructorWithDepartment(department);
-
         var req = CourseFixtures.courseRequest(department.getId()).build();
 
         assertThrows(AuthenticationCredentialsNotFoundException.class, () -> courseService.createCourse(req));
