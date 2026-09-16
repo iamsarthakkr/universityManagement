@@ -64,4 +64,8 @@ public class CourseOfferingEntity extends BaseEntity {
     @Column(name = "enrolled", nullable = false)
     private Integer enrolled = 0;
 
+    public boolean hasCapacity() {
+        return enrolled < capacity;
+    }
+
 }

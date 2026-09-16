@@ -1,6 +1,9 @@
 package com.sarthak.universityManagement.enrollment;
 
 import com.sarthak.universityManagement.auth.AuthorizationExpressions;
+import com.sarthak.universityManagement.common.exceptions.BadRequestException;
+import com.sarthak.universityManagement.common.exceptions.ConflictException;
+import com.sarthak.universityManagement.common.exceptions.ResourceNotFoundException;
 import com.sarthak.universityManagement.courseOffering.CourseOfferingEntity;
 import com.sarthak.universityManagement.courseOffering.CourseOfferingService;
 import com.sarthak.universityManagement.enrollment.dto.EnrollmentResponse;
@@ -47,10 +50,58 @@ public class EnrollmentService {
         return EnrollmentMapper.toResponse(enrollmentRepo.save(toSave));
     }
 
+    @PreAuthorize(AuthorizationExpressions.ADMIN_OR_INSTRUCTOR)
+    public void approveEnrollment(Integer enrollmentId) {
+        var enrollment = getEnrollmentOrThrow(enrollmentId);
+        if(!enrollment.canTransitionTo(EnrollmentStatus.ENROLLED)) {
+            throw new BadRequestException("Enrollment with id " + enrollmentId + " cannot be approved");
+        }
+
+        var courseOffering = courseOfferingService.getCourseOfferingForEnrollment(enrollment.getCourseOffering().getId());
+        if(!courseOffering.hasCapacity()) {
+            throw new ConflictException("Course offering already full");
+        }
+
+        courseOffering.setCapacity(courseOffering.getCapacity() + 1);
+        enrollment.setStatus(EnrollmentStatus.ENROLLED);
+    }
+
+    @PreAuthorize(AuthorizationExpressions.ADMIN_OR_INSTRUCTOR)
+    public void rejectEnrollment(Integer enrollmentId) {
+        var enrollment = getEnrollmentOrThrow(enrollmentId);
+        if(!enrollment.canTransitionTo(EnrollmentStatus.REJECTED)) {
+            throw new BadRequestException("Enrollment with id " + enrollmentId + " cannot be rejected");
+        }
+        enrollment.setStatus(EnrollmentStatus.REJECTED);
+    }
+
+    @PreAuthorize(AuthorizationExpressions.STUDENT)
+    public void cancelEnrollment(Integer enrollmentId) {
+        var enrollment = getEnrollmentOrThrow(enrollmentId);
+        if(!enrollment.canTransitionTo(EnrollmentStatus.CANCELLED)) {
+            throw new BadRequestException("Enrollment with id " + enrollmentId + " cannot be cancelled");
+        }
+        enrollment.setStatus(EnrollmentStatus.CANCELLED);
+    }
+
+    public void dropEnrollment(Integer enrollmentId) {
+        var enrollment = getEnrollmentOrThrow(enrollmentId);
+        if(!enrollment.canTransitionTo(EnrollmentStatus.DROPPED)) {
+            throw new BadRequestException("Enrollment with id " + enrollmentId + " cannot be dropped");
+        }
+        enrollment.setStatus(EnrollmentStatus.DROPPED);
+    }
+
 
     private void validateEnrollmentRequest(CourseOfferingEntity courseOffering, StudentEntity student) {
         EnrollmentValidator.validateUniqueEnrollment(enrollmentRepo, student, courseOffering);
         EnrollmentValidator.validateOffering(courseOffering);
+    }
+
+    private EnrollmentEntity getEnrollmentOrThrow(Integer enrollmentId) {
+        return enrollmentRepo
+            .findById(enrollmentId)
+            .orElseThrow(() -> new ResourceNotFoundException("Enrollment with id " + enrollmentId + " not found"));
     }
 
 

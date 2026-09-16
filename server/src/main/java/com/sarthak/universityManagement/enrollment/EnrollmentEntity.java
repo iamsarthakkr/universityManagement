@@ -52,4 +52,12 @@ public class EnrollmentEntity extends BaseEntity {
     @Column(name = "status", nullable = false)
     private EnrollmentStatus status;
 
+    public boolean canTransitionTo(EnrollmentStatus newStatus) {
+        return switch (newStatus) {
+            case PENDING -> false;
+            case ENROLLED, CANCELLED, REJECTED -> status == EnrollmentStatus.PENDING;
+            case DROPPED -> status == EnrollmentStatus.ENROLLED;
+        };
+    }
+
 }
