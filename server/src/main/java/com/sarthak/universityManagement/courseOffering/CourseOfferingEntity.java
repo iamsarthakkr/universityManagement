@@ -28,7 +28,8 @@ import lombok.Setter;
         @UniqueConstraint(name = "unique_course_offering", columnNames = {"courseId", "semesterId", "section"})
     },
     check = {
-        @CheckConstraint(name = "chk_course_offering_capacity", constraint = "capacity > 0")
+        @CheckConstraint(name = "chk_course_offering_capacity", constraint = "capacity > 0"),
+        @CheckConstraint(name = "chk_course_offering_enrolled", constraint = "enrolled <= capacity")
     }
 )
 @Getter
@@ -59,5 +60,8 @@ public class CourseOfferingEntity extends BaseEntity {
 
     @Column(name = "capacity", nullable = false)
     private Integer capacity;
+
+    @Column(name = "enrolled", nullable = false)
+    private Integer enrolled = 0;
 
 }

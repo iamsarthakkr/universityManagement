@@ -71,6 +71,18 @@ public class CourseOfferingService {
         return CourseOfferingMapper.toResponse(entity);
     }
 
+    public CourseOfferingEntity getCourOfferingEntity(Integer offeringId) {
+        return courseOfferingRepo
+            .findById(offeringId)
+            .orElseThrow(()  -> new ResourceNotFoundException("Offering not found with id " + offeringId));
+    }
+
+    public CourseOfferingEntity getCourseOfferingForEnrollment(Integer offeringId) {
+        return courseOfferingRepo
+            .findForUpdateById(offeringId)
+            .orElseThrow(()  -> new ResourceNotFoundException("Offering not found with id " + offeringId));
+    }
+
     @Transactional(readOnly = true)
     public List<CourseOfferingResponse> getOfferingsBySemester(Integer semesterId) {
         return courseOfferingRepo

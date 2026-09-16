@@ -8,6 +8,7 @@ public record CourseOfferingResponse(
     int courseId,
     int instructorId,
     int semesterId,
+    String section,
     int capacity,
-    String section
+    int enrolled
 ) {}
