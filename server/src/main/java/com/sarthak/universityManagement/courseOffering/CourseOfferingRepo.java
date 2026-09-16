@@ -14,7 +14,6 @@ import java.util.Optional;
 public interface CourseOfferingRepo extends JpaRepository<CourseOfferingEntity, Integer> {
 
     @EntityGraph(attributePaths = {"course", "instructor", "semester"})
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<CourseOfferingEntity> findById(@NonNull Integer id);
 
     @EntityGraph(attributePaths = {"course", "instructor", "semester"})

@@ -10,7 +10,7 @@ import java.time.LocalDate;
 public final class EnrollmentValidator {
 
     public static void validateUniqueEnrollment(EnrollmentRepo enrollmentRepo, StudentEntity student, CourseOfferingEntity courseOffering) {
-        if(enrollmentRepo.existsBy_StudentId_And_CourseOfferingId(student.getId(), courseOffering.getId())) {
+        if(enrollmentRepo.existsByStudentIdAndCourseOfferingId(student.getId(), courseOffering.getId())) {
             throw new BadRequestException("Enrollment already exists for student in the course offering");
         }
     }
@@ -19,10 +19,6 @@ public final class EnrollmentValidator {
         var semester = courseOffering.getSemester();
         if(!semester.isRegistrationOpen(LocalDate.now())) {
             throw new BadRequestException("Registration is not open");
-        }
-
-        if(courseOffering.getEnrolled() == courseOffering.getCapacity()) {
-            throw new BadRequestException("Course offering already full");
         }
     }
 

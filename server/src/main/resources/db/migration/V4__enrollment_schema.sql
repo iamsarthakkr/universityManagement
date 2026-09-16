@@ -4,6 +4,9 @@ CREATE TABLE enrollment (
     courseOfferingId INT NOT NULL,
     status VARCHAR(50) NOT NULL,
 
+    createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
     CONSTRAINT fk_enrollment_student FOREIGN KEY (studentId) REFERENCES student(id),
     CONSTRAINT fk_enrollment_courseOffering FOREIGN KEY (courseOfferingId) REFERENCES course_offering(id),
     CONSTRAINT chk_enrollment_status CHECK (status IN ('ENROLLED', 'PENDING', 'REJECTED', 'CANCELLED', 'DROPPED')),
