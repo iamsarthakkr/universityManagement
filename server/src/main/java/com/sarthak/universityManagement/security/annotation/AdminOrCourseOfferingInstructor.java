@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @PreAuthorize(
     "hasRole('ADMIN') || " +
-    "@authorizationService.isInstructorForOffering(#offeringId)"
+    "@authorizationService.isInstructorForCourseOffering(#courseOfferingId)"
 )
-public @interface AdminOrOfferingInstructor {
+public @interface AdminOrCourseOfferingInstructor {
 }

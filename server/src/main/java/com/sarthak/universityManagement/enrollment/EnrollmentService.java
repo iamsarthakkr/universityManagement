@@ -1,6 +1,5 @@
 package com.sarthak.universityManagement.enrollment;
 
-import com.sarthak.universityManagement.auth.AuthorizationExpressions;
 import com.sarthak.universityManagement.common.exceptions.BadRequestException;
 import com.sarthak.universityManagement.common.exceptions.ConflictException;
 import com.sarthak.universityManagement.common.exceptions.ResourceNotFoundException;
@@ -9,36 +8,39 @@ import com.sarthak.universityManagement.courseOffering.CourseOfferingService;
 import com.sarthak.universityManagement.enrollment.dto.EnrollmentResponse;
 import com.sarthak.universityManagement.enrollment.types.EnrollmentStatus;
 import com.sarthak.universityManagement.enrollment.validators.EnrollmentValidator;
+import com.sarthak.universityManagement.security.annotation.AdminOrCourseOfferingInstructor;
 import com.sarthak.universityManagement.security.annotation.AdminOrEnrollmentInstructor;
+import com.sarthak.universityManagement.security.annotation.CurrentStudent;
 import com.sarthak.universityManagement.security.annotation.EnrollmentStudent;
 import com.sarthak.universityManagement.student.StudentEntity;
-import com.sarthak.universityManagement.user.CurrentUserService;
+import com.sarthak.universityManagement.student.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @Transactional
 public class EnrollmentService {
     private final EnrollmentRepo enrollmentRepo;
-    private final CurrentUserService currentUserService;
     private final CourseOfferingService courseOfferingService;
+    private final StudentService studentService;
 
     @Autowired
     public EnrollmentService(
         EnrollmentRepo enrollmentRepo,
-        CurrentUserService currentUserService,
-        CourseOfferingService courseOfferingService
+        CourseOfferingService courseOfferingService,
+        StudentService studentService
     ) {
         this.enrollmentRepo = enrollmentRepo;
-        this.currentUserService = currentUserService;
         this.courseOfferingService = courseOfferingService;
+        this.studentService = studentService;
     }
 
-    @PreAuthorize(AuthorizationExpressions.STUDENT)
-    public EnrollmentResponse createEnrollment(Integer courseOfferingId) {
-        var student = currentUserService.getCurrentStudent();
+    @CurrentStudent
+    public EnrollmentResponse createEnrollment(Integer studentId, Integer courseOfferingId) {
+        var student = studentService.getStudentEntity(studentId);
         var courseOffering = courseOfferingService.getCourOfferingEntity(courseOfferingId);
 
         validateEnrollmentRequest(courseOffering, student);
@@ -97,6 +99,27 @@ public class EnrollmentService {
         courseOffering.setEnrolled(courseOffering.getEnrolled() - 1);
     }
 
+    @CurrentStudent
+    public List<EnrollmentResponse> getEnrollmentsForStudent(Integer studentId) {
+        return enrollmentRepo
+            .findByStudentId(studentId)
+            .stream()
+            .map(EnrollmentMapper::toResponse)
+            .toList();
+    }
+
+    @AdminOrCourseOfferingInstructor
+    public List<EnrollmentResponse> getEnrollmentsForCourseOffering(Integer courseOfferingId) {
+        return enrollmentRepo
+            .finByCourseOffering_Id(courseOfferingId)
+            .stream()
+            .map(EnrollmentMapper::toResponse)
+            .toList();
+    }
+
+    /* ---------------------------------------------------------------------------------------------------------------*/
+
+
     private void validateEnrollmentRequest(CourseOfferingEntity courseOffering, StudentEntity student) {
         EnrollmentValidator.validateUniqueEnrollment(enrollmentRepo, student, courseOffering);
         EnrollmentValidator.validateOffering(courseOffering);
@@ -107,6 +130,5 @@ public class EnrollmentService {
             .findById(enrollmentId)
             .orElseThrow(() -> new ResourceNotFoundException("Enrollment with id " + enrollmentId + " not found"));
     }
-
 
 }

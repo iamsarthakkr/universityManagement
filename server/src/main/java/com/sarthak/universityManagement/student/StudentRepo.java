@@ -16,4 +16,6 @@ public interface StudentRepo extends JpaRepository<StudentEntity, Integer> {
     Optional<StudentEntity> findByUserId(Integer userId);
 
     boolean existsByUserId(Integer userId);
+
+    boolean existsByIdAndUser_Id(Integer id, Integer userId);
 }

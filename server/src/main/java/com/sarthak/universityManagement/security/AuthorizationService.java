@@ -3,6 +3,7 @@ package com.sarthak.universityManagement.security;
 
 import com.sarthak.universityManagement.courseOffering.CourseOfferingRepo;
 import com.sarthak.universityManagement.enrollment.EnrollmentRepo;
+import com.sarthak.universityManagement.student.StudentRepo;
 import com.sarthak.universityManagement.user.CurrentUserService;
 import org.springframework.stereotype.Component;
 
@@ -11,15 +12,18 @@ public class AuthorizationService {
     private final CurrentUserService currentUserService;
     private final CourseOfferingRepo courseOfferingRepo;
     private final EnrollmentRepo enrollmentRepo;
+    private final StudentRepo studentRepo;
 
     public AuthorizationService(
         CurrentUserService currentUserService,
         CourseOfferingRepo courseOfferingRepo,
-        EnrollmentRepo enrollmentRepo
+        EnrollmentRepo enrollmentRepo,
+        StudentRepo studentRepo
     ) {
         this.currentUserService = currentUserService;
         this.courseOfferingRepo = courseOfferingRepo;
         this.enrollmentRepo = enrollmentRepo;
+        this.studentRepo = studentRepo;
     }
 
     public boolean isInstructorForOffering(Integer offeringId) {
@@ -35,6 +39,11 @@ public class AuthorizationService {
     public boolean isStudentForEnrollment(Integer enrollmentId) {
         var currentUser = currentUserService.getCurrentUser();
         return enrollmentRepo.existsByIdAndStudent_User_Id(enrollmentId, currentUser.getId());
+    }
+
+    public boolean isCurrentStudent(Integer studentId) {
+        var currentUser = currentUserService.getCurrentUser();
+        return studentRepo.existsByIdAndUser_Id(studentId, currentUser.getId());
     }
 
 }
