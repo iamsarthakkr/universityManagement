@@ -9,7 +9,7 @@ import java.util.List;
 public interface EnrollmentRepo extends JpaRepository<EnrollmentEntity, Integer> {
     List<EnrollmentEntity> findByStudentId(Integer studentId);
 
-    List<EnrollmentEntity> finByCourseOffering_Id(Integer courseOfferingId);
+    List<EnrollmentEntity> findByCourseOfferingId(Integer courseOfferingId);
 
     boolean existsByStudentIdAndCourseOfferingId(Integer studentId, Integer courseOfferingId);
 

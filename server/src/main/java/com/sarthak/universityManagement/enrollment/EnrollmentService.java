@@ -111,7 +111,7 @@ public class EnrollmentService {
     @AdminOrCourseOfferingInstructor
     public List<EnrollmentResponse> getEnrollmentsForCourseOffering(Integer courseOfferingId) {
         return enrollmentRepo
-            .finByCourseOffering_Id(courseOfferingId)
+            .findByCourseOfferingId(courseOfferingId)
             .stream()
             .map(EnrollmentMapper::toResponse)
             .toList();
