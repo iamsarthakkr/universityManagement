@@ -10,8 +10,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 @PreAuthorize(
-    "hasRole('ADMIN') || " +
-    "@authorizationService.is(#isStudentForEnrollment(#enrollmentId)"
+    "@authorizationService.isStudentForEnrollment(#enrollmentId)"
 )
 public @interface EnrollmentStudent {
 }
