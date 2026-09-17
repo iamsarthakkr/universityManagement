@@ -9,6 +9,8 @@ import com.sarthak.universityManagement.courseOffering.CourseOfferingService;
 import com.sarthak.universityManagement.enrollment.dto.EnrollmentResponse;
 import com.sarthak.universityManagement.enrollment.types.EnrollmentStatus;
 import com.sarthak.universityManagement.enrollment.validators.EnrollmentValidator;
+import com.sarthak.universityManagement.security.annotation.AdminOrEnrollmentInstructor;
+import com.sarthak.universityManagement.security.annotation.EnrollmentStudent;
 import com.sarthak.universityManagement.student.StudentEntity;
 import com.sarthak.universityManagement.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,7 +52,7 @@ public class EnrollmentService {
         return EnrollmentMapper.toResponse(enrollmentRepo.save(toSave));
     }
 
-    @PreAuthorize(AuthorizationExpressions.ADMIN_OR_INSTRUCTOR)
+    @AdminOrEnrollmentInstructor
     public void approveEnrollment(Integer enrollmentId) {
         var enrollment = getEnrollmentOrThrow(enrollmentId);
         if(!enrollment.canTransitionTo(EnrollmentStatus.ENROLLED)) {
@@ -66,7 +68,7 @@ public class EnrollmentService {
         enrollment.setStatus(EnrollmentStatus.ENROLLED);
     }
 
-    @PreAuthorize(AuthorizationExpressions.ADMIN_OR_INSTRUCTOR)
+    @AdminOrEnrollmentInstructor
     public void rejectEnrollment(Integer enrollmentId) {
         var enrollment = getEnrollmentOrThrow(enrollmentId);
         if(!enrollment.canTransitionTo(EnrollmentStatus.REJECTED)) {
@@ -75,7 +77,7 @@ public class EnrollmentService {
         enrollment.setStatus(EnrollmentStatus.REJECTED);
     }
 
-    @PreAuthorize(AuthorizationExpressions.STUDENT)
+    @EnrollmentStudent
     public void cancelEnrollment(Integer enrollmentId) {
         var enrollment = getEnrollmentOrThrow(enrollmentId);
         if(!enrollment.canTransitionTo(EnrollmentStatus.CANCELLED)) {
@@ -84,6 +86,7 @@ public class EnrollmentService {
         enrollment.setStatus(EnrollmentStatus.CANCELLED);
     }
 
+    @EnrollmentStudent
     public void dropEnrollment(Integer enrollmentId) {
         var enrollment = getEnrollmentOrThrow(enrollmentId);
         if(!enrollment.canTransitionTo(EnrollmentStatus.DROPPED)) {
@@ -93,7 +96,6 @@ public class EnrollmentService {
         enrollment.setStatus(EnrollmentStatus.DROPPED);
         courseOffering.setEnrolled(courseOffering.getEnrolled() - 1);
     }
-
 
     private void validateEnrollmentRequest(CourseOfferingEntity courseOffering, StudentEntity student) {
         EnrollmentValidator.validateUniqueEnrollment(enrollmentRepo, student, courseOffering);

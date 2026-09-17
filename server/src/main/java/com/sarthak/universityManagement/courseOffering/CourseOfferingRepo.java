@@ -22,5 +22,7 @@ public interface CourseOfferingRepo extends JpaRepository<CourseOfferingEntity, 
 
     boolean existsByCourseIdAndSemesterIdAndSection(Integer courseId, Integer semesterId, String section);
 
+    boolean existsByIdAndInstructor_User_Id(Integer id, Integer instructorUserId);
+
     List<CourseOfferingEntity> findAllBySemesterId(Integer semesterId);
 }
