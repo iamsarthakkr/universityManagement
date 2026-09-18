@@ -56,7 +56,7 @@ public class EnrollmentService {
 
     @AdminOrEnrollmentInstructor
     public void approveEnrollment(Integer enrollmentId) {
-        var enrollment = getEnrollmentOrThrow(enrollmentId);
+        var enrollment = getEnrollmentForUpdateOrThrow(enrollmentId);
         if(!enrollment.canTransitionTo(EnrollmentStatus.ENROLLED)) {
             throw new BadRequestException("Enrollment with id " + enrollmentId + " cannot be approved");
         }
@@ -90,7 +90,7 @@ public class EnrollmentService {
 
     @EnrollmentStudent
     public void dropEnrollment(Integer enrollmentId) {
-        var enrollment = getEnrollmentOrThrow(enrollmentId);
+        var enrollment = getEnrollmentForUpdateOrThrow(enrollmentId);
         if(!enrollment.canTransitionTo(EnrollmentStatus.DROPPED)) {
             throw new BadRequestException("Enrollment with id " + enrollmentId + " cannot be dropped");
         }
@@ -128,6 +128,12 @@ public class EnrollmentService {
     private EnrollmentEntity getEnrollmentOrThrow(Integer enrollmentId) {
         return enrollmentRepo
             .findById(enrollmentId)
+            .orElseThrow(() -> new ResourceNotFoundException("Enrollment with id " + enrollmentId + " not found"));
+    }
+
+    private EnrollmentEntity getEnrollmentForUpdateOrThrow(Integer enrollmentId) {
+        return enrollmentRepo
+            .findForUpdateById(enrollmentId)
             .orElseThrow(() -> new ResourceNotFoundException("Enrollment with id " + enrollmentId + " not found"));
     }
 
