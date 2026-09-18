@@ -1,6 +1,5 @@
 package com.sarthak.universityManagement.testUtils.seeders;
 
-import com.sarthak.universityManagement.common.exceptions.BadRequestException;
 import com.sarthak.universityManagement.course.CourseEntity;
 import com.sarthak.universityManagement.course.CourseRepo;
 import com.sarthak.universityManagement.department.DepartmentEntity;
@@ -41,7 +40,7 @@ public class CourseSeeder {
         if(existing.isPresent()) {
             var course = existing.get();
             if(!course.getDepartment().getId().equals(department.getId())) {
-                throw new BadRequestException("Department with code " + code + " already exists in different department");
+                throw new IllegalStateException("Department with code " + code + " already exists in different department");
             }
             return course;
         }
