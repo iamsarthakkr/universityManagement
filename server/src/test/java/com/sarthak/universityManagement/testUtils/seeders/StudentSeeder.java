@@ -8,10 +8,10 @@ import com.sarthak.universityManagement.testUtils.fixtures.StudentFixtures;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestComponent;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.context.annotation.Profile;
 
 @TestComponent
-@ActiveProfiles("test")
+@Profile("test")
 @Import(UserSeeder.class)
 public final class StudentSeeder {
     private final StudentRepo studentRepo;

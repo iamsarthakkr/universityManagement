@@ -4,14 +4,13 @@ import com.sarthak.universityManagement.semester.SemesterRepo;
 import com.sarthak.universityManagement.semester.types.SemesterStatus;
 import com.sarthak.universityManagement.semester.types.SemesterTerm;
 import com.sarthak.universityManagement.testUtils.fixtures.SemesterFixtures;
-import com.sarthak.universityManagement.testUtils.seeders.SemesterSeeder;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.test.context.TestComponent;
 import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 
-@Component
+@TestComponent
 @Profile("test")
 @RequiredArgsConstructor
 public class SemesterScenarioSeeder {

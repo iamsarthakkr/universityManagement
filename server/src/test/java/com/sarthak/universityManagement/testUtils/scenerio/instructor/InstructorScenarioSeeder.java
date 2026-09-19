@@ -3,10 +3,10 @@ package com.sarthak.universityManagement.testUtils.scenerio.instructor;
 import com.sarthak.universityManagement.testUtils.scenerio.department.DepartmentScenarioSeeder;
 import com.sarthak.universityManagement.testUtils.seeders.InstructorSeeder;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.test.context.TestComponent;
 import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Component;
 
-@Component
+@TestComponent
 @Profile("test")
 @RequiredArgsConstructor
 public class InstructorScenarioSeeder {

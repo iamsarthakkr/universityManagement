@@ -6,10 +6,10 @@ import com.sarthak.universityManagement.semester.types.SemesterTerm;
 import com.sarthak.universityManagement.testUtils.fixtures.SemesterFixtures;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestComponent;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.context.annotation.Profile;
 
 @TestComponent
-@ActiveProfiles("test")
+@Profile("test")
 public final class SemesterSeeder {
     @Autowired
     private SemesterRepo semesterRepo;
