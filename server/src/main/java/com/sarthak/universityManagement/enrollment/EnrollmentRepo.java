@@ -1,6 +1,7 @@
 package com.sarthak.universityManagement.enrollment;
 
 import jakarta.persistence.LockModeType;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.stereotype.Repository;
@@ -16,6 +17,8 @@ public interface EnrollmentRepo extends JpaRepository<EnrollmentEntity, Integer>
     List<EnrollmentEntity> findByStudentId(Integer studentId);
 
     List<EnrollmentEntity> findByCourseOfferingId(Integer courseOfferingId);
+
+    Optional<EnrollmentEntity> findByStudentIdAndCourseOfferingId(Integer studentId, Integer courseOfferingId);
 
     boolean existsByStudentIdAndCourseOfferingId(Integer studentId, Integer courseOfferingId);
 

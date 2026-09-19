@@ -9,7 +9,6 @@ import org.springframework.boot.test.context.TestComponent;
 import org.springframework.context.annotation.Profile;
 
 import java.time.LocalDate;
-import java.time.temporal.TemporalUnit;
 
 @TestComponent
 @Profile("test")

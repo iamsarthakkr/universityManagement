@@ -1,8 +1,8 @@
 package com.sarthak.universityManagement.testUtils.scenerio.courseOffering;
 
 import com.sarthak.universityManagement.courseOffering.CourseOfferingEntity;
-import com.sarthak.universityManagement.testUtils.fixtures.CourseOfferingFixtures;
 import com.sarthak.universityManagement.testUtils.scenerio.course.CourseScenarioSeeder;
+import com.sarthak.universityManagement.testUtils.scenerio.department.DepartmentScenarioSeeder;
 import com.sarthak.universityManagement.testUtils.scenerio.instructor.InstructorScenarioSeeder;
 import com.sarthak.universityManagement.testUtils.scenerio.semester.SemesterScenarioSeeder;
 import com.sarthak.universityManagement.testUtils.seeders.CourseOfferingSeeder;
@@ -29,6 +29,8 @@ public class CourseOfferingScenarioSeeder {
         private final InstructorScenarioSeeder.Scenario instructorScenarioBuilder;
         private final SemesterScenarioSeeder.Scenario semesterScenarioBuilder;
 
+        private int departmentNumber = 1;
+
         private Scenario() {
             this.courseOfferingBuilder = CourseOfferingEntity.builder()
                 .section("A")
@@ -53,24 +55,38 @@ public class CourseOfferingScenarioSeeder {
             return this;
         }
 
-        public Scenario course(Consumer<CourseScenarioSeeder.Scenario> courseScenarioConsumer) {
-            courseScenarioConsumer.accept(courseScenarioBuilder);
-            return this;
-        }
-        public Scenario instructor(Consumer<InstructorScenarioSeeder.Scenario> instructorScenarioConsumer) {
-            instructorScenarioConsumer.accept(instructorScenarioBuilder);
-            return this;
-        }
         public Scenario semester(Consumer<SemesterScenarioSeeder.Scenario> semesterScenarioConsumer) {
             semesterScenarioConsumer.accept(semesterScenarioBuilder);
             return this;
         }
 
+        public Scenario courseNumber(int courseNumber) {
+            this.courseScenarioBuilder.courseNumber(courseNumber);
+            return this;
+        }
+        public Scenario instructorNumber(int instructorNumber) {
+            this.instructorScenarioBuilder.instructorNumber(instructorNumber);
+            return this;
+        }
+        public Scenario departmentNumber(int departmentNumber) {
+            this.departmentNumber = departmentNumber;
+            return this;
+        }
+
         public CourseOfferingScenario build() {
 
-            var instructorScenario = instructorScenarioBuilder.build();
-            var courseScenario = courseScenarioBuilder.build();
+            var instructorScenario = instructorScenarioBuilder
+                .department(department -> department.departmentNumber(departmentNumber))
+                .build();
+            var courseScenario = courseScenarioBuilder
+                .department(department -> department.departmentNumber(departmentNumber))
+                .build();
             var semesterScenario = semesterScenarioBuilder.build();
+
+            courseOfferingBuilder
+                .instructor(instructorScenario.instructor())
+                .course(courseScenario.course())
+                .semester(semesterScenario.semester());
 
             var courseOffering = courseOfferingSeeder.seedOrGet(courseOfferingBuilder);
 
