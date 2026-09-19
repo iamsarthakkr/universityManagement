@@ -1,13 +1,11 @@
 package com.sarthak.universityManagement.enrollment;
 
 import com.sarthak.universityManagement.common.exceptions.BadRequestException;
-import com.sarthak.universityManagement.common.exceptions.ConflictException;
 import com.sarthak.universityManagement.common.exceptions.ResourceNotFoundException;
 import com.sarthak.universityManagement.courseOffering.CourseOfferingEntity;
 import com.sarthak.universityManagement.courseOffering.CourseOfferingService;
 import com.sarthak.universityManagement.enrollment.dto.EnrollmentResponse;
 import com.sarthak.universityManagement.enrollment.types.EnrollmentStatus;
-import com.sarthak.universityManagement.enrollment.validators.EnrollmentValidator;
 import com.sarthak.universityManagement.security.annotation.AdminOrCourseOfferingInstructor;
 import com.sarthak.universityManagement.security.annotation.AdminOrEnrollmentInstructor;
 import com.sarthak.universityManagement.security.annotation.CurrentStudent;
@@ -18,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -62,11 +61,7 @@ public class EnrollmentService {
         }
 
         var courseOffering = courseOfferingService.getCourseOfferingForEnrollment(enrollment.getCourseOffering().getId());
-        if(!courseOffering.hasCapacity()) {
-            throw new ConflictException("Course offering already full");
-        }
-
-        courseOffering.setEnrolled(courseOffering.getEnrolled() + 1);
+        courseOffering.enroll();
         enrollment.setStatus(EnrollmentStatus.ENROLLED);
     }
 
@@ -95,8 +90,8 @@ public class EnrollmentService {
             throw new BadRequestException("Enrollment with id " + enrollmentId + " cannot be dropped");
         }
         var courseOffering = courseOfferingService.getCourseOfferingForEnrollment(enrollment.getCourseOffering().getId());
+        courseOffering.releaseEnrolled();
         enrollment.setStatus(EnrollmentStatus.DROPPED);
-        courseOffering.setEnrolled(courseOffering.getEnrolled() - 1);
     }
 
     @CurrentStudent
@@ -119,10 +114,14 @@ public class EnrollmentService {
 
     /* ---------------------------------------------------------------------------------------------------------------*/
 
-
     private void validateEnrollmentRequest(CourseOfferingEntity courseOffering, StudentEntity student) {
-        EnrollmentValidator.validateUniqueEnrollment(enrollmentRepo, student, courseOffering);
-        EnrollmentValidator.validateOffering(courseOffering);
+        if(enrollmentRepo.existsByStudentIdAndCourseOfferingId(student.getId(), courseOffering.getId())) {
+            throw new BadRequestException("Enrollment already exists for student in the course offering");
+        }
+        var semester = courseOffering.getSemester();
+        if(!semester.isRegistrationOpen(LocalDate.now())) {
+            throw new BadRequestException("Registration is not open");
+        }
     }
 
     private EnrollmentEntity getEnrollmentOrThrow(Integer enrollmentId) {

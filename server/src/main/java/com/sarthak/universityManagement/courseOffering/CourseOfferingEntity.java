@@ -1,6 +1,7 @@
 package com.sarthak.universityManagement.courseOffering;
 
 import com.sarthak.universityManagement.common.entity.BaseEntity;
+import com.sarthak.universityManagement.common.exceptions.BadRequestException;
 import com.sarthak.universityManagement.course.CourseEntity;
 import com.sarthak.universityManagement.instructor.InstructorEntity;
 import com.sarthak.universityManagement.semester.SemesterEntity;
@@ -64,8 +65,20 @@ public class CourseOfferingEntity extends BaseEntity {
     @Column(name = "enrolled", nullable = false)
     private Integer enrolled = 0;
 
-    public boolean hasCapacity() {
-        return enrolled < capacity;
+    public boolean canEnroll() { return enrolled < capacity; }
+
+    public void enroll() {
+        if(!canEnroll()) {
+            throw new BadRequestException("Insufficient capacity for offering " + id);
+        }
+        enrolled++;
+    }
+
+    public void releaseEnrolled() {
+        if(enrolled <= 0) {
+            throw new BadRequestException("Cannot release seat - no enrollments for offering " + id);
+        }
+        enrolled--;
     }
 
 }
