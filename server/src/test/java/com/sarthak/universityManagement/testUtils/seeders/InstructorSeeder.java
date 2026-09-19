@@ -41,4 +41,20 @@ public final class InstructorSeeder {
         );
     }
 
+    public InstructorEntity seedOrGet(DepartmentEntity department, String username) {
+        var existing = instructorRepo.findByUser_Username(username);
+
+        if(existing.isPresent()) {
+            return existing.get();
+        }
+
+        var user = userSeeder.seedOrGet(Role.STUDENT, username);
+        return saveInstructor(
+            InstructorFixtures.instructor()
+                .department(department)
+                .user(user)
+                .build()
+        );
+    }
+
 }

@@ -36,4 +36,15 @@ public final class UserSeeder {
                 .build()
         );
     }
+
+    public UserEntity seedOrGet(Role role, String username) {
+        var existing = userRepo.findByUsername(username);
+        return existing.orElseGet(() -> saveUser(
+            UserFixtures.user()
+                .username(username)
+                .email(username + "@abc")
+                .role(role)
+                .build()
+        ));
+    }
 }

@@ -1,7 +1,7 @@
 package com.sarthak.universityManagement.testUtils.scenerio.course;
 
+import com.sarthak.universityManagement.testUtils.scenerio.department.DepartmentScenarioSeeder;
 import com.sarthak.universityManagement.testUtils.seeders.CourseSeeder;
-import com.sarthak.universityManagement.testUtils.seeders.DepartmentSeeder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -11,9 +11,8 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class CourseScenarioSeeder {
     private static final String COURSE_CODE_PREFIX = "TEST";
-    private static final String DEPARTMENT_CODE_PREFIX = "DEP";
 
-    private final DepartmentSeeder departmentSeeder;
+    private final DepartmentScenarioSeeder departmentScenarioSeeder;
     private final CourseSeeder courseSeeder;
 
     public Scenario builder() { return new Scenario(); }
@@ -33,14 +32,15 @@ public class CourseScenarioSeeder {
         }
 
         public CourseScenario build() {
-            var departmentCode = DEPARTMENT_CODE_PREFIX + departmentNumber;
-            var department = departmentSeeder.seedOrGet(departmentCode);
+            var departmentScenario = departmentScenarioSeeder.builder()
+                .departmentNumber(departmentNumber)
+                .build();
 
             var courseCode = COURSE_CODE_PREFIX + courseNumber;
-            var course = courseSeeder.seedOrGet(department, courseCode);
+            var course = courseSeeder.seedOrGet(departmentScenario.department(), courseCode);
 
             return new CourseScenario(
-                department,
+                departmentScenario.department(),
                 course
             );
         }

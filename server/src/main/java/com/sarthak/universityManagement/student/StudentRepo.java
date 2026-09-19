@@ -15,6 +15,9 @@ public interface StudentRepo extends JpaRepository<StudentEntity, Integer> {
     @EntityGraph(attributePaths = "user")
     Optional<StudentEntity> findByUserId(Integer userId);
 
+    @EntityGraph(attributePaths = "user")
+    Optional<StudentEntity> findByUser_Username(String username);
+
     boolean existsByUserId(Integer userId);
 
     boolean existsByIdAndUser_Id(Integer id, Integer userId);

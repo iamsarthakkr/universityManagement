@@ -23,4 +23,9 @@ public final class SemesterSeeder {
             SemesterFixtures.semester().term(semesterTerm).year(year).build()
         );
     }
+
+    public SemesterEntity seedOrGet(SemesterEntity semesterEntity) {
+        var existing = semesterRepo.findByTermAndYear(semesterEntity.getTerm(), semesterEntity.getYear());
+        return existing.orElseGet(() -> saveSemester(semesterEntity));
+    }
 }
