@@ -45,4 +45,24 @@ public class CourseOfferingSeeder {
                 .build()
         );
     }
+
+    public CourseOfferingEntity seedOrGet(CourseOfferingEntity.CourseOfferingEntityBuilder builder) {
+        var toSave = builder.build();
+
+        var courseId = toSave.getCourse().getId();
+        var semesterId = toSave.getSemester().getId();
+        var instructorId = toSave.getInstructor().getId();
+        var section = toSave.getSection();
+
+        var existing = courseOfferingRepo.findByCourseIdAndSemesterIdAndSection(courseId, semesterId, section);
+        if(existing.isPresent()) {
+            var courseOffering = existing.get();
+            if(!courseOffering.getInstructor().getId().equals(instructorId)) {
+                throw new IllegalStateException("course offering already present with different instructor");
+            }
+            return courseOffering;
+        }
+
+        return save(toSave);
+    }
 }

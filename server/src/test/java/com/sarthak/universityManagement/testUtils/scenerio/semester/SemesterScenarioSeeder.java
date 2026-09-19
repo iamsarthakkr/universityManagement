@@ -9,6 +9,7 @@ import org.springframework.boot.test.context.TestComponent;
 import org.springframework.context.annotation.Profile;
 
 import java.time.LocalDate;
+import java.time.temporal.TemporalUnit;
 
 @TestComponent
 @Profile("test")
@@ -39,6 +40,18 @@ public class SemesterScenarioSeeder {
         public Scenario registrationWindow(LocalDate registrationStartDate, LocalDate registrationEndDate) {
             this.registrationStartDate = registrationStartDate;
             this.registrationEndDate = registrationEndDate;
+            return this;
+        }
+
+        public Scenario registrationOpenOn(LocalDate date) {
+            this.registrationStartDate = date.minusDays(10);
+            this.registrationEndDate = date.plusDays(10);
+            return this;
+        }
+
+        public Scenario registrationClosedBefore(LocalDate date) {
+            this.registrationStartDate = date.minusDays(20);
+            this.registrationEndDate = date.minusDays(10);
             return this;
         }
 

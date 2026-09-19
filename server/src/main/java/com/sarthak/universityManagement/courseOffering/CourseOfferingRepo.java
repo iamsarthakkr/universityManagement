@@ -20,6 +20,9 @@ public interface CourseOfferingRepo extends JpaRepository<CourseOfferingEntity, 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<CourseOfferingEntity> findForUpdateById(Integer id);
 
+    @EntityGraph(attributePaths = {"course", "instructor", "semester"})
+    Optional<CourseOfferingEntity> findByCourseIdAndSemesterIdAndSection(Integer courseId, Integer semesterId, String section);
+
     boolean existsByCourseIdAndSemesterIdAndSection(Integer courseId, Integer semesterId, String section);
 
     boolean existsByIdAndInstructor_User_Id(Integer id, Integer instructorUserId);
