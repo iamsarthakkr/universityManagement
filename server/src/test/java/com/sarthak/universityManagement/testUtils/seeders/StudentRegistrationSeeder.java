@@ -5,10 +5,11 @@ import com.sarthak.universityManagement.registration.student.StudentRegistration
 import com.sarthak.universityManagement.testUtils.fixtures.StudentRegistrationFixtures;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestComponent;
+import org.springframework.context.annotation.Profile;
 import org.springframework.test.context.ActiveProfiles;
 
 @TestComponent
-@ActiveProfiles("test")
+@Profile("test")
 public final class StudentRegistrationSeeder {
     private final StudentRegistrationRepo studentRegistrationRepo;
     private final DepartmentSeeder departmentSeeder;

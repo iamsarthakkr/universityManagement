@@ -3,18 +3,17 @@ package com.sarthak.universityManagement.testUtils.seeders;
 import com.sarthak.universityManagement.course.CourseEntity;
 import com.sarthak.universityManagement.courseOffering.CourseOfferingEntity;
 import com.sarthak.universityManagement.courseOffering.CourseOfferingRepo;
-import com.sarthak.universityManagement.instructor.InstructorEntity;
 import com.sarthak.universityManagement.semester.SemesterEntity;
 import com.sarthak.universityManagement.testUtils.fixtures.CourseOfferingFixtures;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestComponent;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.context.annotation.Profile;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
 @TestComponent
-@ActiveProfiles("test")
+@Profile("test")
 @Import(InstructorSeeder.class)
 public class CourseOfferingSeeder {
     private final CourseOfferingRepo courseOfferingRepo;

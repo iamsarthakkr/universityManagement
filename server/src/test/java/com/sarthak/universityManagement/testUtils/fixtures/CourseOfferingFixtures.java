@@ -9,7 +9,9 @@ import com.sarthak.universityManagement.semester.SemesterEntity;
 public final class CourseOfferingFixtures {
 
     public static CourseOfferingEntity.CourseOfferingEntityBuilder courseOffering(
-        CourseEntity courseEntity, InstructorEntity instructorEntity, SemesterEntity semesterEntity
+        CourseEntity courseEntity,
+        InstructorEntity instructorEntity,
+        SemesterEntity semesterEntity
     ) {
         return CourseOfferingEntity.builder()
             .section("A")

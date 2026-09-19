@@ -37,4 +37,11 @@ public class StudentService {
             .orElseThrow(() -> new ResourceNotFoundException("No student exist for user id " + userId));
     }
 
+    @Transactional
+    public StudentEntity getStudentEntity(int studentId) {
+        return studentRepo
+            .findById(studentId)
+            .orElseThrow(() -> new ResourceNotFoundException("No student exists for student id " + studentId));
+    }
+
 }

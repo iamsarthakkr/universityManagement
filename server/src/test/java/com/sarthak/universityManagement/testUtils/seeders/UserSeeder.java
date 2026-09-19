@@ -6,12 +6,12 @@ import com.sarthak.universityManagement.user.UserEntity;
 import com.sarthak.universityManagement.user.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestComponent;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.context.annotation.Profile;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
 @TestComponent
-@ActiveProfiles("test")
+@Profile("test")
 public final class UserSeeder {
     private final UserRepo userRepo;
     private final AtomicInteger counter = new AtomicInteger(0);
@@ -35,5 +35,16 @@ public final class UserSeeder {
                 .role(role)
                 .build()
         );
+    }
+
+    public UserEntity seedOrGet(Role role, String username) {
+        var existing = userRepo.findByUsername(username);
+        return existing.orElseGet(() -> saveUser(
+            UserFixtures.user()
+                .username(username)
+                .email(username + "@abc")
+                .role(role)
+                .build()
+        ));
     }
 }
