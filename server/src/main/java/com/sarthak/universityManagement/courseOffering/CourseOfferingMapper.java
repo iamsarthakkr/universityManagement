@@ -8,6 +8,7 @@ public final class CourseOfferingMapper {
         return CourseOfferingEntity.builder()
             .capacity(request.capacity())
             .section(request.section())
+            .enrolled(0)
             .build();
     }
 

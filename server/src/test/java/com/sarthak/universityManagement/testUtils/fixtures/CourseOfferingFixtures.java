@@ -16,6 +16,7 @@ public final class CourseOfferingFixtures {
         return CourseOfferingEntity.builder()
             .section("A")
             .capacity(100)
+            .enrolled(0)
             .course(courseEntity)
             .instructor(instructorEntity)
             .semester(semesterEntity);
