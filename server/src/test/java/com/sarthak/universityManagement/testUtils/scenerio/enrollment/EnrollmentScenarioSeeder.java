@@ -1,5 +1,6 @@
 package com.sarthak.universityManagement.testUtils.scenerio.enrollment;
 
+import com.sarthak.universityManagement.enrollment.types.EnrollmentStatus;
 import com.sarthak.universityManagement.testUtils.fixtures.EnrollmentFixtures;
 import com.sarthak.universityManagement.testUtils.scenerio.courseOffering.CourseOfferingScenarioSeeder;
 import com.sarthak.universityManagement.testUtils.scenerio.student.StudentScenarioSeeder;
@@ -25,6 +26,12 @@ public class EnrollmentScenarioSeeder {
         private final CourseOfferingScenarioSeeder.Scenario courseOfferingScenarioBuilder = courseOfferingScenarioSeeder.builder();
 
         private int departmentNumber = 1;
+        private EnrollmentStatus enrollmentStatus = EnrollmentStatus.PENDING;
+
+        public Scenario enrollmentStatus(EnrollmentStatus enrollmentStatus) {
+            this.enrollmentStatus = enrollmentStatus;
+            return this;
+        }
 
         public Scenario student(Consumer<StudentScenarioSeeder.Scenario> studentScenarioConsumer) {
             studentScenarioConsumer.accept(studentScenarioBuilder);
@@ -49,7 +56,9 @@ public class EnrollmentScenarioSeeder {
                 .departmentNumber(departmentNumber)
                 .build();
 
-            var enrollmentBuilder = EnrollmentFixtures.enrollment(studentScenario.student(), courseOfferingScenario.courseOffering());
+            var enrollmentBuilder = EnrollmentFixtures
+                .enrollment(studentScenario.student(), courseOfferingScenario.courseOffering())
+                .status(enrollmentStatus);
 
             var enrollment = enrollmentSeeder.seedOrGet(enrollmentBuilder);
 

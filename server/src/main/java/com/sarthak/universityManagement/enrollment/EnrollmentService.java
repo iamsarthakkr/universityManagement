@@ -8,6 +8,7 @@ import com.sarthak.universityManagement.enrollment.dto.EnrollmentResponse;
 import com.sarthak.universityManagement.enrollment.types.EnrollmentStatus;
 import com.sarthak.universityManagement.security.annotation.AdminOrCourseOfferingInstructor;
 import com.sarthak.universityManagement.security.annotation.AdminOrEnrollmentInstructor;
+import com.sarthak.universityManagement.security.annotation.CanAccessEnrollment;
 import com.sarthak.universityManagement.security.annotation.CurrentStudent;
 import com.sarthak.universityManagement.security.annotation.EnrollmentStudent;
 import com.sarthak.universityManagement.student.StudentEntity;
@@ -16,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -25,16 +27,19 @@ public class EnrollmentService {
     private final EnrollmentRepo enrollmentRepo;
     private final CourseOfferingService courseOfferingService;
     private final StudentService studentService;
+    private final Clock clock;
 
     @Autowired
     public EnrollmentService(
         EnrollmentRepo enrollmentRepo,
         CourseOfferingService courseOfferingService,
-        StudentService studentService
+        StudentService studentService,
+        Clock clock
     ) {
         this.enrollmentRepo = enrollmentRepo;
         this.courseOfferingService = courseOfferingService;
         this.studentService = studentService;
+        this.clock = clock;
     }
 
     @CurrentStudent
@@ -112,6 +117,12 @@ public class EnrollmentService {
             .toList();
     }
 
+    @CanAccessEnrollment
+    public EnrollmentResponse getEnrollment(Integer enrollmentId) {
+        var enrollment = getEnrollmentOrThrow(enrollmentId);
+        return EnrollmentMapper.toResponse(enrollment);
+    }
+
     /* ---------------------------------------------------------------------------------------------------------------*/
 
     private void validateEnrollmentRequest(CourseOfferingEntity courseOffering, StudentEntity student) {
@@ -119,7 +130,7 @@ public class EnrollmentService {
             throw new BadRequestException("Enrollment already exists for student in the course offering");
         }
         var semester = courseOffering.getSemester();
-        if(!semester.isRegistrationOpen(LocalDate.now())) {
+        if(!semester.isRegistrationOpen(LocalDate.now(clock))) {
             throw new BadRequestException("Registration is not open");
         }
     }
