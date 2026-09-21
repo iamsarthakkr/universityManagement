@@ -1,6 +1,9 @@
 package com.sarthak.universityManagement.enrollment;
 
 import com.sarthak.universityManagement.config.IntegrationTests;
+import com.sarthak.universityManagement.enrollment.types.EnrollmentStatus;
+import com.sarthak.universityManagement.student.StudentEntity;
+import com.sarthak.universityManagement.testUtils.scenerio.courseOffering.CourseOfferingScenario;
 import com.sarthak.universityManagement.testUtils.scenerio.courseOffering.CourseOfferingScenarioSeeder;
 import com.sarthak.universityManagement.testUtils.scenerio.enrollment.EnrollmentScenario;
 import com.sarthak.universityManagement.testUtils.scenerio.enrollment.EnrollmentScenarioSeeder;
@@ -9,6 +12,7 @@ import com.sarthak.universityManagement.testUtils.scenerio.student.StudentScenar
 import com.sarthak.universityManagement.testUtils.security.TestAuthentication;
 import com.sarthak.universityManagement.testUtils.security.WithAdmin;
 import com.sarthak.universityManagement.user.UserEntity;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -39,7 +43,6 @@ public class EnrollmentAuthorizationTest extends IntegrationTests {
     class CreationAuthorization {
         private StudentScenario studentScenario1, studentScenario2;
         private CourseOfferingScenarioSeeder.Scenario courseOfferingScenarioBuilder;
-        private UserEntity admin;
 
         @BeforeEach
         void setup() {
@@ -119,8 +122,9 @@ public class EnrollmentAuthorizationTest extends IntegrationTests {
             enrollmentScenario2 = enrollmentScenarioSeeder.builder()
                 .student(s -> s.studentNumber(2))
                 .departmentNumber(1)
+                .enrollmentStatus(EnrollmentStatus.ENROLLED)
                 .offering(
-                    o -> o.instructorNumber(2).courseNumber(2)
+                    o -> o.instructorNumber(2).courseNumber(2).capacity(10).enrolled(1)
                 ).build();
         }
 
@@ -195,18 +199,21 @@ public class EnrollmentAuthorizationTest extends IntegrationTests {
         @ParameterizedTest
         @EnumSource(StudentAction.class)
         void shouldAllowStudentOfEnrollment(StudentAction action) {
-            var student = enrollmentScenario1.student();
-            var enrollment = enrollmentScenario1.enrollment();
+            var student1 = enrollmentScenario1.student();
+            var student2 = enrollmentScenario2.student();
+            var enrollment1 = enrollmentScenario1.enrollment();
+            var enrollment2 = enrollmentScenario2.enrollment();
 
-            TestAuthentication.asStudent(student);
 
             switch (action) {
                 case drop: {
-                    enrollmentService.dropEnrollment(enrollment.getId());
+                    TestAuthentication.asStudent(student2);
+                    enrollmentService.dropEnrollment(enrollment2.getId());
                     break;
                 }
                 case cancel: {
-                    enrollmentService.cancelEnrollment(enrollment.getId());
+                    TestAuthentication.asStudent(student1);
+                    enrollmentService.cancelEnrollment(enrollment1.getId());
                     break;
                 }
             }
@@ -238,6 +245,54 @@ public class EnrollmentAuthorizationTest extends IntegrationTests {
             }
 
             TestAuthentication.clear();
+        }
+
+    }
+
+    @Nested
+    class Query {
+
+        private StudentEntity student1, student2;
+
+        @BeforeEach
+        void setup() {
+            var studentScenario1 = studentScenarioSeeder.builder()
+                .department(d -> d.departmentNumber(1))
+                .studentNumber(1)
+                .build();
+
+            var studentScenario2 = studentScenarioSeeder.builder()
+                .department(d -> d.departmentNumber(1))
+                .studentNumber(2)
+                .build();
+
+            var courseOfferingScenario = courseOfferingScenarioSeeder.builder()
+                .departmentNumber(1)
+                .courseNumber(1)
+                .instructorNumber(1)
+                .capacity(10)
+                .enrolled(0)
+                .build();
+
+            student1 = studentScenario1.student();
+            student2 = studentScenario2.student();
+
+            TestAuthentication.asStudent(student1);
+            enrollmentService.cancelEnrollment(courseOfferingScenario.courseOffering().getId());
+            TestAuthentication.clear();
+        }
+
+        @Test
+        void shouldAllowStudentOfEnrollment() {
+            TestAuthentication.asStudent(student1);
+            var resp = enrollmentService.getEnrollmentsForStudent(student1.getId());
+            assertNull(resp);
+        }
+
+        @Test
+        void shouldDenyStudentNotOfEnrollment() {
+            TestAuthentication.asStudent(student2);
+            assertThrows(AuthorizationDeniedException.class, () -> enrollmentService.getEnrollmentsForStudent(student1.getId()));
         }
 
     }
