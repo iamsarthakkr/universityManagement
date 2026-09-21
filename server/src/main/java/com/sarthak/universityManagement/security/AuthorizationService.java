@@ -26,7 +26,7 @@ public class AuthorizationService {
         this.studentRepo = studentRepo;
     }
 
-    public boolean isInstructorForOffering(Integer offeringId) {
+    public boolean isInstructorForCourseOffering(Integer offeringId) {
         var currentUser = currentUserService.getCurrentUser();
         return courseOfferingRepo.existsByIdAndInstructor_User_Id(offeringId, currentUser.getId());
     }
