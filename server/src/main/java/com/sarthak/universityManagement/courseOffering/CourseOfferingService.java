@@ -71,7 +71,7 @@ public class CourseOfferingService {
         return CourseOfferingMapper.toResponse(entity);
     }
 
-    public CourseOfferingEntity getCourOfferingEntity(Integer offeringId) {
+    public CourseOfferingEntity getCourseOfferingEntity(Integer offeringId) {
         return courseOfferingRepo
             .findById(offeringId)
             .orElseThrow(()  -> new ResourceNotFoundException("Offering not found with id " + offeringId));

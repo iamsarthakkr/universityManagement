@@ -155,7 +155,7 @@ public class EnrollmentConcurrencyTests {
         }
         assertEquals(1, approvedCount);
 
-        var updatedOffering = courseOfferingService.getCourOfferingEntity(offering.getId());
+        var updatedOffering = courseOfferingService.getCourseOfferingEntity(offering.getId());
         assertEquals(1,  updatedOffering.getEnrolled());
 
         TestAuthentication.clear();

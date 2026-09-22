@@ -48,7 +48,7 @@ public final class InstructorSeeder {
             return existing.get();
         }
 
-        var user = userSeeder.seedOrGet(Role.STUDENT, username);
+        var user = userSeeder.seedOrGet(Role.INSTRUCTOR, username);
         return saveInstructor(
             InstructorFixtures.instructor()
                 .department(department)

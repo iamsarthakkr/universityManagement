@@ -31,6 +31,7 @@ public class EnrollmentEntityTests {
         @ParameterizedTest
         @CsvSource({
             "PENDING, PENDING",
+            "PENDING, DROPPED",
 
             "ENROLLED, PENDING",
             "ENROLLED, ENROLLED",

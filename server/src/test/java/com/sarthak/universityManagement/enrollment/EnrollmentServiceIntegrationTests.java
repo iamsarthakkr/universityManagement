@@ -84,7 +84,7 @@ public class EnrollmentServiceIntegrationTests extends IntegrationTests {
             assertEquals(student.getId(), resp.studentId());
             assertEquals(offering.getId(), resp.courseOfferingId());
 
-            var updatedOffering = courseOfferingService.getCourOfferingEntity(offering.getId());
+            var updatedOffering = courseOfferingService.getCourseOfferingEntity(offering.getId());
             assertEquals(1, updatedOffering.getEnrolled());
         }
 
@@ -155,7 +155,7 @@ public class EnrollmentServiceIntegrationTests extends IntegrationTests {
             var saved = enrollmentService.getEnrollment(enrollment.getId());
             assertEquals(EnrollmentStatus.ENROLLED, saved.enrollmentStatus());
 
-            var updatedOffering = courseOfferingService.getCourOfferingEntity(enrollmentScenario.courseOffering().getId());
+            var updatedOffering = courseOfferingService.getCourseOfferingEntity(enrollmentScenario.courseOffering().getId());
             assertEquals(10, updatedOffering.getEnrolled());
 
         }
@@ -173,7 +173,7 @@ public class EnrollmentServiceIntegrationTests extends IntegrationTests {
             assertTrue(msg.contains("Insufficient capacity for offering "));
 
             var savedEnrollment = enrollmentService.getEnrollment(enrollment.getId());
-            var savedOffering = courseOfferingService.getCourOfferingEntity(enrollmentScenario.courseOffering().getId());
+            var savedOffering = courseOfferingService.getCourseOfferingEntity(enrollmentScenario.courseOffering().getId());
 
             assertEquals(10, savedOffering.getEnrolled());
             assertEquals(EnrollmentStatus.PENDING, savedEnrollment.enrollmentStatus());
@@ -197,7 +197,7 @@ public class EnrollmentServiceIntegrationTests extends IntegrationTests {
             assertTrue(msg.contains("Enrollment with id " + enrollment.getId() + " cannot be approved"));
 
             var savedEnrollment = enrollmentService.getEnrollment(enrollment.getId());
-            var savedOffering = courseOfferingService.getCourOfferingEntity(enrollmentScenario.courseOffering().getId());
+            var savedOffering = courseOfferingService.getCourseOfferingEntity(enrollmentScenario.courseOffering().getId());
 
             assertEquals(9, savedOffering.getEnrolled());
             assertEquals(enrollmentStatus, savedEnrollment.enrollmentStatus());
@@ -215,7 +215,7 @@ public class EnrollmentServiceIntegrationTests extends IntegrationTests {
             enrollmentService.rejectEnrollment(enrollment.getId());
 
             var saved = enrollmentService.getEnrollment(enrollment.getId());
-            var savedOffering = courseOfferingService.getCourOfferingEntity(enrollmentScenario.courseOffering().getId());
+            var savedOffering = courseOfferingService.getCourseOfferingEntity(enrollmentScenario.courseOffering().getId());
 
             assertEquals(EnrollmentStatus.REJECTED, saved.enrollmentStatus());
             assertEquals(9,  savedOffering.getEnrolled());
@@ -239,7 +239,7 @@ public class EnrollmentServiceIntegrationTests extends IntegrationTests {
             assertTrue(msg.contains("Enrollment with id " + enrollment.getId() + " cannot be rejected"));
 
             var savedEnrollment = enrollmentService.getEnrollment(enrollment.getId());
-            var savedOffering = courseOfferingService.getCourOfferingEntity(enrollmentScenario.courseOffering().getId());
+            var savedOffering = courseOfferingService.getCourseOfferingEntity(enrollmentScenario.courseOffering().getId());
 
             assertEquals(9, savedOffering.getEnrolled());
             assertEquals(enrollmentStatus, savedEnrollment.enrollmentStatus());
@@ -258,7 +258,7 @@ public class EnrollmentServiceIntegrationTests extends IntegrationTests {
             enrollmentService.cancelEnrollment(enrollment.getId());
 
             var saved = enrollmentService.getEnrollment(enrollment.getId());
-            var savedOffering = courseOfferingService.getCourOfferingEntity(enrollmentScenario.courseOffering().getId());
+            var savedOffering = courseOfferingService.getCourseOfferingEntity(enrollmentScenario.courseOffering().getId());
 
             assertEquals(EnrollmentStatus.CANCELLED, saved.enrollmentStatus());
             assertEquals(9,  savedOffering.getEnrolled());
@@ -283,7 +283,7 @@ public class EnrollmentServiceIntegrationTests extends IntegrationTests {
             assertTrue(msg.contains("Enrollment with id " + enrollment.getId() + " cannot be cancelled"));
 
             var savedEnrollment = enrollmentService.getEnrollment(enrollment.getId());
-            var savedOffering = courseOfferingService.getCourOfferingEntity(enrollmentScenario.courseOffering().getId());
+            var savedOffering = courseOfferingService.getCourseOfferingEntity(enrollmentScenario.courseOffering().getId());
 
             assertEquals(9, savedOffering.getEnrolled());
             assertEquals(enrollmentStatus, savedEnrollment.enrollmentStatus());
@@ -305,7 +305,7 @@ public class EnrollmentServiceIntegrationTests extends IntegrationTests {
             enrollmentService.dropEnrollment(enrollment.getId());
 
             var saved = enrollmentService.getEnrollment(enrollment.getId());
-            var savedOffering = courseOfferingService.getCourOfferingEntity(enrollmentScenario.courseOffering().getId());
+            var savedOffering = courseOfferingService.getCourseOfferingEntity(enrollmentScenario.courseOffering().getId());
 
             assertEquals(EnrollmentStatus.DROPPED, saved.enrollmentStatus());
             assertEquals(4,  savedOffering.getEnrolled());
@@ -332,7 +332,7 @@ public class EnrollmentServiceIntegrationTests extends IntegrationTests {
             assertTrue(msg.contains("Enrollment with id " + enrollment.getId() + " cannot be dropped"));
 
             var savedEnrollment = enrollmentService.getEnrollment(enrollment.getId());
-            var savedOffering = courseOfferingService.getCourOfferingEntity(enrollmentScenario.courseOffering().getId());
+            var savedOffering = courseOfferingService.getCourseOfferingEntity(enrollmentScenario.courseOffering().getId());
 
             assertEquals(9, savedOffering.getEnrolled());
             assertEquals(enrollmentStatus, savedEnrollment.enrollmentStatus());

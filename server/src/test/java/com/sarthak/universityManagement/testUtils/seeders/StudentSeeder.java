@@ -31,7 +31,7 @@ public final class StudentSeeder {
     }
 
     public StudentEntity saveDefault(DepartmentEntity department) {
-        var defaultUser = userSeeder.saveDefault(Role.INSTRUCTOR);
+        var defaultUser = userSeeder.saveDefault(Role.STUDENT);
         return save(
             StudentFixtures
                 .student(department)

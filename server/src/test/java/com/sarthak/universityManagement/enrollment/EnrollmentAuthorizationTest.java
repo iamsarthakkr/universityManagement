@@ -278,7 +278,7 @@ public class EnrollmentAuthorizationTest extends IntegrationTests {
             student2 = studentScenario2.student();
 
             TestAuthentication.asStudent(student1);
-            enrollmentService.cancelEnrollment(courseOfferingScenario.courseOffering().getId());
+            enrollmentService.createEnrollment(student1.getId(), courseOfferingScenario.courseOffering().getId());
             TestAuthentication.clear();
         }
 
@@ -286,7 +286,7 @@ public class EnrollmentAuthorizationTest extends IntegrationTests {
         void shouldAllowStudentOfEnrollment() {
             TestAuthentication.asStudent(student1);
             var resp = enrollmentService.getEnrollmentsForStudent(student1.getId());
-            assertNull(resp);
+            assertNotNull(resp);
         }
 
         @Test

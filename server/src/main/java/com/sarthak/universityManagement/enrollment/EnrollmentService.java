@@ -45,7 +45,7 @@ public class EnrollmentService {
     @CurrentStudent
     public EnrollmentResponse createEnrollment(Integer studentId, Integer courseOfferingId) {
         var student = studentService.getStudentEntity(studentId);
-        var courseOffering = courseOfferingService.getCourOfferingEntity(courseOfferingId);
+        var courseOffering = courseOfferingService.getCourseOfferingEntity(courseOfferingId);
 
         validateEnrollmentRequest(courseOffering, student);
 
@@ -72,7 +72,7 @@ public class EnrollmentService {
 
     @AdminOrEnrollmentInstructor
     public void rejectEnrollment(Integer enrollmentId) {
-        var enrollment = getEnrollmentOrThrow(enrollmentId);
+        var enrollment = getEnrollmentForUpdateOrThrow(enrollmentId);
         if(!enrollment.canTransitionTo(EnrollmentStatus.REJECTED)) {
             throw new BadRequestException("Enrollment with id " + enrollmentId + " cannot be rejected");
         }
@@ -81,7 +81,7 @@ public class EnrollmentService {
 
     @EnrollmentStudent
     public void cancelEnrollment(Integer enrollmentId) {
-        var enrollment = getEnrollmentOrThrow(enrollmentId);
+        var enrollment = getEnrollmentForUpdateOrThrow(enrollmentId);
         if(!enrollment.canTransitionTo(EnrollmentStatus.CANCELLED)) {
             throw new BadRequestException("Enrollment with id " + enrollmentId + " cannot be cancelled");
         }
