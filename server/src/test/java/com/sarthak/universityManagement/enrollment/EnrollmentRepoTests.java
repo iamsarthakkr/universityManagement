@@ -75,8 +75,8 @@ public class EnrollmentRepoTests extends RepoTests {
 
     @Test
     void shouldFetchEnrollmentsForCourseOffering() {
-        var res1 =  enrollmentRepo.findByCourseOfferingId(courseOffering1.getId());
-        var res2 =  enrollmentRepo.findByCourseOfferingId(courseOffering2.getId());
+        var res1 =  enrollmentRepo.findAllForCourseOfferingWithDetails(courseOffering1.getId(), null);
+        var res2 =  enrollmentRepo.findAllForCourseOfferingWithDetails(courseOffering2.getId(), null);
 
         assertEquals(2, res1.size());
         assertEquals(1, res2.size());

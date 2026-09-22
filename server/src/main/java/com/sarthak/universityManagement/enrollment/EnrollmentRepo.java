@@ -1,9 +1,12 @@
 package com.sarthak.universityManagement.enrollment;
 
+import com.sarthak.universityManagement.enrollment.types.EnrollmentStatus;
 import jakarta.persistence.LockModeType;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -16,7 +19,16 @@ public interface EnrollmentRepo extends JpaRepository<EnrollmentEntity, Integer>
 
     List<EnrollmentEntity> findByStudentId(Integer studentId);
 
-    List<EnrollmentEntity> findByCourseOfferingId(Integer courseOfferingId);
+    @Query("""
+        select distinct e
+        from EnrollmentEntity e
+        join fetch e.student s
+        join fetch e.courseOffering co
+        where co.id = :courseOfferingId
+            and (:status is null or e.status = :status)
+        order by e.createdAt DESC
+    """)
+    List<EnrollmentEntity> findAllForCourseOfferingWithDetails(Integer courseOfferingId, @Nullable EnrollmentStatus status);
 
     Optional<EnrollmentEntity> findByStudentIdAndCourseOfferingId(Integer studentId, Integer courseOfferingId);
 

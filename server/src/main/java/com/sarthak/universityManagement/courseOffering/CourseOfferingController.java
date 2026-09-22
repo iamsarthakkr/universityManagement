@@ -5,6 +5,11 @@ import com.sarthak.universityManagement.common.rest.Res;
 import com.sarthak.universityManagement.common.rest.SuccessCode;
 import com.sarthak.universityManagement.courseOffering.dto.CourseOfferingResponse;
 import com.sarthak.universityManagement.courseOffering.dto.CreateCourseOfferingRequest;
+import com.sarthak.universityManagement.enrollment.EnrollmentService;
+import com.sarthak.universityManagement.enrollment.dto.EnrollmentDetailResponse;
+import com.sarthak.universityManagement.enrollment.dto.EnrollmentResponse;
+import com.sarthak.universityManagement.enrollment.types.EnrollmentStatus;
+import com.sarthak.universityManagement.user.CurrentUserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -22,10 +27,18 @@ import java.util.List;
 @RequestMapping("course-offerings")
 public class CourseOfferingController {
     private final CourseOfferingService courseOfferingService;
+    private final EnrollmentService enrollmentService;
+    private final CurrentUserService currentUserService;
 
     @Autowired
-    public CourseOfferingController(CourseOfferingService courseOfferingService) {
+    public CourseOfferingController(
+        CourseOfferingService courseOfferingService,
+        EnrollmentService enrollmentService,
+        CurrentUserService currentUserService
+    ) {
         this.courseOfferingService = courseOfferingService;
+        this.enrollmentService = enrollmentService;
+        this.currentUserService = currentUserService;
     }
 
     @PostMapping
@@ -41,6 +54,20 @@ public class CourseOfferingController {
     @GetMapping("/{offeringId}")
     public ResponseEntity<ApiResponse<CourseOfferingResponse>> getOffering(@PathVariable Integer offeringId) {
         return Res.success(courseOfferingService.getOffering(offeringId));
+    }
+
+    @GetMapping("/{offeringId}/enrollments")
+    public ResponseEntity<ApiResponse<List<EnrollmentDetailResponse>>> getEnrollmentsForOffering(
+        @PathVariable Integer offeringId,
+        @RequestParam(required = false) EnrollmentStatus enrollmentStatus
+    ) {
+        return Res.success(enrollmentService.getEnrollmentsForCourseOffering(offeringId, enrollmentStatus));
+    }
+
+    @PostMapping("/{offeringId}/enrollments")
+    public ResponseEntity<ApiResponse<EnrollmentResponse>> createPendingEnrollment(@PathVariable Integer offeringId) {
+        var studentId = currentUserService.getCurrentStudent().getId();
+        return Res.success(SuccessCode.CREATED, enrollmentService.createEnrollment(studentId, offeringId));
     }
 
 }

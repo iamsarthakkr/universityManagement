@@ -1,6 +1,7 @@
 package com.sarthak.universityManagement.student;
 
 import com.sarthak.universityManagement.student.dto.CreateStudentCommand;
+import com.sarthak.universityManagement.student.dto.StudentResponse;
 
 public class StudentMapper {
     
@@ -15,6 +16,13 @@ public class StudentMapper {
             .fatherName(createStudentCommand.fatherName())
             .motherName(createStudentCommand.motherName())
             .department(createStudentCommand.department())
+            .build();
+    }
+
+    public static StudentResponse toResponse(StudentEntity student) {
+        return StudentResponse.builder()
+            .id(student.getId())
+            .name(student.getFirstName() + (student.getLastName() == null ? "" : student.getLastName()))
             .build();
     }
 }

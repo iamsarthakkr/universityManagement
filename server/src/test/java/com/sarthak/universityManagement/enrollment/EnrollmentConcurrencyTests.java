@@ -149,7 +149,7 @@ public class EnrollmentConcurrencyTests {
         TestAuthentication.asInstructor(instructor);
 
         var approvedCount = 0;
-        var enrollments = enrollmentService.getEnrollmentsForCourseOffering(offering.getId());
+        var enrollments = enrollmentService.getEnrollmentsForCourseOffering(offering.getId(), null);
         for (var enrollment : enrollments) {
             if(enrollment.enrollmentStatus().equals(EnrollmentStatus.ENROLLED)) approvedCount++;
         }
