@@ -1,6 +1,7 @@
 package com.sarthak.universityManagement.courseOffering;
 
 import com.sarthak.universityManagement.common.entity.BaseEntity;
+import com.sarthak.universityManagement.common.exceptions.BadRequestException;
 import com.sarthak.universityManagement.course.CourseEntity;
 import com.sarthak.universityManagement.instructor.InstructorEntity;
 import com.sarthak.universityManagement.semester.SemesterEntity;
@@ -28,7 +29,8 @@ import lombok.Setter;
         @UniqueConstraint(name = "unique_course_offering", columnNames = {"courseId", "semesterId", "section"})
     },
     check = {
-        @CheckConstraint(name = "chk_course_offering_capacity", constraint = "capacity > 0")
+        @CheckConstraint(name = "chk_course_offering_capacity", constraint = "capacity > 0"),
+        @CheckConstraint(name = "chk_course_offering_enrolled", constraint = "0 <= enrolled AND enrolled <= capacity")
     }
 )
 @Getter
@@ -59,5 +61,24 @@ public class CourseOfferingEntity extends BaseEntity {
 
     @Column(name = "capacity", nullable = false)
     private Integer capacity;
+
+    @Column(name = "enrolled", nullable = false)
+    private Integer enrolled = 0;
+
+    public boolean canEnroll() { return enrolled < capacity; }
+
+    public void enroll() {
+        if(!canEnroll()) {
+            throw new BadRequestException("Insufficient capacity for offering " + id);
+        }
+        enrolled++;
+    }
+
+    public void releaseEnrolled() {
+        if(enrolled <= 0) {
+            throw new BadRequestException("Cannot release seat - no enrollments for offering " + id);
+        }
+        enrolled--;
+    }
 
 }

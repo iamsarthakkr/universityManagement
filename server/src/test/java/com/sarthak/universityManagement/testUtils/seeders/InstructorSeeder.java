@@ -8,10 +8,10 @@ import com.sarthak.universityManagement.testUtils.fixtures.InstructorFixtures;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestComponent;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.context.annotation.Profile;
 
 @TestComponent
-@ActiveProfiles("test")
+@Profile("test")
 @Import(UserSeeder.class)
 public final class InstructorSeeder {
     private final InstructorRepo instructorRepo;
@@ -37,6 +37,22 @@ public final class InstructorSeeder {
                 .instructor()
                 .user(defaultUser)
                 .department(department)
+                .build()
+        );
+    }
+
+    public InstructorEntity seedOrGet(DepartmentEntity department, String username) {
+        var existing = instructorRepo.findByUser_Username(username);
+
+        if(existing.isPresent()) {
+            return existing.get();
+        }
+
+        var user = userSeeder.seedOrGet(Role.INSTRUCTOR, username);
+        return saveInstructor(
+            InstructorFixtures.instructor()
+                .department(department)
+                .user(user)
                 .build()
         );
     }

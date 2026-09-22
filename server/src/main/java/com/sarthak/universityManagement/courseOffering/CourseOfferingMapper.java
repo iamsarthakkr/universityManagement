@@ -8,6 +8,7 @@ public final class CourseOfferingMapper {
         return CourseOfferingEntity.builder()
             .capacity(request.capacity())
             .section(request.section())
+            .enrolled(0)
             .build();
     }
 
@@ -18,6 +19,7 @@ public final class CourseOfferingMapper {
             .instructorId(entity.getInstructor().getId())
             .semesterId(entity.getSemester().getId())
             .capacity(entity.getCapacity())
+            .enrolled(entity.getEnrolled())
             .section(entity.getSection())
             .build();
     }

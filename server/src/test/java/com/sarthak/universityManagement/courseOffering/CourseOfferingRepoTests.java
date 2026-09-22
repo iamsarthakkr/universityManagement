@@ -11,6 +11,8 @@ import com.sarthak.universityManagement.testUtils.seeders.SemesterSeeder;
 import com.sarthak.universityManagement.testUtils.seeders.UserSeeder;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
@@ -123,24 +125,55 @@ public class CourseOfferingRepoTests {
 
     @Nested
     class Constraints {
-        @Test
-        void shouldDenyCourseOfferingWithNonPositiveCapacity() {
+        @ParameterizedTest
+        @ValueSource(ints = {0, -1})
+        void shouldDenyCourseOfferingWithNonPositiveCapacity(int capacity) {
             var dep =  departmentSeeder.saveDefault("dep1");
             var course =  courseSeeder.saveDefault(dep);
             var sem = semesterSeeder.saveDefaultSemester(SemesterTerm.SUMMER, 2026);
             var instructor =  instructorSeeder.saveDefaultInstructor(dep);
 
-            var offering1 = CourseOfferingFixtures.courseOffering(course, instructor, sem)
+            var offering = CourseOfferingFixtures.courseOffering(course, instructor, sem)
                 .section("A")
-                .capacity(0)
-                .build();
-            var offering2 = CourseOfferingFixtures.courseOffering(course, instructor, sem)
-                .section("A")
-                .capacity(-1)
+                .capacity(capacity)
                 .build();
 
-            assertThrows(DataIntegrityViolationException.class, () -> courseOfferingRepo.saveAndFlush(offering1));
-            assertThrows(DataIntegrityViolationException.class, () -> courseOfferingRepo.saveAndFlush(offering2));
+            assertThrows(DataIntegrityViolationException.class, () -> courseOfferingRepo.saveAndFlush(offering));
+        }
+
+        @ParameterizedTest
+        @ValueSource(ints = {0, 9, 10})
+        void shouldAllowCourseOfferingWithCorrectEnrolledCount(int enrolledCount) {
+            var dep =  departmentSeeder.saveDefault("dep1");
+            var course =  courseSeeder.saveDefault(dep);
+            var sem = semesterSeeder.saveDefaultSemester(SemesterTerm.SUMMER, 2026);
+            var instructor =  instructorSeeder.saveDefaultInstructor(dep);
+
+            var offering = CourseOfferingFixtures.courseOffering(course, instructor, sem)
+                .section("A")
+                .capacity(10)
+                .enrolled(enrolledCount)
+                .build();
+
+            var got = courseOfferingRepo.saveAndFlush(offering);
+            assertNotNull(got);
+        }
+
+        @ParameterizedTest
+        @ValueSource(ints = {-1, 11})
+        void shouldDenyCourseOfferingWithInvalidEnrolledCount(int enrolledCount) {
+            var dep =  departmentSeeder.saveDefault("dep1");
+            var course =  courseSeeder.saveDefault(dep);
+            var sem = semesterSeeder.saveDefaultSemester(SemesterTerm.SUMMER, 2026);
+            var instructor =  instructorSeeder.saveDefaultInstructor(dep);
+
+            var offering = CourseOfferingFixtures.courseOffering(course, instructor, sem)
+                .section("A")
+                .capacity(10)
+                .enrolled(enrolledCount)
+                .build();
+
+            assertThrows(DataIntegrityViolationException.class, () -> courseOfferingRepo.saveAndFlush(offering));
         }
     }
 
@@ -190,6 +223,7 @@ public class CourseOfferingRepoTests {
             assertFalse(courseOfferingRepo.existsByCourseIdAndSemesterIdAndSection(course2.getId(), sem.getId(), "B"));
 
         }
+
     }
 
 }
