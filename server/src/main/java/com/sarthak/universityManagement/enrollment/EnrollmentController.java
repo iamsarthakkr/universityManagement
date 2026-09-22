@@ -30,7 +30,7 @@ public class EnrollmentController {
 
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<List<EnrollmentDetailResponse>>> getStudentEnrollments() {
-        var studentId = currentUserService.getCurrentUser().getId();
+        var studentId = currentUserService.getCurrentStudent().getId();
 
         return Res.success(enrollmentService.getEnrollmentsForStudent(studentId));
     }

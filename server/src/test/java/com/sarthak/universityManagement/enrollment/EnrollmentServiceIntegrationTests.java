@@ -55,7 +55,7 @@ public class EnrollmentServiceIntegrationTests extends IntegrationTests {
                 .courseNumber(1)
                 .instructorNumber(1)
                 .capacity(10)
-                .enrolled(1)
+                .enrolled(0)
                 .semester(s -> s.registrationOpenOn(LocalDate.now(clock)));
 
 

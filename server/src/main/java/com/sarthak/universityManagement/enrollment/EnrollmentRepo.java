@@ -17,6 +17,7 @@ public interface EnrollmentRepo extends JpaRepository<EnrollmentEntity, Integer>
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<EnrollmentEntity> findForUpdateById(Integer id);
 
+    @EntityGraph(attributePaths = {"student", "courseOffering"})
     List<EnrollmentEntity> findByStudentId(Integer studentId);
 
     @Query("""

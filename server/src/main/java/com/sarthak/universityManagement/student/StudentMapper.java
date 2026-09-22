@@ -22,7 +22,7 @@ public class StudentMapper {
     public static StudentResponse toResponse(StudentEntity student) {
         return StudentResponse.builder()
             .id(student.getId())
-            .name(student.getFirstName() + (student.getLastName() == null ? "" : student.getLastName()))
+            .name(student.getFirstName() + (student.getLastName() == null ? "" : " " + student.getLastName()))
             .build();
     }
 }
