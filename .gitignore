@@ -10,6 +10,9 @@
 .env.*
 !.env.example
 
+# Docker compose
+docker-compose-dev.yml
+
 # Backend
 server/target/
 server/*.log

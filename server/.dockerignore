@@ -1,0 +1,27 @@
+# Build output
+target/
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Local environment / secrets
+.env
+.env.*
+!.env.example
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Docker metadata
+Dockerfile*
+docker-compose*.yml
