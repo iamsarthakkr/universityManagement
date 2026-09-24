@@ -16,6 +16,3 @@ spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
 
-app:
-  jwt:
-    expiration-ms: 1800000

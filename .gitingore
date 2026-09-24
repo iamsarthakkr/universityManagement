@@ -1,0 +1,23 @@
+# macOS
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Backend
+server/target/
+server/*.log
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+
+# Logs
+*.log
