@@ -16,3 +16,22 @@ spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+  endpoint:
+    health:
+      show-details: never
+
+  info:
+    env:
+      enabled: true
+
+info:
+  app:
+    name: University Enrollment Management
+    description: Backend API for university enrollment workflows
+    version: 1.0.0

@@ -34,7 +34,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     
     @Override
     protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
-        return publicEndpoints.matches(request);
+        boolean matches = publicEndpoints.matches(request);
+
+        System.out.println("URI = " + request.getRequestURI());
+        System.out.println("ServletPath = " + request.getServletPath());
+        System.out.println("ContextPath = " + request.getContextPath());
+        System.out.println("Method = " + request.getMethod());
+        System.out.println("Public = " + matches);
+
+        return matches;
     }
     
     @Override
