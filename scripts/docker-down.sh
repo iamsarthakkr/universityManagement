@@ -13,5 +13,5 @@ echo "Stopping Docker services for: $ENVIRONMENT"
 
 docker compose \
   -f docker-compose.yml \
-  -f "docker-compose.${ENVIRONMENT}.yml" \
+  -f "docker-compose-${ENVIRONMENT}.yml" \
   down

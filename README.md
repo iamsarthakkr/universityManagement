@@ -245,6 +245,7 @@ security/
 
 - Java 21
 - MySQL
+- Docker (required for MySQL testcontainers)
 - Git
 
 Clone the repository:

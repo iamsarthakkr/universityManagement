@@ -1,0 +1,8 @@
+services:
+  mysql:
+    ports:
+      - "3307:3306"
+
+  server:
+    ports:
+      - "8080:8080"

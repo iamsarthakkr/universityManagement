@@ -13,7 +13,11 @@ services:
       - university_mysql_data:/var/lib/mysql
 
     healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot" ]
+      test:
+        [
+          "CMD-SHELL",
+          "mysqladmin ping -h localhost -uroot -p$${MYSQL_ROOT_PASSWORD}"
+        ]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -35,7 +39,7 @@ services:
       ADMIN_EMAIL: ${ADMIN_EMAIL}
 
       JWT_SECRET: ${JWT_SECRET}
-      JWT_EXPIRATION: ${JWT_EXPIRATION:-1800000}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-1800000}
 
     depends_on:
       mysql:
