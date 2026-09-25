@@ -7,7 +7,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
 @ActiveProfiles("test")
-@Import({TestUtilsConfiguration.class, TestClockConfig.class})
+@Import({
+    TestUtilsConfiguration.class,
+    TestClockConfig.class,
+})
 @Transactional
-public abstract class IntegrationTests {
+public abstract class IntegrationTests extends MySqlTestContainer {
 }

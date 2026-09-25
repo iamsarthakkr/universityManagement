@@ -8,8 +8,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 @DataJpaTest
 @ActiveProfiles("test")
-@Import({JpaConfig.class, TestUtilsConfiguration.class})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Import({
+    JpaConfig.class,
+    TestUtilsConfiguration.class,
+    TestClockConfig.class,
+})
 @Transactional
-public abstract class RepoTests {
+public abstract class RepoTests extends MySqlTestContainer {
 }

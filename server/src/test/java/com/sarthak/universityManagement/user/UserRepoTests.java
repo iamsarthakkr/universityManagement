@@ -1,27 +1,17 @@
 package com.sarthak.universityManagement.user;
 
 import com.sarthak.universityManagement.common.types.Role;
-import com.sarthak.universityManagement.config.JpaConfig;
+import com.sarthak.universityManagement.config.RepoTests;
 import com.sarthak.universityManagement.testUtils.TestDataFactory;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
-import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
-import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@DataJpaTest
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE) // disable replacing DataSource
-@Import({JpaConfig.class, TestDataFactory.class})
-@ActiveProfiles("test")
-@Transactional
-class UserRepoTests {
+class UserRepoTests extends RepoTests {
     
     @Autowired
     private UserRepo userRepo;

@@ -2,11 +2,11 @@ spring:
   application:
     name: universityManagement
   jpa:
+    show-sql: false
     hibernate:
       ddl-auto: validate
       naming:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
-    show-sql: true
     properties:
       hibernate:
         format_sql: false
@@ -16,6 +16,22 @@ spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
 
-app:
-  jwt:
-    expiration-ms: 1800000
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+  endpoint:
+    health:
+      show-details: never
+
+  info:
+    env:
+      enabled: true
+
+info:
+  app:
+    name: University Enrollment Management
+    description: Backend API for university enrollment workflows
+    version: 1.0.0

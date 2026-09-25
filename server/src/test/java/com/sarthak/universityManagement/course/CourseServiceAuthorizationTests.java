@@ -1,29 +1,21 @@
 package com.sarthak.universityManagement.course;
 
 import com.sarthak.universityManagement.common.types.Role;
+import com.sarthak.universityManagement.config.IntegrationTests;
 import com.sarthak.universityManagement.testUtils.TestSecurityUtils;
 import com.sarthak.universityManagement.testUtils.fixtures.CourseFixtures;
 import com.sarthak.universityManagement.testUtils.fixtures.UserFixtures;
 import com.sarthak.universityManagement.testUtils.seeders.DepartmentSeeder;
 import com.sarthak.universityManagement.testUtils.seeders.UserSeeder;
-import com.sarthak.universityManagement.testUtils.testConfigs.RegistrationTestConfig;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
-@ActiveProfiles("test")
-@Import(RegistrationTestConfig.class)
-@Transactional
-public class CourseServiceAuthorizationTests {
+public class CourseServiceAuthorizationTests extends IntegrationTests {
 
     @Autowired
     private CourseService courseService;

@@ -3,23 +3,16 @@ package com.sarthak.universityManagement.auth;
 import com.sarthak.universityManagement.auth.dto.LoginRequest;
 import com.sarthak.universityManagement.auth.dto.LoginResponse;
 import com.sarthak.universityManagement.common.types.Role;
+import com.sarthak.universityManagement.config.IntegrationTests;
 import com.sarthak.universityManagement.testUtils.TestDataSetup;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
-@ActiveProfiles("test")
-@Import(TestDataSetup.class)
-@Transactional
-public class AuthServiceIntegrationTests {
+public class AuthServiceIntegrationTests extends IntegrationTests {
     @Autowired
     private AuthService authService;
     @Autowired

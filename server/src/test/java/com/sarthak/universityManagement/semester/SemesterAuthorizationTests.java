@@ -1,5 +1,6 @@
 package com.sarthak.universityManagement.semester;
 
+import com.sarthak.universityManagement.config.IntegrationTests;
 import com.sarthak.universityManagement.semester.types.SemesterStatus;
 import com.sarthak.universityManagement.semester.types.SemesterTerm;
 import com.sarthak.universityManagement.testUtils.fixtures.SemesterFixtures;
@@ -10,20 +11,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
-@Transactional
-@ActiveProfiles("test")
-@Import(SemesterSeeder.class)
-public class SemesterAuthorizationTests {
+public class SemesterAuthorizationTests extends IntegrationTests {
 
     @Autowired
     private SemesterService semesterService;

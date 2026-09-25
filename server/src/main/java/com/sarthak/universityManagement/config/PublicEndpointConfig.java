@@ -17,7 +17,9 @@ public class PublicEndpointConfig {
             PathPatternRequestMatcher.pathPattern("/auth/login"),
             PathPatternRequestMatcher.pathPattern("/registration/student"),
             PathPatternRequestMatcher.pathPattern("/registration/instructor"),
-            PathPatternRequestMatcher.pathPattern(HttpMethod.GET, "/departments")
+            PathPatternRequestMatcher.pathPattern(HttpMethod.GET, "/departments"),
+            PathPatternRequestMatcher.pathPattern("/actuator/health"),
+            PathPatternRequestMatcher.pathPattern("/actuator/info")
         );
     }
 }

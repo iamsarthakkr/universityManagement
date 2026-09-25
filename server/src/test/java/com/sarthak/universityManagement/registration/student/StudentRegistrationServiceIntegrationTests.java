@@ -2,6 +2,7 @@ package com.sarthak.universityManagement.registration.student;
 
 import com.sarthak.universityManagement.common.exceptions.ConflictException;
 import com.sarthak.universityManagement.common.types.RegistrationStatus;
+import com.sarthak.universityManagement.config.IntegrationTests;
 import com.sarthak.universityManagement.department.DepartmentEntity;
 import com.sarthak.universityManagement.registration.instructor.InstructorRegistrationEntity;
 import com.sarthak.universityManagement.registration.instructor.InstructorRegistrationRepo;
@@ -13,22 +14,13 @@ import com.sarthak.universityManagement.testUtils.fixtures.UserFixtures;
 import com.sarthak.universityManagement.testUtils.seeders.DepartmentSeeder;
 import com.sarthak.universityManagement.testUtils.seeders.InstructorRegistrationSeeder;
 import com.sarthak.universityManagement.testUtils.seeders.UserSeeder;
-import com.sarthak.universityManagement.testUtils.testConfigs.RegistrationTestConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
-@ActiveProfiles("test")
-@Import(RegistrationTestConfig.class)
-@Transactional
-public class StudentRegistrationServiceIntegrationTests {
+public class StudentRegistrationServiceIntegrationTests extends IntegrationTests {
 
     @Autowired
     private StudentRegistrationService service;
