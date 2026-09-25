@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - "server/**"
+      - "docker-compose.yml"
+      - "docker-compose.prod.yml"
       - ".github/workflows/backend-ci.yml"
 
   push:
@@ -11,12 +13,13 @@ on:
       - main
     paths:
       - "server/**"
+      - "docker-compose.yml"
+      - "docker-compose.prod.yml"
       - ".github/workflows/backend-ci.yml"
 
 jobs:
   backend-tests:
     name: Build & Test Backend
-
     runs-on: ubuntu-latest
 
     defaults:
@@ -34,8 +37,28 @@ jobs:
           java-version: "21"
           cache: maven
 
-      - name: Verify Maven version
-        run: mvn --version
-
       - name: Build and run tests
         run: mvn clean verify -B
+
+  docker-build:
+    name: Validate & Build Docker
+    runs-on: ubuntu-latest
+    needs: backend-tests
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate production Compose config
+        run: |
+          docker compose \
+            -f docker-compose.yml \
+            -f docker-compose.prod.yml \
+            config
+
+      - name: Build production Docker services
+        run: |
+          docker compose \
+            -f docker-compose.yml \
+            -f docker-compose.prod.yml \
+            build
