@@ -3,7 +3,6 @@ package com.sarthak.universityManagement.enrollment;
 import com.sarthak.universityManagement.config.IntegrationTests;
 import com.sarthak.universityManagement.enrollment.types.EnrollmentStatus;
 import com.sarthak.universityManagement.student.StudentEntity;
-import com.sarthak.universityManagement.testUtils.scenerio.courseOffering.CourseOfferingScenario;
 import com.sarthak.universityManagement.testUtils.scenerio.courseOffering.CourseOfferingScenarioSeeder;
 import com.sarthak.universityManagement.testUtils.scenerio.enrollment.EnrollmentScenario;
 import com.sarthak.universityManagement.testUtils.scenerio.enrollment.EnrollmentScenarioSeeder;
@@ -11,8 +10,6 @@ import com.sarthak.universityManagement.testUtils.scenerio.student.StudentScenar
 import com.sarthak.universityManagement.testUtils.scenerio.student.StudentScenarioSeeder;
 import com.sarthak.universityManagement.testUtils.security.TestAuthentication;
 import com.sarthak.universityManagement.testUtils.security.WithAdmin;
-import com.sarthak.universityManagement.user.UserEntity;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

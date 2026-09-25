@@ -2,6 +2,7 @@ package com.sarthak.universityManagement.courseOffering;
 
 import com.sarthak.universityManagement.common.exceptions.BadRequestException;
 import com.sarthak.universityManagement.common.exceptions.ResourceNotFoundException;
+import com.sarthak.universityManagement.config.IntegrationTests;
 import com.sarthak.universityManagement.course.CourseEntity;
 import com.sarthak.universityManagement.courseOffering.dto.CourseOfferingResponse;
 import com.sarthak.universityManagement.department.DepartmentEntity;
@@ -30,17 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
-@ActiveProfiles("test")
-@Transactional
-@Import({
-    CourseSeeder.class,
-    InstructorSeeder.class,
-    DepartmentSeeder.class,
-    SemesterSeeder.class,
-    CourseOfferingSeeder.class
-})
-public class CourseOfferingIntegrationTests {
+public class CourseOfferingIntegrationTests extends IntegrationTests {
     @Autowired
     private CourseOfferingService courseOfferingService;
 

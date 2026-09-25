@@ -1,6 +1,7 @@
 package com.sarthak.universityManagement.enrollment;
 
 import com.sarthak.universityManagement.config.TestClockConfig;
+import com.sarthak.universityManagement.config.MySqlTestContainer;
 import com.sarthak.universityManagement.config.TestUtilsConfiguration;
 import com.sarthak.universityManagement.course.CourseRepo;
 import com.sarthak.universityManagement.courseOffering.CourseOfferingRepo;
@@ -32,8 +33,11 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @ActiveProfiles("test")
-@Import({TestUtilsConfiguration.class, TestClockConfig.class})
-public class EnrollmentConcurrencyTests {
+@Import({
+    TestUtilsConfiguration.class,
+    TestClockConfig.class,
+})
+public class EnrollmentConcurrencyTests extends MySqlTestContainer {
     @Autowired
     private EnrollmentService enrollmentService;
     @Autowired

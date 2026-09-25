@@ -1,39 +1,29 @@
 package com.sarthak.universityManagement.course;
 
 import com.sarthak.universityManagement.common.exceptions.ResourceNotFoundException;
+import com.sarthak.universityManagement.config.IntegrationTests;
 import com.sarthak.universityManagement.course.dto.CourseCatalogueResponse;
 import com.sarthak.universityManagement.course.dto.CourseRequest;
 import com.sarthak.universityManagement.course.dto.CourseResponse;
-import com.sarthak.universityManagement.instructor.InstructorEntity;
 import com.sarthak.universityManagement.testUtils.TestSecurityUtils;
 import com.sarthak.universityManagement.testUtils.fixtures.CourseFixtures;
 import com.sarthak.universityManagement.testUtils.fixtures.DepartmentFixtures;
-import com.sarthak.universityManagement.testUtils.fixtures.InstructorFixtures;
 import com.sarthak.universityManagement.testUtils.fixtures.UserFixtures;
 import com.sarthak.universityManagement.testUtils.seeders.CourseSeeder;
 import com.sarthak.universityManagement.testUtils.seeders.DepartmentSeeder;
 import com.sarthak.universityManagement.testUtils.seeders.InstructorSeeder;
 import com.sarthak.universityManagement.testUtils.seeders.UserSeeder;
-import com.sarthak.universityManagement.testUtils.testConfigs.RegistrationTestConfig;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
-@ActiveProfiles("test")
-@Import({RegistrationTestConfig.class, CourseSeeder.class})
-@Transactional
-public class CourseServiceIntegrationTests {
+public class CourseServiceIntegrationTests extends IntegrationTests {
 
     @Autowired
     private CourseService courseService;

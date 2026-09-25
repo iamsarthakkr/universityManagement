@@ -2,29 +2,21 @@ package com.sarthak.universityManagement.semester;
 
 import com.sarthak.universityManagement.common.exceptions.BadRequestException;
 import com.sarthak.universityManagement.common.exceptions.ResourceNotFoundException;
+import com.sarthak.universityManagement.config.IntegrationTests;
 import com.sarthak.universityManagement.semester.types.SemesterStatus;
 import com.sarthak.universityManagement.semester.types.SemesterTerm;
 import com.sarthak.universityManagement.testUtils.fixtures.SemesterFixtures;
 import com.sarthak.universityManagement.testUtils.security.WithAdmin;
 import com.sarthak.universityManagement.testUtils.seeders.SemesterSeeder;
-import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.test.context.ActiveProfiles;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
-@ActiveProfiles("test")
-@Transactional
-@Import(SemesterSeeder.class)
-public class SemesterIntegrationTests {
+public class SemesterIntegrationTests extends IntegrationTests {
 
     @Autowired
     private SemesterService semesterService;

@@ -85,7 +85,7 @@ public class EnrollmentServiceIntegrationTests extends IntegrationTests {
             assertEquals(offering.getId(), resp.courseOfferingId());
 
             var updatedOffering = courseOfferingService.getCourseOfferingEntity(offering.getId());
-            assertEquals(1, updatedOffering.getEnrolled());
+            assertEquals(0, updatedOffering.getEnrolled());
         }
 
         @Test

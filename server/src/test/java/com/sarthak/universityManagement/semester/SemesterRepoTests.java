@@ -1,25 +1,17 @@
 package com.sarthak.universityManagement.semester;
 
-import com.sarthak.universityManagement.config.JpaConfig;
+import com.sarthak.universityManagement.config.RepoTests;
 import com.sarthak.universityManagement.semester.types.SemesterTerm;
 import com.sarthak.universityManagement.testUtils.fixtures.SemesterFixtures;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
-import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
-import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@DataJpaTest
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import(JpaConfig.class)
-@ActiveProfiles("test")
-public class SemesterRepoTests {
+public class SemesterRepoTests extends RepoTests {
 
     @Autowired
     private SemesterRepo semesterRepo;

@@ -1,28 +1,18 @@
 package com.sarthak.universityManagement.registration.student;
 
+import com.sarthak.universityManagement.config.RepoTests;
 import com.sarthak.universityManagement.testUtils.fixtures.StudentRegistrationFixtures;
 import com.sarthak.universityManagement.testUtils.seeders.DepartmentSeeder;
-import com.sarthak.universityManagement.testUtils.testConfigs.RegistrationTestConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
-import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
-import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@DataJpaTest
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import(RegistrationTestConfig.class)
-@ActiveProfiles("test")
-@Transactional
-class StudentRegistrationRepoTests {
+class StudentRegistrationRepoTests extends RepoTests {
     
     @Autowired
     private StudentRegistrationRepo repo;

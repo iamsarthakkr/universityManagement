@@ -1,6 +1,6 @@
 package com.sarthak.universityManagement.courseOffering;
 
-import com.sarthak.universityManagement.config.JpaConfig;
+import com.sarthak.universityManagement.config.RepoTests;
 import com.sarthak.universityManagement.semester.types.SemesterTerm;
 import com.sarthak.universityManagement.testUtils.fixtures.CourseOfferingFixtures;
 import com.sarthak.universityManagement.testUtils.seeders.CourseOfferingSeeder;
@@ -8,35 +8,16 @@ import com.sarthak.universityManagement.testUtils.seeders.CourseSeeder;
 import com.sarthak.universityManagement.testUtils.seeders.DepartmentSeeder;
 import com.sarthak.universityManagement.testUtils.seeders.InstructorSeeder;
 import com.sarthak.universityManagement.testUtils.seeders.SemesterSeeder;
-import com.sarthak.universityManagement.testUtils.seeders.UserSeeder;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
-import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
-import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@DataJpaTest
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Transactional
-@ActiveProfiles("test")
-@Import({
-    CourseSeeder.class,
-    InstructorSeeder.class,
-    SemesterSeeder.class,
-    DepartmentSeeder.class,
-    UserSeeder.class,
-    CourseOfferingSeeder.class,
-    JpaConfig.class
-})
-public class CourseOfferingRepoTests {
+public class CourseOfferingRepoTests extends RepoTests {
 
     @Autowired
     private CourseOfferingRepo courseOfferingRepo;

@@ -1,23 +1,16 @@
 package com.sarthak.universityManagement.security.jwt;
 
+import com.sarthak.universityManagement.config.IntegrationTests;
 import com.sarthak.universityManagement.security.UserPrincipal;
 import com.sarthak.universityManagement.testUtils.TestDataFactory;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
-@ActiveProfiles("test")
-@Import(TestDataFactory.class)
-@Transactional
-public class JwtServiceTests {
+public class JwtServiceTests extends IntegrationTests {
     @Autowired
     private JwtService jwtService;
     @Autowired

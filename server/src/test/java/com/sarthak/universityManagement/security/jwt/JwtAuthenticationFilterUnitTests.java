@@ -1,7 +1,6 @@
 package com.sarthak.universityManagement.security.jwt;
 
 import com.sarthak.universityManagement.common.rest.ApiErrorResponse;
-import com.sarthak.universityManagement.security.UserPrincipal;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.UnsupportedJwtException;

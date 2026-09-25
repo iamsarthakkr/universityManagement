@@ -1,5 +1,6 @@
 package com.sarthak.universityManagement.courseOffering;
 
+import com.sarthak.universityManagement.config.IntegrationTests;
 import com.sarthak.universityManagement.courseOffering.dto.CreateCourseOfferingRequest;
 import com.sarthak.universityManagement.semester.types.SemesterTerm;
 import com.sarthak.universityManagement.testUtils.fixtures.CourseOfferingFixtures;
@@ -14,25 +15,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
-@ActiveProfiles("test")
-@Transactional
-@Import({
-    CourseSeeder.class,
-    SemesterSeeder.class,
-    InstructorSeeder.class,
-    DepartmentSeeder.class,
-})
-public class CourseOfferingAuthorizationTests {
+public class CourseOfferingAuthorizationTests extends IntegrationTests {
     @Autowired
     private CourseOfferingService courseOfferingService;
 

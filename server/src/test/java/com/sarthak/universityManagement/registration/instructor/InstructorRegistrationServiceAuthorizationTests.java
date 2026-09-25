@@ -3,31 +3,23 @@ package com.sarthak.universityManagement.registration.instructor;
 
 import com.sarthak.universityManagement.common.types.RegistrationStatus;
 import com.sarthak.universityManagement.common.types.Role;
+import com.sarthak.universityManagement.config.IntegrationTests;
 import com.sarthak.universityManagement.registration.instructor.dto.InstructorRegistrationResponse;
 import com.sarthak.universityManagement.testUtils.TestSecurityUtils;
 import com.sarthak.universityManagement.testUtils.fixtures.UserFixtures;
 import com.sarthak.universityManagement.testUtils.seeders.InstructorRegistrationSeeder;
 import com.sarthak.universityManagement.testUtils.seeders.UserSeeder;
-import com.sarthak.universityManagement.testUtils.testConfigs.RegistrationTestConfig;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
-@ActiveProfiles("test")
-@Import(RegistrationTestConfig.class)
-@Transactional
-public class InstructorRegistrationServiceAuthorizationTests {
+public class InstructorRegistrationServiceAuthorizationTests extends IntegrationTests {
     @Autowired
     private InstructorRegistrationService instructorRegistrationService;
     @Autowired
