@@ -4,8 +4,9 @@ on:
   pull_request:
     paths:
       - "server/**"
+      - "scripts/**"
       - "docker-compose.yml"
-      - "docker-compose.prod.yml"
+      - "docker-compose-prod.yml"
       - ".github/workflows/backend-ci.yml"
 
   push:
@@ -13,8 +14,9 @@ on:
       - main
     paths:
       - "server/**"
+      - "scripts/**"
       - "docker-compose.yml"
-      - "docker-compose.prod.yml"
+      - "docker-compose-prod.yml"
       - ".github/workflows/backend-ci.yml"
 
 jobs:
@@ -49,16 +51,5 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Validate production Compose config
-        run: |
-          docker compose \
-            -f docker-compose.yml \
-            -f docker-compose.prod.yml \
-            config
-
-      - name: Build production Docker services
-        run: |
-          docker compose \
-            -f docker-compose.yml \
-            -f docker-compose.prod.yml \
-            build
+      - name: Build production Docker image
+        run: ./scripts/docker-build.sh prod
