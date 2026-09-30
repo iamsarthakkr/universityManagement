@@ -19,7 +19,7 @@ elif [[ "$ENVIRONMENT" == "prod" ]]; then
   docker compose \
     -f docker-compose.yml \
     -f docker-compose-prod.yml \
-    up -d
+    up -d --remove-orphans
 
 else
   echo "Usage: ./scripts/docker-up.sh [dev|prod]"
