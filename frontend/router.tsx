@@ -1,5 +1,6 @@
 import { createBrowserRouter, Navigate } from 'react-router';
 
+import { DashboardHomeRedirect, RoleGuard } from '@/components/auth/RoleGuard';
 import RootLayout from '@/pages/RootLayout';
 
 import AuthLayout from '@/pages/auth/AuthLayout';
@@ -42,28 +43,54 @@ export const router = createBrowserRouter([
                 path: 'dashboard',
                 element: <DashboardLayout />,
                 children: [
-                    { path: 'admin', element: <AdminDashboardPage /> },
-                    { path: 'admin/student-registrations', element: <StudentRegistrationsPage /> },
-                    { path: 'admin/student-registrations/pending', element: <PendingStudentRegistrationsPage /> },
-                    { path: 'admin/student-registrations/approved', element: <ApprovedStudentRegistrationsPage /> },
-                    { path: 'admin/student-registrations/rejected', element: <RejectedStudentRegistrationsPage /> },
-                    { path: 'admin/instructor-registrations', element: <InstructorRegistrationsPage /> },
-                    { path: 'admin/instructor-registrations/pending', element: <PendingInstructorRegistrationsPage /> },
+                    { index: true, element: <DashboardHomeRedirect /> },
                     {
-                        path: 'admin/instructor-registrations/approved',
-                        element: <ApprovedInstructorRegistrationsPage />,
+                        path: 'admin',
+                        element: <RoleGuard roles={['ADMIN']} />,
+                        children: [
+                            { index: true, element: <AdminDashboardPage /> },
+                            { path: 'student-registrations', element: <StudentRegistrationsPage /> },
+                            { path: 'student-registrations/pending', element: <PendingStudentRegistrationsPage /> },
+                            { path: 'student-registrations/approved', element: <ApprovedStudentRegistrationsPage /> },
+                            { path: 'student-registrations/rejected', element: <RejectedStudentRegistrationsPage /> },
+                            { path: 'instructor-registrations', element: <InstructorRegistrationsPage /> },
+                            {
+                                path: 'instructor-registrations/pending',
+                                element: <PendingInstructorRegistrationsPage />,
+                            },
+                            {
+                                path: 'instructor-registrations/approved',
+                                element: <ApprovedInstructorRegistrationsPage />,
+                            },
+                            {
+                                path: 'instructor-registrations/rejected',
+                                element: <RejectedInstructorRegistrationsPage />,
+                            },
+                        ],
                     },
                     {
-                        path: 'admin/instructor-registrations/rejected',
-                        element: <RejectedInstructorRegistrationsPage />,
+                        path: 'student',
+                        element: <RoleGuard roles={['STUDENT']} />,
+                        children: [
+                            { index: true, element: <StudentHomePage /> },
+                            { path: 'courses', element: <StudentCoursesPage /> },
+                            { path: 'enrollments', element: <StudentEnrollmentsPage /> },
+                        ],
+                    },
+                    {
+                        path: 'instructor',
+                        element: <RoleGuard roles={['INSTRUCTOR']} />,
+                        children: [
+                            { index: true, element: <InstructorHomePage /> },
+                            { path: 'courses', element: <InstructorCoursesPage /> },
+                        ],
                     },
                     { path: 'courses', element: <CoursesPage /> },
-                    { path: 'courses/new', element: <NewCoursePage /> },
-                    { path: 'student', element: <StudentHomePage /> },
-                    { path: 'student/courses', element: <StudentCoursesPage /> },
-                    { path: 'student/enrollments', element: <StudentEnrollmentsPage /> },
-                    { path: 'instructor', element: <InstructorHomePage /> },
-                    { path: 'instructor/courses', element: <InstructorCoursesPage /> },
+                    {
+                        path: 'courses/new',
+                        element: <RoleGuard roles={['ADMIN']} />,
+                        children: [{ index: true, element: <NewCoursePage /> }],
+                    },
                 ],
             },
             { path: '*', element: <Navigate to="/" replace /> },

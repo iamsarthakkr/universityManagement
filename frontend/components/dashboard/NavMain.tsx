@@ -11,39 +11,41 @@ import {
     SidebarMenuSubButton,
     SidebarMenuSubItem,
 } from '@/components/ui/base/sidebar';
-import { SidebarNavItem } from '@/types/navigation';
+import { SidebarNavGroup } from '@/types/navigation';
 import { ChevronRightIcon } from 'lucide-react';
-import { Link } from 'react-router';
+import { Link, useLocation } from 'react-router';
 
 interface Props {
-    items: SidebarNavItem[];
+    groups: SidebarNavGroup[];
 }
 
 export function NavMain(props: Props) {
-    const { items } = props;
+    const { groups } = props;
+    const { pathname } = useLocation();
+
     return (
         <SidebarGroup>
             <SidebarGroupLabel>Platform</SidebarGroupLabel>
             <SidebarMenu>
-                {items.map((item) => {
-                    const Icon = item.icon;
+                {groups.map((group) => {
+                    const Icon = group.icon;
                     return (
-                        <Collapsible key={item.title} asChild defaultOpen={item.open} className="group/collapsible">
+                        <Collapsible key={group.title} asChild defaultOpen className="group/collapsible">
                             <SidebarMenuItem>
                                 <CollapsibleTrigger asChild>
-                                    <SidebarMenuButton tooltip={item.title}>
+                                    <SidebarMenuButton tooltip={group.title}>
                                         <Icon />
-                                        <span className="text-sm">{item.title}</span>
+                                        <span className="text-sm">{group.title}</span>
                                         <ChevronRightIcon className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                                     </SidebarMenuButton>
                                 </CollapsibleTrigger>
                                 <CollapsibleContent>
                                     <SidebarMenuSub>
-                                        {item.items?.map((subItem) => (
-                                            <SidebarMenuSubItem key={subItem.title}>
-                                                <SidebarMenuSubButton asChild>
-                                                    <Link to={subItem.url}>
-                                                        <span className="text-xs">{subItem.title}</span>
+                                        {group.items.map((link) => (
+                                            <SidebarMenuSubItem key={link.url}>
+                                                <SidebarMenuSubButton asChild isActive={pathname === link.url}>
+                                                    <Link to={link.url}>
+                                                        <span className="text-xs">{link.title}</span>
                                                     </Link>
                                                 </SidebarMenuSubButton>
                                             </SidebarMenuSubItem>

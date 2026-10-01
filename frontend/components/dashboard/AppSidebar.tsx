@@ -3,7 +3,7 @@
 import * as React from 'react';
 
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarRail } from '@/components/ui/base/sidebar';
-import { NAV_MAIN } from '@/config/navigation/sidebar';
+import { getSidebarNav } from '@/config/navigation/sidebar';
 import { useAuth } from '@/context/AuthContext';
 import { NavHeader } from './NavHeader';
 import { NavMain } from './NavMain';
@@ -15,17 +15,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         return null;
     }
 
-    const navItems = NAV_MAIN.filter((item) => auth.user && item.roles.includes(auth.user.role)).map((item) => ({
-        ...item,
-        items: item.items?.filter((sub) => !sub.roles || sub.roles.includes(auth.user!.role)),
-    }));
     return (
         <Sidebar collapsible="icon" {...props}>
             <SidebarHeader>
                 <NavHeader />
             </SidebarHeader>
             <SidebarContent>
-                <NavMain items={navItems} />
+                <NavMain groups={getSidebarNav(auth.user.role)} />
             </SidebarContent>
             <SidebarFooter>
                 <NavUser user={auth.user} onLogout={auth.logout} />

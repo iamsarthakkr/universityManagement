@@ -7,7 +7,7 @@ import { Link, Outlet } from 'react-router';
 
 export default function AuthLayout() {
     const { isLoading, isAuthenticated } = useAuthRedirect({
-        redirectAuthenticatedTo: '/dashboard',
+        redirectAuthenticated: true,
     });
 
     if (isLoading || isAuthenticated) {

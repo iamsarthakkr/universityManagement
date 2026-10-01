@@ -29,7 +29,7 @@ The API is structured as a typed interface (`types/IApi.ts`) with implementation
 ### Context / state
 
 - `ApiContext` — singleton `IApi` instance, no state, just the API object
-- `AuthContext` — JWT token + `AuthUser` + login/logout. Token persisted in `localStorage`. On mount, calls `api.auth.me()` to restore session. It does **not** navigate: the layout guards (`useAuthRedirect`) react to `status` and redirect with `replace` (role-based: `ADMIN` → `/dashboard/admin`, `STUDENT` → `/dashboard/student`, `INSTRUCTOR` → `/dashboard/instructor`; logged out → `/login`).
+- `AuthContext` — JWT token + `AuthUser` + login/logout. Token persisted in `localStorage`. On mount, calls `api.auth.me()` to restore session. It does **not** navigate: the layout guards (`useAuthRedirect`) react to `status` and redirect with `replace` (authenticated → role home from `DASHBOARD_HOME`; logged out → `/login`).
 - Session expiry: `lib/http.ts` calls the handler registered via `setUnauthorizedHandler` when a request that carried a token gets a 401. `AuthProvider` registers it to clear the session; the dashboard guard then redirects. Every `RemoteRes` carries the HTTP `status` (0 = no response).
 - Both wrapped in `context/Providers.tsx`, rendered by `pages/RootLayout.tsx` *inside* the router (AuthProvider uses `useNavigate`, which throws outside a router).
 
@@ -55,7 +55,9 @@ pages/
 Layouts render children via `<Outlet />`. Use `Link`/`useNavigate` from `react-router` (never plain `<a href>` for
 internal links - it reloads the whole app). `/` and unknown paths redirect to `/login`.
 
-`hooks/useAuthRedirect.tsx` guards dashboard routes — redirects unauthenticated users to `/login`.
+`hooks/useAuthRedirect.tsx` guards the layouts — unauthenticated users go to `/login`, authenticated users on auth pages go to their role home.
+
+Role access is declared in `router.tsx` with `<RoleGuard roles={[...]} />` (`components/auth/RoleGuard.tsx`), which redirects other roles to their own home. `/dashboard` redirects to the role home. Role home paths live in `config/navigation/dashboardHome.ts`. The backend enforces roles too; the frontend guards are for UX.
 
 ### Component conventions
 
@@ -63,6 +65,6 @@ internal links - it reloads the whole app). `/` and unknown paths redirect to `/
 - `components/ui/` — composite UI pieces (e.g. `StatCard`)
 - `components/dashboard/` — sidebar/nav components
 - `components/admin/`, `components/registration/`, `components/auth/` — feature components
-- `config/navigation/sidebar.tsx` — sidebar nav items config (role-based)
+- `config/navigation/sidebar.tsx` — sidebar groups/links with per-group and per-link `roles`; use `getSidebarNav(role)`. Only link to routes that exist in `router.tsx`, and keep link roles in sync with the route's `RoleGuard`.
 - Toast feedback via `sonner` (`toast.success` / `toast.error`)
 - `lib/cn.ts` — `clsx` + `tailwind-merge` utility for class names

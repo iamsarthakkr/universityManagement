@@ -3,35 +3,19 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 
+import { DASHBOARD_HOME } from '@/config/navigation/dashboardHome';
 import { useAuth } from '@/context/AuthContext';
-import { Role } from '@/types/auth';
 
 type UseAuthRedirectOptions = {
     requireAuth?: boolean;
-    allowedRoles?: Array<Role>;
-    redirectAuthenticatedTo?: string;
+    redirectAuthenticated?: boolean;
 };
 
-function getDashboardPathByRole(role: Role) {
-    switch (role) {
-        case 'ADMIN':
-            return '/dashboard/admin';
-
-        case 'STUDENT':
-            return '/dashboard/student';
-
-        case 'INSTRUCTOR':
-            return '/dashboard/instructor';
-    }
-}
-
 export function useAuthRedirect(options: UseAuthRedirectOptions = {}) {
-    const { requireAuth = false, allowedRoles, redirectAuthenticatedTo } = options;
+    const { requireAuth = false, redirectAuthenticated = false } = options;
 
     const navigate = useNavigate();
     const { user, status } = useAuth();
-
-    const allowedRolesKey = allowedRoles?.join(',');
 
     useEffect(() => {
         if (status === 'loading') {
@@ -43,19 +27,10 @@ export function useAuthRedirect(options: UseAuthRedirectOptions = {}) {
             return;
         }
 
-        if (redirectAuthenticatedTo && status === 'authenticated' && user) {
-            navigate(
-                redirectAuthenticatedTo === '/dashboard' ? getDashboardPathByRole(user.role) : redirectAuthenticatedTo,
-                { replace: true },
-            );
-
-            return;
+        if (redirectAuthenticated && status === 'authenticated' && user) {
+            navigate(DASHBOARD_HOME[user.role], { replace: true });
         }
-
-        if (user && allowedRolesKey && !allowedRolesKey.includes(user.role)) {
-            navigate(getDashboardPathByRole(user.role), { replace: true });
-        }
-    }, [allowedRolesKey, redirectAuthenticatedTo, requireAuth, navigate, status, user]);
+    }, [redirectAuthenticated, requireAuth, navigate, status, user]);
 
     return {
         user,
