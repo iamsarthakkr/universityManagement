@@ -4,7 +4,6 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Replaces next/font: Inter is self-hosted via @fontsource-variable/inter (imported in main.tsx) */
 :root {
     --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
 }

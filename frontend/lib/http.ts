@@ -8,11 +8,6 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080
 
 let unauthorizedHandler: (() => void) | null = null;
 
-/**
- * Registers the callback fired when an authenticated request gets a 401
- * (expired/invalid token). Kept as a plain callback so this module never
- * depends on React or auth state; AuthProvider owns what "logout" means.
- */
 export function setUnauthorizedHandler(handler: (() => void) | null) {
     unauthorizedHandler = handler;
 }
@@ -76,8 +71,6 @@ async function request<T>(path: string, config: RequestConfig = {}): Promise<Rem
             body: config.body !== undefined ? JSON.stringify(config.body) : undefined,
         });
 
-        // Only a 401 on a request that carried a token means the session is gone.
-        // A 401 without a token (e.g. wrong password on /auth/login) is a normal failure.
         if (response.status === 401 && token) {
             unauthorizedHandler?.();
         }

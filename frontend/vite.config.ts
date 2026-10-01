@@ -10,7 +10,6 @@ export default defineConfig({
         },
     },
     server: {
-        // Backend CORS only allows http://localhost:3000 (server SecurityConfig)
         port: 3000,
         strictPort: true,
     },

@@ -4,7 +4,6 @@ export type RemoteRes<T> = {
     errors?: Record<string, string>;
     isSuccess: boolean;
     timestamp: Date;
-    // HTTP status code; 0 when the request never got a response (network/CORS failure).
     status: number;
 };
 

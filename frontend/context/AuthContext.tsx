@@ -19,8 +19,6 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-// Redirects are not done here: the layout guards (useAuthRedirect) react to `status`
-// changes and navigate with `replace`, so login/logout/expiry all redirect the same way.
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const api = useApi();
 
@@ -38,7 +36,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         setUnauthorizedHandler(() => {
             clearSession();
-            // Fixed id: several requests failing with 401 at once still show a single toast.
             toast.error('Your session has expired. Please log in again.', { id: 'session-expired' });
         });
 
@@ -46,7 +43,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, [clearSession]);
 
     useEffect(() => {
-        // StrictMode runs this effect twice in dev; only the latest run may update state.
         let cancelled = false;
 
         const initializeAuth = async () => {
@@ -70,8 +66,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 return;
             }
 
-            // A 401 has already cleared the stored token via the unauthorized handler.
-            // Any other failure (backend down, 5xx) keeps the token so a later reload can restore the session.
             setToken(null);
             setUser(null);
             setStatus('unauthenticated');

@@ -24,10 +24,8 @@ export const InstructorRegistrationsView = ({
     const [items, setItems] = React.useState<InstructorRegistrationResponse[]>([]);
     const [isLoading, setIsLoading] = React.useState(true);
     const [error, setError] = React.useState<string | null>(null);
-    // Id of the row with an approve/reject request in flight; its actions are disabled until it settles.
     const [pendingId, setPendingId] = React.useState<number | null>(null);
 
-    // Does not toggle isLoading, so refreshing after an action updates the table in place instead of flashing "Loading...".
     const loadItems = React.useCallback(async () => {
         const res = await api.admin.getInstructorRegistrations(status);
         if (!res.isSuccess) {
@@ -47,7 +45,6 @@ export const InstructorRegistrationsView = ({
                         ? await api.admin.approveInstructorRegistration(id)
                         : await api.admin.rejectInstructorRegistration(id);
 
-                // isSuccess is the contract; the backend may legitimately return no body.
                 if (!res.isSuccess) {
                     toast.error(`Failed to ${action} request`, { description: res.message });
                     return;
@@ -56,7 +53,6 @@ export const InstructorRegistrationsView = ({
                 toast.success(
                     action === 'approve' ? 'Request approved successfully!' : 'Request rejected successfully!',
                 );
-                // Keep the row disabled until the refreshed list replaces it, so it can't be actioned twice.
                 await loadItems();
             } finally {
                 setPendingId(null);

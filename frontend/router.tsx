@@ -49,8 +49,14 @@ export const router = createBrowserRouter([
                     { path: 'admin/student-registrations/rejected', element: <RejectedStudentRegistrationsPage /> },
                     { path: 'admin/instructor-registrations', element: <InstructorRegistrationsPage /> },
                     { path: 'admin/instructor-registrations/pending', element: <PendingInstructorRegistrationsPage /> },
-                    { path: 'admin/instructor-registrations/approved', element: <ApprovedInstructorRegistrationsPage /> },
-                    { path: 'admin/instructor-registrations/rejected', element: <RejectedInstructorRegistrationsPage /> },
+                    {
+                        path: 'admin/instructor-registrations/approved',
+                        element: <ApprovedInstructorRegistrationsPage />,
+                    },
+                    {
+                        path: 'admin/instructor-registrations/rejected',
+                        element: <RejectedInstructorRegistrationsPage />,
+                    },
                     { path: 'courses', element: <CoursesPage /> },
                     { path: 'courses/new', element: <NewCoursePage /> },
                     { path: 'student', element: <StudentHomePage /> },
@@ -60,7 +66,6 @@ export const router = createBrowserRouter([
                     { path: 'instructor/courses', element: <InstructorCoursesPage /> },
                 ],
             },
-            // Next.js rendered a built-in 404 here; send unknown URLs back to the entry point instead.
             { path: '*', element: <Navigate to="/" replace /> },
         ],
     },
