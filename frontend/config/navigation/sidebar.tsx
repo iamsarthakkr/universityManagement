@@ -1,9 +1,13 @@
-import { BookOpenIcon, ShieldCheckIcon, UsersIcon } from 'lucide-react';
+import { BookOpenIcon, LayoutDashboardIcon, ShieldCheckIcon, UsersIcon } from 'lucide-react';
 
+import { DASHBOARD_HOME } from '@/config/navigation/dashboardHome';
 import { Role } from '@/types/auth';
-import { SidebarNavGroup } from '@/types/navigation';
+import { SidebarNavEntry } from '@/types/navigation';
 
-const SIDEBAR_NAV: SidebarNavGroup[] = [
+const SIDEBAR_NAV: SidebarNavEntry[] = [
+    { title: 'Dashboard', icon: LayoutDashboardIcon, url: DASHBOARD_HOME.ADMIN, roles: ['ADMIN'] },
+    { title: 'Dashboard', icon: LayoutDashboardIcon, url: DASHBOARD_HOME.INSTRUCTOR, roles: ['INSTRUCTOR'] },
+    { title: 'Dashboard', icon: LayoutDashboardIcon, url: DASHBOARD_HOME.STUDENT, roles: ['STUDENT'] },
     {
         title: 'Student Registrations',
         icon: UsersIcon,
@@ -38,9 +42,15 @@ const SIDEBAR_NAV: SidebarNavGroup[] = [
     },
 ];
 
-export function getSidebarNav(role: Role): SidebarNavGroup[] {
-    return SIDEBAR_NAV.filter((group) => group.roles.includes(role)).map((group) => ({
-        ...group,
-        items: group.items.filter((item) => !item.roles || item.roles.includes(role)),
-    }));
+export function getSidebarNav(role: Role): SidebarNavEntry[] {
+    return SIDEBAR_NAV.filter((entry) => entry.roles.includes(role)).map((entry) => {
+        if (!('items' in entry)) {
+            return entry;
+        }
+
+        return {
+            ...entry,
+            items: entry.items.filter((item) => !item.roles || item.roles.includes(role)),
+        };
+    });
 }

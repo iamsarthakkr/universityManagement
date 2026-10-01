@@ -10,11 +10,9 @@ import InstructorRegistrationPage from '@/pages/auth/registration/instructor/pag
 
 import DashboardLayout from '@/pages/dashboard/DashboardLayout';
 import AdminDashboardPage from '@/pages/dashboard/admin/page';
-import StudentRegistrationsPage from '@/pages/dashboard/admin/student-registrations/page';
 import PendingStudentRegistrationsPage from '@/pages/dashboard/admin/student-registrations/pending/page';
 import ApprovedStudentRegistrationsPage from '@/pages/dashboard/admin/student-registrations/approved/page';
 import RejectedStudentRegistrationsPage from '@/pages/dashboard/admin/student-registrations/rejected/page';
-import InstructorRegistrationsPage from '@/pages/dashboard/admin/instructor-registrations/page';
 import PendingInstructorRegistrationsPage from '@/pages/dashboard/admin/instructor-registrations/pending/page';
 import ApprovedInstructorRegistrationsPage from '@/pages/dashboard/admin/instructor-registrations/approved/page';
 import RejectedInstructorRegistrationsPage from '@/pages/dashboard/admin/instructor-registrations/rejected/page';
@@ -49,11 +47,9 @@ export const router = createBrowserRouter([
                         element: <RoleGuard roles={['ADMIN']} />,
                         children: [
                             { index: true, element: <AdminDashboardPage /> },
-                            { path: 'student-registrations', element: <StudentRegistrationsPage /> },
                             { path: 'student-registrations/pending', element: <PendingStudentRegistrationsPage /> },
                             { path: 'student-registrations/approved', element: <ApprovedStudentRegistrationsPage /> },
                             { path: 'student-registrations/rejected', element: <RejectedStudentRegistrationsPage /> },
-                            { path: 'instructor-registrations', element: <InstructorRegistrationsPage /> },
                             {
                                 path: 'instructor-registrations/pending',
                                 element: <PendingInstructorRegistrationsPage />,

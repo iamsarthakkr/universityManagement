@@ -21,7 +21,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <NavHeader />
             </SidebarHeader>
             <SidebarContent>
-                <NavMain groups={getSidebarNav(auth.user.role)} />
+                <NavMain entries={getSidebarNav(auth.user.role)} />
             </SidebarContent>
             <SidebarFooter>
                 <NavUser user={auth.user} onLogout={auth.logout} />

@@ -65,6 +65,6 @@ Role access is declared in `router.tsx` with `<RoleGuard roles={[...]} />` (`com
 - `components/ui/` — composite UI pieces (e.g. `StatCard`)
 - `components/dashboard/` — sidebar/nav components
 - `components/admin/`, `components/registration/`, `components/auth/` — feature components
-- `config/navigation/sidebar.tsx` — sidebar groups/links with per-group and per-link `roles`; use `getSidebarNav(role)`. Only link to routes that exist in `router.tsx`, and keep link roles in sync with the route's `RoleGuard`.
+- `config/navigation/sidebar.tsx` — sidebar entries: top-level links (`url`, e.g. the per-role Dashboard) or collapsible groups (`items`), each with `roles`; group links can narrow `roles` further. Use `getSidebarNav(role)`. Only link to routes that exist in `router.tsx`, and keep link roles in sync with the route's `RoleGuard`.
 - Toast feedback via `sonner` (`toast.success` / `toast.error`)
 - `lib/cn.ts` — `clsx` + `tailwind-merge` utility for class names

@@ -8,9 +8,18 @@ export type SidebarNavLink = {
     roles?: Role[];
 };
 
-export type SidebarNavGroup = {
+type SidebarNavEntryBase = {
     title: string;
     icon: LucideIcon;
     roles: Role[];
+};
+
+export type SidebarNavTopLink = SidebarNavEntryBase & {
+    url: string;
+};
+
+export type SidebarNavGroup = SidebarNavEntryBase & {
     items: SidebarNavLink[];
 };
+
+export type SidebarNavEntry = SidebarNavTopLink | SidebarNavGroup;
