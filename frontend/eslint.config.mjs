@@ -1,43 +1,36 @@
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { FlatCompat } from '@eslint/eslintrc';
 import js from '@eslint/js';
-import parser from '@typescript-eslint/parser';
+import globals from 'globals';
+import tseslint from 'typescript-eslint';
+import react from 'eslint-plugin-react';
+import reactHooks from 'eslint-plugin-react-hooks';
+import prettier from 'eslint-config-prettier';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-// 1) Supply the real eslint:recommended config object
-const compat = new FlatCompat({
-    baseDirectory: __dirname,
-    recommendedConfig: js.configs.recommended,
-});
-
-const linterConfig = [
-    // 2) Translate your “extends” list into flat-config blocks
-    ...compat.extends(
-        'eslint:recommended', // now works
-        'plugin:@typescript-eslint/recommended',
-        'next/core-web-vitals',
-        'plugin:react/recommended',
-        'plugin:@typescript-eslint/recommended',
-        'prettier',
-    ),
-    // 3) Any overrides or per-file settings go here
+export default tseslint.config(
+    { ignores: ['node_modules/', 'dist/'] },
+    js.configs.recommended,
+    ...tseslint.configs.recommended,
+    react.configs.flat.recommended,
+    react.configs.flat['jsx-runtime'],
+    prettier,
     {
-        ignores: ['node_modules/', '.next/', 'dist/'],
         languageOptions: {
-            parser,
-            parserOptions: {
-                ecmaVersion: 2020,
-                sourceType: 'module',
-                ecmaFeatures: { jsx: true },
-                tsconfigRootDir: __dirname,
-                project: ['./tsconfig.json'],
-            },
+            globals: { ...globals.browser },
         },
+        plugins: { 'react-hooks': reactHooks },
+        // Classic hooks rules only, matching what next/core-web-vitals enforced.
+        // The v7 React Compiler rules (set-state-in-effect etc.) are a separate cleanup.
         rules: {
-            // add your custom rule overrides here
+            'react-hooks/rules-of-hooks': 'error',
+            'react-hooks/exhaustive-deps': 'warn',
+        },
+        settings: {
+            react: { version: 'detect' },
         },
     },
-];
-export default linterConfig;
+    {
+        files: ['vite.config.ts', 'eslint.config.mjs', '*.cjs'],
+        languageOptions: {
+            globals: { ...globals.node },
+        },
+    },
+);

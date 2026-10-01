@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useNavigate } from 'react-router';
 import { useApi } from '@/context/ApiContext';
 import { AuthUser } from '@/types/auth';
 import { toast } from 'sonner';
@@ -20,7 +20,7 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-    const router = useRouter();
+    const navigate = useNavigate();
     const api = useApi();
 
     const [user, setUser] = useState<AuthUser | null>(null);
@@ -78,11 +78,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setStatus('authenticated');
 
         if (user.role === 'ADMIN') {
-            router.push('/dashboard/admin');
+            navigate('/dashboard/admin');
         } else if (user.role === 'STUDENT') {
-            router.push('/dashboard/student');
+            navigate('/dashboard/student');
         } else if (user.role === 'INSTRUCTOR') {
-            router.push('/dashboard/instructor');
+            navigate('/dashboard/instructor');
         }
         toast.success('Login successful');
         return true;
@@ -93,7 +93,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setToken(null);
         setUser(null);
         setStatus('unauthenticated');
-        router.push('/login');
+        navigate('/login');
         toast.success('Logged out');
     }
 

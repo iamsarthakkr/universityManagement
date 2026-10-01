@@ -5,8 +5,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
-npm run dev      # Start dev server (Next.js, port 3000)
-npm run build    # Production build
+npm run dev      # Start Vite dev server (port 3000 - backend CORS only allows this origin)
+npm run build    # tsc type-check + Vite build into dist/
+npm run preview  # Serve the production build
 npm run lint     # ESLint
 ```
 
@@ -14,12 +15,12 @@ There are no tests in the frontend. The backend lives in `../server/` (Spring Bo
 
 ## Architecture
 
-**Next.js 15 App Router** with TypeScript, Tailwind CSS v4, shadcn/ui components (Radix UI primitives).
+**Vite + React Router (SPA, `createBrowserRouter`)** with TypeScript, Tailwind CSS v4, shadcn/ui components (Radix UI primitives).
 
 ### API layer
 
 All backend calls go through `lib/http.ts` (`http.get/post/put/patch/delete`), which:
-- Reads `process.env.API_BASE_URL` (defaults to `http://localhost:8080`)
+- Reads `import.meta.env.VITE_API_BASE_URL` (defaults to `http://localhost:8080`; inlined at build time)
 - Attaches JWT from `localStorage.accessToken` as `Authorization: Bearer`
 - Returns a typed `RemoteRes<T>` (`{ isSuccess, body, message, errors, timestamp }`)
 
@@ -29,21 +30,29 @@ The API is structured as a typed interface (`types/IApi.ts`) with implementation
 
 - `ApiContext` — singleton `IApi` instance, no state, just the API object
 - `AuthContext` — JWT token + `AuthUser` + login/logout. Token persisted in `localStorage`. On mount, calls `api.auth.me()` to restore session. Role-based redirect on login (`ADMIN` → `/dashboard/admin`, `STUDENT` → `/dashboard/student`, `INSTRUCTOR` → `/dashboard/instructor`).
-- Both wrapped in `context/Providers.tsx` at the root layout.
+- Both wrapped in `context/Providers.tsx`, rendered by `pages/RootLayout.tsx` *inside* the router (AuthProvider uses `useNavigate`, which throws outside a router).
 
 ### Route structure
 
+Entry: `index.html` -> `main.tsx` -> `router.tsx`. All routes are declared explicitly in `router.tsx`;
+adding a page means creating the component under `pages/` **and** registering it there.
+
 ```
-app/
-  (auth)/          # Login + registration pages (no sidebar)
+pages/
+  RootLayout.tsx   # Providers + <Outlet/>
+  auth/            # AuthLayout.tsx - login + registration pages (no sidebar)
     login/
     registration/student/
     registration/instructor/
-  dashboard/       # Protected area with sidebar layout
+  dashboard/       # DashboardLayout.tsx - protected area with sidebar layout
     admin/         # Admin pages + sub-routes for registrations
+    courses/       # Course catalogue + create course
     student/       # Student pages (courses, enrollments)
     instructor/    # Instructor pages (courses)
 ```
+
+Layouts render children via `<Outlet />`. Use `Link`/`useNavigate` from `react-router` (never plain `<a href>` for
+internal links - it reloads the whole app). `/` and unknown paths redirect to `/login`.
 
 `hooks/useAuthRedirect.tsx` guards dashboard routes — redirects unauthenticated users to `/login`.
 

@@ -6,8 +6,9 @@ import { Separator } from '@/components/ui/base/separator';
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/base/sidebar';
 import { UNIV_NAME } from '@/config/common';
 import { useAuthRedirect } from '@/hooks/useAuthRedirect';
+import { Outlet } from 'react-router';
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default function DashboardLayout() {
     const { isLoading, isAuthenticated } = useAuthRedirect({
         requireAuth: true,
     });
@@ -35,7 +36,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         </Breadcrumb>
                     </div>
                 </header>
-                <div className="flex flex-1 flex-col gap-4 p-4 pt-0">{children}</div>
+                <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+                    <Outlet />
+                </div>
             </SidebarInset>
         </SidebarProvider>
     );

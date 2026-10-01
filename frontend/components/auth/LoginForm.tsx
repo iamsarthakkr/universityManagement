@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import Link from 'next/link';
+import { Link } from 'react-router';
 
 import { cn } from '@/lib/cn';
 import { Button } from '@/components/ui/base/button';
@@ -93,11 +93,11 @@ export const LoginForm = ({ className, ...props }: React.ComponentProps<'div'>) 
                     <div className="grid gap-3 mx-auto rounded-2xl bg-surface-muted p-4 text-sm text-text-muted">
                         <p className="font-semibold text-text">Registration requests</p>
                         <div className="flex flex-wrap gap-2">
-                            <Link className="font-semibold text-brand" href="/registration/student">
+                            <Link className="font-semibold text-brand" to="/registration/student">
                                 Student registration
                             </Link>
                             <span>·</span>
-                            <Link className="font-semibold text-brand" href="/registration/instructor">
+                            <Link className="font-semibold text-brand" to="/registration/instructor">
                                 Instructor registration
                             </Link>
                         </div>

@@ -3,9 +3,9 @@
 import { FieldDescription } from '@/components/ui/base/field';
 import { ICONS, UNIV_NAME, UNIV_SHORT } from '@/config/common';
 import { useAuthRedirect } from '@/hooks/useAuthRedirect';
-import Link from 'next/link';
+import { Link, Outlet } from 'react-router';
 
-export default function AuthLayout({ children }: { children: React.ReactNode }) {
+export default function AuthLayout() {
     const { isLoading, isAuthenticated } = useAuthRedirect({
         redirectAuthenticatedTo: '/dashboard',
     });
@@ -17,7 +17,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
     return (
         <main className="grid min-h-screen lg:grid-cols-[1.05fr_0.95fr]">
             <section className="hidden card-grid-bg bg-brand-soft p-10 lg:flex lg:flex-col lg:justify-between">
-                <Link href="/" className="text-lg font-black tracking-tight text-brand-dark">
+                <Link to="/" className="text-lg font-black tracking-tight text-brand-dark">
                     {UNIV_NAME}
                 </Link>
                 <div className="max-w-xl">
@@ -46,7 +46,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
                             <span className="sr-only">Acme Inc.</span>
                             <h1 className="text-center text-xl font-bold">Welcome to {UNIV_SHORT}</h1>
                         </a>
-                        {children}
+                        <Outlet />
                         <FieldDescription className="px-6 text-center">
                             By clicking continue, you agree to our <a href="#">Terms of Service</a> and
                             <a href="#">Privacy Policy</a>.
