@@ -9,12 +9,13 @@ import { AdminActions, Status } from './common';
 
 interface Props {
     items: StudentRegistrationResponse[];
+    pendingId: number | null;
     onApprove: Callback1<number>;
     onReject: Callback1<number>;
 }
 
 export const StudentRegistrationsTable = (props: Props) => {
-    const { items, onApprove, onReject } = props;
+    const { items, pendingId, onApprove, onReject } = props;
 
     return (
         <Table>
@@ -50,6 +51,7 @@ export const StudentRegistrationsTable = (props: Props) => {
                             <AdminActions
                                 id={item.id}
                                 showActions={item.status === RegistrationStatus.PENDING}
+                                disabled={pendingId === item.id}
                                 onApprove={onApprove}
                                 onReject={onReject}
                             />

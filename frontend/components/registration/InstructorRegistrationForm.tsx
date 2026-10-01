@@ -48,9 +48,11 @@ export const InstructorRegistrationForm = ({ className, ...props }: React.Compon
 
             if (!res.isSuccess) {
                 toast.error('Request failed', { description: res.message || 'Unable to submit request.' });
-            } else {
-                toast.success(res.message);
+                return;
             }
+
+            toast.success(res.message || 'Registration request submitted for approval.');
+            setFormData(initialFormData);
         },
         [api, formData],
     );

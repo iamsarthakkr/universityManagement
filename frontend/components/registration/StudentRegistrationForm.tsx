@@ -54,7 +54,7 @@ export const StudentRegistrationForm = () => {
                 return;
             }
 
-            toast.error(res.message);
+            toast.success(res.message || 'Registration request submitted for approval.');
 
             setFormData(initialFormData);
         },

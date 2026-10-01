@@ -20,12 +20,13 @@ const statusStyles: Record<RegistrationStatus, string> = {
 type ActionsProps = {
     id: number;
     showActions: boolean;
+    disabled?: boolean;
     onApprove: Callback1<number>;
     onReject: Callback1<number>;
 };
 
 export const AdminActions = (props: ActionsProps) => {
-    const { id, showActions, onApprove, onReject } = props;
+    const { id, showActions, disabled = false, onApprove, onReject } = props;
 
     return (
         <DropdownMenu>
@@ -42,8 +43,10 @@ export const AdminActions = (props: ActionsProps) => {
                 {showActions && (
                     <>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => onApprove(id)}>Approve</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => onReject(id)} variant="destructive">
+                        <DropdownMenuItem disabled={disabled} onClick={() => onApprove(id)}>
+                            Approve
+                        </DropdownMenuItem>
+                        <DropdownMenuItem disabled={disabled} onClick={() => onReject(id)} variant="destructive">
                             Reject
                         </DropdownMenuItem>
                     </>

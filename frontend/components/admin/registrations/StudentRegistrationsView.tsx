@@ -24,46 +24,54 @@ export const StudentRegistrationsView = ({
     const [items, setItems] = React.useState<StudentRegistrationResponse[]>([]);
     const [isLoading, setIsLoading] = React.useState(true);
     const [error, setError] = React.useState<string | null>(null);
+    // Id of the row with an approve/reject request in flight; its actions are disabled until it settles.
+    const [pendingId, setPendingId] = React.useState<number | null>(null);
 
-    const fetchData = React.useCallback(async () => {
-        setIsLoading(true);
-
+    // Does not toggle isLoading, so refreshing after an action updates the table in place instead of flashing "Loading...".
+    const loadItems = React.useCallback(async () => {
         const res = await api.admin.getStudentRegistrations(status);
-        if (!res.isSuccess || !res.body) {
-            setError(res.message);
+        if (!res.isSuccess) {
+            setError(res.message || 'Failed to load registration requests.');
             return;
         }
-        setItems(res.body);
+        setError(null);
+        setItems(res.body ?? []);
+    }, [api, status]);
 
-        setIsLoading(false);
-    }, []);
+    const runAction = React.useCallback(
+        async (id: number, action: 'approve' | 'reject') => {
+            setPendingId(id);
+            try {
+                const res =
+                    action === 'approve'
+                        ? await api.admin.approveStudentRegistration(id)
+                        : await api.admin.rejectStudentRegistration(id);
 
-    const onApprove = React.useCallback(
-        async (id: number) => {
-            const res = await api.admin.approveStudentRegistration(id);
-            if (res.isSuccess && res.body) {
-                await fetchData();
-                toast.success('Request approved successfully!');
-            } else {
-                toast.error('Failed to approve request');
+                // isSuccess is the contract; the backend may legitimately return no body.
+                if (!res.isSuccess) {
+                    toast.error(`Failed to ${action} request`, { description: res.message });
+                    return;
+                }
+
+                toast.success(
+                    action === 'approve' ? 'Request approved successfully!' : 'Request rejected successfully!',
+                );
+                // Keep the row disabled until the refreshed list replaces it, so it can't be actioned twice.
+                await loadItems();
+            } finally {
+                setPendingId(null);
             }
         },
-        [api],
+        [api, loadItems],
     );
 
-    const onReject = React.useCallback(async (id: number) => {
-        const res = await api.admin.rejectStudentRegistration(id);
-        if (res.isSuccess && res.body) {
-            await fetchData();
-            toast.success('Request rejected successfully!');
-        } else {
-            toast.error('Failed to reject request');
-        }
-    }, []);
+    const onApprove = React.useCallback((id: number) => runAction(id, 'approve'), [runAction]);
+    const onReject = React.useCallback((id: number) => runAction(id, 'reject'), [runAction]);
 
     React.useEffect(() => {
-        fetchData();
-    }, []);
+        setIsLoading(true);
+        loadItems().finally(() => setIsLoading(false));
+    }, [loadItems]);
 
     return (
         <div className="space-y-6">
@@ -79,7 +87,12 @@ export const StudentRegistrationsView = ({
                         <p className="text-sm text-muted-foreground">{placeholder}</p>
                     </div>
                 ) : (
-                    <StudentRegistrationsTable items={items} onApprove={onApprove} onReject={onReject} />
+                    <StudentRegistrationsTable
+                        items={items}
+                        pendingId={pendingId}
+                        onApprove={onApprove}
+                        onReject={onReject}
+                    />
                 )}
             </div>
         </div>
