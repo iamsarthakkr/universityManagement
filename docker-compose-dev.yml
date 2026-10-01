@@ -1,5 +1,7 @@
 services:
   mysql:
+    build:
+      context: ./server
     ports:
       - "3307:3306"
 
