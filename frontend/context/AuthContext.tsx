@@ -1,8 +1,8 @@
 'use client';
 
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useApi } from '@/context/ApiContext';
+import { setUnauthorizedHandler } from '@/lib/http';
 import { AuthUser } from '@/types/auth';
 import { toast } from 'sonner';
 
@@ -19,15 +19,36 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+// Redirects are not done here: the layout guards (useAuthRedirect) react to `status`
+// changes and navigate with `replace`, so login/logout/expiry all redirect the same way.
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-    const navigate = useNavigate();
     const api = useApi();
 
     const [user, setUser] = useState<AuthUser | null>(null);
     const [token, setToken] = useState<string | null>(null);
     const [status, setStatus] = useState<AuthStatus>('loading');
 
+    const clearSession = useCallback(() => {
+        localStorage.removeItem('accessToken');
+        setToken(null);
+        setUser(null);
+        setStatus('unauthenticated');
+    }, []);
+
     useEffect(() => {
+        setUnauthorizedHandler(() => {
+            clearSession();
+            // Fixed id: several requests failing with 401 at once still show a single toast.
+            toast.error('Your session has expired. Please log in again.', { id: 'session-expired' });
+        });
+
+        return () => setUnauthorizedHandler(null);
+    }, [clearSession]);
+
+    useEffect(() => {
+        // StrictMode runs this effect twice in dev; only the latest run may update state.
+        let cancelled = false;
+
         const initializeAuth = async () => {
             const storedToken = localStorage.getItem('accessToken');
 
@@ -36,66 +57,60 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 return;
             }
 
-            try {
-                setToken(storedToken);
+            setToken(storedToken);
 
-                const res = await api.auth.me();
-                if (res.isSuccess && res.body) {
-                    setUser(res.body);
-                    setStatus('authenticated');
-                    toast.success('Welcome back ' + res.body.username);
-                } else {
-                    setToken(null);
-                    setUser(null);
-                    setStatus('unauthenticated');
-                }
-            } catch {
-                localStorage.removeItem('accessToken');
-                setToken(null);
-                setUser(null);
-                setStatus('unauthenticated');
+            const res = await api.auth.me();
+            if (cancelled) {
+                return;
             }
+
+            if (res.isSuccess && res.body) {
+                setUser(res.body);
+                setStatus('authenticated');
+                return;
+            }
+
+            // A 401 has already cleared the stored token via the unauthorized handler.
+            // Any other failure (backend down, 5xx) keeps the token so a later reload can restore the session.
+            setToken(null);
+            setUser(null);
+            setStatus('unauthenticated');
         };
 
         initializeAuth();
+
+        return () => {
+            cancelled = true;
+        };
     }, [api]);
 
-    async function login(username: string, password: string) {
-        const response = await api.auth.login({
-            username,
-            password,
-        });
-        if (!response.isSuccess || !response.body) {
-            return false;
-        }
+    const login = useCallback(
+        async (username: string, password: string) => {
+            const response = await api.auth.login({
+                username,
+                password,
+            });
+            if (!response.isSuccess || !response.body) {
+                return false;
+            }
 
-        const { accessToken, user } = response.body;
+            const { accessToken, user } = response.body;
 
-        localStorage.setItem('accessToken', accessToken);
-        setToken(accessToken);
+            localStorage.setItem('accessToken', accessToken);
+            setToken(accessToken);
+            setUser(user);
+            setStatus('authenticated');
 
-        setUser(user);
-        setStatus('authenticated');
+            toast.success('Login successful');
+            return true;
+        },
+        [api],
+    );
 
-        if (user.role === 'ADMIN') {
-            navigate('/dashboard/admin');
-        } else if (user.role === 'STUDENT') {
-            navigate('/dashboard/student');
-        } else if (user.role === 'INSTRUCTOR') {
-            navigate('/dashboard/instructor');
-        }
-        toast.success('Login successful');
-        return true;
-    }
-
-    function logout() {
-        localStorage.removeItem('accessToken');
-        setToken(null);
-        setUser(null);
-        setStatus('unauthenticated');
-        navigate('/login');
+    const logout = useCallback(() => {
+        clearSession();
         toast.success('Logged out');
-    }
+    }, [clearSession]);
 
     const value = useMemo<AuthContextValue>(
         () => ({
@@ -106,7 +121,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             login,
             logout,
         }),
-        [user, token, status],
+        [user, token, status, login, logout],
     );
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -29,7 +29,8 @@ The API is structured as a typed interface (`types/IApi.ts`) with implementation
 ### Context / state
 
 - `ApiContext` — singleton `IApi` instance, no state, just the API object
-- `AuthContext` — JWT token + `AuthUser` + login/logout. Token persisted in `localStorage`. On mount, calls `api.auth.me()` to restore session. Role-based redirect on login (`ADMIN` → `/dashboard/admin`, `STUDENT` → `/dashboard/student`, `INSTRUCTOR` → `/dashboard/instructor`).
+- `AuthContext` — JWT token + `AuthUser` + login/logout. Token persisted in `localStorage`. On mount, calls `api.auth.me()` to restore session. It does **not** navigate: the layout guards (`useAuthRedirect`) react to `status` and redirect with `replace` (role-based: `ADMIN` → `/dashboard/admin`, `STUDENT` → `/dashboard/student`, `INSTRUCTOR` → `/dashboard/instructor`; logged out → `/login`).
+- Session expiry: `lib/http.ts` calls the handler registered via `setUnauthorizedHandler` when a request that carried a token gets a 401. `AuthProvider` registers it to clear the session; the dashboard guard then redirects. Every `RemoteRes` carries the HTTP `status` (0 = no response).
 - Both wrapped in `context/Providers.tsx`, rendered by `pages/RootLayout.tsx` *inside* the router (AuthProvider uses `useNavigate`, which throws outside a router).
 
 ### Route structure

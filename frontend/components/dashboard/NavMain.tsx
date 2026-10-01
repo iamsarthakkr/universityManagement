@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/base/sidebar';
 import { SidebarNavItem } from '@/types/navigation';
 import { ChevronRightIcon } from 'lucide-react';
+import { Link } from 'react-router';
 
 interface Props {
     items: SidebarNavItem[];
@@ -41,9 +42,9 @@ export function NavMain(props: Props) {
                                         {item.items?.map((subItem) => (
                                             <SidebarMenuSubItem key={subItem.title}>
                                                 <SidebarMenuSubButton asChild>
-                                                    <a href={subItem.url}>
+                                                    <Link to={subItem.url}>
                                                         <span className="text-xs">{subItem.title}</span>
-                                                    </a>
+                                                    </Link>
                                                 </SidebarMenuSubButton>
                                             </SidebarMenuSubItem>
                                         ))}
