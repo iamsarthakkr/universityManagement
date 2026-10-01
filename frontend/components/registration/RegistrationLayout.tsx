@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { Link } from 'react-router';
 import { cn } from '@/lib/cn';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/base/card';
 import { FieldDescription } from '@/components/ui/base/field';
@@ -26,7 +26,7 @@ export default function RegistrationLayout(props: Props) {
                     <FieldDescription className="mx-auto px-6 text-center">
                         <p className="text-center text-sm text-text-muted">
                             Already registered?{' '}
-                            <Link className="font-semibold text-brand" href="/login">
+                            <Link className="font-semibold text-brand" to="/login">
                                 Login
                             </Link>
                         </p>

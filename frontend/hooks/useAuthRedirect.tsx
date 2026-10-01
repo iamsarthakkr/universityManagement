@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useNavigate } from 'react-router';
 
 import { useAuth } from '@/context/AuthContext';
 import { Role } from '@/types/auth';
@@ -28,7 +28,7 @@ function getDashboardPathByRole(role: Role) {
 export function useAuthRedirect(options: UseAuthRedirectOptions = {}) {
     const { requireAuth = false, allowedRoles, redirectAuthenticatedTo } = options;
 
-    const router = useRouter();
+    const navigate = useNavigate();
     const { user, status } = useAuth();
 
     const allowedRolesKey = allowedRoles?.join(',');
@@ -39,22 +39,23 @@ export function useAuthRedirect(options: UseAuthRedirectOptions = {}) {
         }
 
         if (requireAuth && status === 'unauthenticated') {
-            router.replace('/login');
+            navigate('/login', { replace: true });
             return;
         }
 
         if (redirectAuthenticatedTo && status === 'authenticated' && user) {
-            router.replace(
+            navigate(
                 redirectAuthenticatedTo === '/dashboard' ? getDashboardPathByRole(user.role) : redirectAuthenticatedTo,
+                { replace: true },
             );
 
             return;
         }
 
         if (user && allowedRolesKey && !allowedRolesKey.includes(user.role)) {
-            router.replace(getDashboardPathByRole(user.role));
+            navigate(getDashboardPathByRole(user.role), { replace: true });
         }
-    }, [allowedRolesKey, redirectAuthenticatedTo, requireAuth, router, status, user]);
+    }, [allowedRolesKey, redirectAuthenticatedTo, requireAuth, navigate, status, user]);
 
     return {
         user,
