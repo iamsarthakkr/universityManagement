@@ -24,6 +24,7 @@ npm run dev            # http://localhost:3000
 npm run build          # type-check + static build into dist/
 npm run preview        # serve dist/ locally
 npm test               # run tests in watch mode (npm run test:run for a single run)
+npm run test:coverage  # run tests with coverage report in coverage/
 ```
 
 The dev server is pinned to port 3000 because the backend CORS config only allows that origin.

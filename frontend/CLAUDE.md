@@ -11,6 +11,7 @@ npm run preview  # Serve the production build
 npm run lint     # ESLint
 npm test         # Vitest in watch mode
 npm run test:run # Vitest once (CI)
+npm run test:coverage # Vitest once with V8 coverage; fails below the thresholds
 ```
 
 The backend lives in `../server/` (Spring Boot, runs on port 8080).
@@ -24,6 +25,8 @@ Vitest + jsdom + Testing Library, configured in the `test` block of `vite.config
 - Mock the network, not the modules: `mockFetch({ 'GET /path': jsonOk(body), 'POST /path': jsonError(400, 'msg') })` from `tests/mockFetch.ts` stubs global `fetch` and returns the recorded requests (method, path, headers, parsed body). Unmocked routes fail like a network error. This keeps `http.ts`, `unwrap`, the stores and React Query in the path under test.
 - `tests/render.tsx`: `renderWithProviders(ui)` (query client + tooltip provider + memory router) for components; `renderApp(path)` mounts the real `routes` from `router.tsx` for end-to-end flows.
 - Use 4xx errors when testing query error states — 5xx/network errors retry once with a delay.
+- Coverage (V8) is configured in `vite.config.ts`: app code only (`components/ui/base` shadcn primitives, tests and type-only files are excluded). Thresholds are 90% statements/functions/lines and 80% branches — `npm run test:coverage` fails below them. Reports go to `coverage/` (HTML at `coverage/index.html`, plus `lcov` for CI tools). Raise the thresholds as coverage grows; don't lower them to make a change pass.
+- `tests/routing.test.tsx` opens every sidebar link for every role through the real router, so a new sidebar link must have a working route (and a broken lazy `import()` fails the suite).
 
 ## Architecture
 
