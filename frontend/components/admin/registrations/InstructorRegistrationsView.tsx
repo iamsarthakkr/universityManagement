@@ -73,7 +73,7 @@ export const InstructorRegistrationsView = ({
         <div className="space-y-6">
             <PageHeader title={title} description={description} />
 
-            <div className="overflow-hidden rounded-3xl border border-border bg-white shadow-soft">
+            <div className="overflow-hidden rounded-3xl border border-border bg-surface shadow-soft">
                 {isLoading ? (
                     <p className="px-1 py-0.5">Loading...</p>
                 ) : error ? (

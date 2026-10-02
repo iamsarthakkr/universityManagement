@@ -1,5 +1,6 @@
 'use client';
 
+import { ThemeToggle } from '@/components/common/ThemeToggle';
 import { AppSidebar } from '@/components/dashboard/AppSidebar';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage } from '@/components/ui/base/breadcrumb';
 import { Separator } from '@/components/ui/base/separator';
@@ -32,6 +33,9 @@ export default function DashboardLayout() {
                                 </BreadcrumbItem>
                             </BreadcrumbList>
                         </Breadcrumb>
+                    </div>
+                    <div className="ml-auto px-4">
+                        <ThemeToggle />
                     </div>
                 </header>
                 <div className="flex flex-1 flex-col gap-4 p-4 pt-0">

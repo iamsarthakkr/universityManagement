@@ -2,7 +2,7 @@ import React from 'react';
 
 export function CourseFormLayout({ children }: { children: React.ReactNode }) {
     return (
-        <section className="rounded-3xl border border-border bg-white p-6 shadow-soft">
+        <section className="rounded-3xl border border-border bg-surface p-6 shadow-soft">
             <div className="flex flex-col gap-8">{children}</div>
         </section>
     );

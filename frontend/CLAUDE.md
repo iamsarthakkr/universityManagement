@@ -39,6 +39,12 @@ No React Context is used for app state; stores live in `stores/`.
 - Startup: `components/common/AppGate.tsx` (in `pages/RootLayout.tsx`) registers `expireSession` as the 401 handler and calls `init()` on mount. `init()` loads static data and restores the session (`/auth/me` if a token exists) in parallel: success → `READY`; a 401 just logs out; any other failure → `FAILED`.
 - `AppGate` also renders a loading overlay while `LOADING`, an error overlay whose retry re-runs the whole `init()` while `FAILED`, and the app only when `READY`. So `staticData` is always loaded for components — never add loading flags for it. Add app-wide reference data to `StaticData` + `init()` only if it's needed without login, since it blocks the whole app.
 
+### Theming
+
+- Light and dark values for every color live in `styles/globals.css` (`:root` and `.dark`); `@theme inline` maps them to Tailwind utilities. Use the semantic classes — `bg-background`/`bg-bg`, `bg-surface`/`bg-card`, `bg-surface-muted`/`bg-muted`, `text-text`/`text-foreground`, `text-text-muted`/`text-muted-foreground`, `border-border`, `text-brand`, `bg-brand-soft`, `bg-primary`, `shadow-soft` — never raw palette colors like `bg-white` or `text-slate-600`. If a palette color is unavoidable (e.g. status badges), add a `dark:` variant.
+- `stores/themeStore.ts` (Zustand + `persist`, localStorage key `theme`) holds `light` / `dark` / `system` (default `system`) and toggles the `.dark` class on `<html>`, following OS changes while on `system`. An inline script in `index.html` applies the saved theme before first paint to avoid a flash — keep it in sync with the store's storage key/format.
+- `components/common/ThemeToggle.tsx` is in the dashboard header and on the auth pages. The toaster reads the same store.
+
 ### Route structure
 
 Entry: `index.html` -> `main.tsx` -> `router.tsx`. All routes are declared explicitly in `router.tsx`;

@@ -35,7 +35,7 @@ export function CourseCatalogue() {
         <>
             <PageHeader title="Course catalogue" description="Browse all available courses grouped by department." />
 
-            <section className="rounded-3xl border border-border bg-white p-6 shadow-soft">
+            <section className="rounded-3xl border border-border bg-surface p-6 shadow-soft">
                 {isLoading ? (
                     <p className="text-sm text-text-muted">Loading...</p>
                 ) : error ? (

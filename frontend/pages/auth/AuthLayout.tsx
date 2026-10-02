@@ -1,5 +1,6 @@
 'use client';
 
+import { ThemeToggle } from '@/components/common/ThemeToggle';
 import { ICONS, UNIV_NAME, UNIV_SHORT } from '@/config/common';
 import { DASHBOARD_HOME } from '@/config/navigation/dashboardHome';
 import { useAppStore } from '@/stores/appStore';
@@ -13,24 +14,27 @@ export default function AuthLayout() {
     }
 
     return (
-        <main className="grid min-h-screen lg:grid-cols-[1.05fr_0.95fr]">
+        <main className="relative grid min-h-screen lg:grid-cols-[1.05fr_0.95fr]">
+            <div className="absolute top-4 right-4">
+                <ThemeToggle />
+            </div>
             <section className="hidden card-grid-bg bg-brand-soft p-10 lg:flex lg:flex-col lg:justify-between">
                 <Link to="/" className="text-lg font-black tracking-tight text-brand-dark">
                     {UNIV_NAME}
                 </Link>
                 <div className="max-w-xl">
-                    <p className="mb-4 inline-flex rounded-full bg-white/80 px-4 py-2 text-sm font-semibold text-brand-dark shadow-sm">
+                    <p className="mb-4 inline-flex rounded-full bg-surface/80 px-4 py-2 text-sm font-semibold text-brand-dark shadow-sm">
                         Student and staff portal
                     </p>
-                    <h2 className="text-5xl font-black leading-tight tracking-tight text-slate-950">
+                    <h2 className="text-5xl font-black leading-tight tracking-tight text-text">
                         Manage registrations, approvals, courses, and enrollments from one clean dashboard.
                     </h2>
-                    <p className="mt-6 text-lg leading-8 text-slate-600">
+                    <p className="mt-6 text-lg leading-8 text-text-muted">
                         Students and instructors can request access here. Every registration is reviewed and approved by
                         the university administration.
                     </p>
                 </div>
-                <p className="text-sm text-slate-500">
+                <p className="text-sm text-text-muted">
                     © {new Date().getFullYear()} {UNIV_NAME}
                 </p>
             </section>

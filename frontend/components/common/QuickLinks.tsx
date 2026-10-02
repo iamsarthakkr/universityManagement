@@ -15,7 +15,7 @@ export function QuickLinks({ links }: { links: QuickLink[] }) {
                 <Link
                     key={url}
                     to={url}
-                    className="group flex items-start gap-4 rounded-2xl border border-border bg-white p-5 shadow-soft transition-colors hover:border-brand/40 hover:bg-brand-soft/40"
+                    className="group flex items-start gap-4 rounded-2xl border border-border bg-surface p-5 shadow-soft transition-colors hover:border-brand/40 hover:bg-brand-soft/40"
                 >
                     <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand">
                         <Icon className="size-5" />
