@@ -46,7 +46,6 @@ export type InstructorRegistrationRequest = {
     lastName?: string;
     departmentId: number;
 };
-export type InstructorRegistrationData = InstructorRegistrationRequest; // alias
 
 export type InstructorRegistrationResponse = RegistrationResponseBase;
 

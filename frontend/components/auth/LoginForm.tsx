@@ -6,43 +6,31 @@ import { Button } from '@/components/ui/base/button';
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/base/field';
 import { Input } from '@/components/ui/base/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/base/card';
+import { useFormState } from '@/hooks/useFormState';
 import { useAppActions } from '@/stores/appStore';
-import { LoginData } from '@/types/auth';
+import { LoginRequest } from '@/types/auth';
+
+const initialValues: LoginRequest = {
+    username: '',
+    password: '',
+};
 
 export const LoginForm = ({ className, ...props }: React.ComponentProps<'div'>) => {
     const { login } = useAppActions();
-    const [formData, setFormData] = React.useState<LoginData>({
-        username: '',
-        password: '',
-    });
+    const { values, handleChange } = useFormState(initialValues);
     const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
-
     const [isLoading, setIsLoading] = React.useState(false);
-    const handleChange = React.useCallback(
-        (event: React.ChangeEvent<HTMLInputElement>) => {
-            const { name, value } = event.target;
-
-            setFormData((prev) => ({
-                ...prev,
-
-                [name]: value,
-            }));
-        },
-
-        [],
-    );
 
     const handleLogin = React.useCallback(
         async (event: React.SubmitEvent<HTMLFormElement>) => {
             event.preventDefault();
 
             setIsLoading(true);
-            const result = await login(formData.username, formData.password);
+            const result = await login(values.username, values.password);
             setErrorMessage(result.success ? null : result.message);
             setIsLoading(false);
         },
-
-        [login, formData],
+        [login, values],
     );
 
     return (
@@ -62,7 +50,7 @@ export const LoginForm = ({ className, ...props }: React.ComponentProps<'div'>) 
                                     name="username"
                                     type="text"
                                     autoComplete="username"
-                                    value={formData.username}
+                                    value={values.username}
                                     onChange={handleChange}
                                     required
                                 />
@@ -74,7 +62,7 @@ export const LoginForm = ({ className, ...props }: React.ComponentProps<'div'>) 
                                     name="password"
                                     type="password"
                                     autoComplete="current-password"
-                                    value={formData.password}
+                                    value={values.password}
                                     onChange={handleChange}
                                     required
                                 />

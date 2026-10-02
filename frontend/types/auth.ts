@@ -5,8 +5,6 @@ export type LoginRequest = {
     password: string;
 };
 
-export type LoginData = LoginRequest; // alias
-
 export type LoginResponse = {
     accessToken: string;
     user: AuthUser;

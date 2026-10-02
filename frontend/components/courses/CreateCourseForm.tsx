@@ -4,13 +4,13 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/base/button';
 import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/components/ui/base/field';
 import { Input } from '@/components/ui/base/input';
+import { DepartmentSelect } from '@/components/common/DepartmentSelect';
+import { PageHeader } from '@/components/common/PageHeader';
+import { useFormState } from '@/hooks/useFormState';
 import { useApi } from '@/stores/apiStore';
 import { useAppStore } from '@/stores/appStore';
 import { CourseRequest } from '@/types/course';
 import { Department } from '@/types/department';
-
-import { PageHeader } from '@/components/common/PageHeader';
-import { cn } from '@/lib/cn';
 
 import { CourseFormLayout, CourseFormSection } from './CourseFormLayout';
 
@@ -31,7 +31,7 @@ export function CreateCourseForm() {
     const api = useApi();
     const departments = useAppStore((state) => state.staticData.departments);
 
-    const [formData, setFormData] = React.useState<CourseFormData>(initialFormData);
+    const { values, handleChange, reset } = useFormState(initialFormData);
     const [selectedDept, setSelectedDept] = React.useState<Department | null>(null);
     const [codeInput, setCodeInput] = React.useState('');
     const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -40,22 +40,14 @@ export function CreateCourseForm() {
     const courseCode = selectedDept && codeSuffix ? `${selectedDept.code}${codeSuffix}` : null;
 
     const handleDepartmentChange = React.useCallback(
-        (event: React.ChangeEvent<HTMLSelectElement>) => {
-            setSelectedDept(departments.find((d) => d.id === Number(event.target.value)) ?? null);
+        (departmentId: number) => {
+            setSelectedDept(departments.find((department) => department.id === departmentId) ?? null);
         },
         [departments],
     );
 
     const handleCodeChange = React.useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         setCodeInput(event.target.value.toUpperCase());
-    }, []);
-
-    const handleChange = React.useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value, type } = event.target;
-        setFormData((prev) => ({
-            ...prev,
-            [name]: type === 'number' ? Number(value) : value,
-        }));
     }, []);
 
     const handleSubmit = React.useCallback(
@@ -70,7 +62,7 @@ export function CreateCourseForm() {
             setIsSubmitting(true);
 
             const res = await api.courses.createCourse({
-                ...formData,
+                ...values,
                 departmentId: selectedDept.id,
                 code: courseCode,
             });
@@ -83,18 +75,11 @@ export function CreateCourseForm() {
             }
 
             toast.success(res.message || 'Course created successfully.');
-            setFormData(initialFormData);
+            reset();
             setSelectedDept(null);
             setCodeInput('');
         },
-        [api, formData, selectedDept, courseCode],
-    );
-
-    const selectClassName = cn(
-        'h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none',
-        'focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50',
-        'disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50',
-        'md:text-sm dark:bg-input/30',
+        [api, values, reset, selectedDept, courseCode],
     );
 
     return (
@@ -108,22 +93,12 @@ export function CreateCourseForm() {
                                 <div className="grid gap-4 sm:grid-cols-2">
                                     <Field>
                                         <FieldLabel htmlFor="department">Department</FieldLabel>
-                                        <select
+                                        <DepartmentSelect
                                             id="department"
                                             required
-                                            value={selectedDept?.id ?? ''}
+                                            value={selectedDept?.id ?? null}
                                             onChange={handleDepartmentChange}
-                                            className={selectClassName}
-                                        >
-                                            <option value="" disabled>
-                                                Select a department
-                                            </option>
-                                            {departments.map((d) => (
-                                                <option key={d.id} value={d.id}>
-                                                    {d.name}
-                                                </option>
-                                            ))}
-                                        </select>
+                                        />
                                     </Field>
                                     <Field>
                                         <FieldLabel htmlFor="code">Course Code</FieldLabel>
@@ -155,7 +130,7 @@ export function CreateCourseForm() {
                                         type="text"
                                         required
                                         placeholder="e.g. Introduction to Programming"
-                                        value={formData.title}
+                                        value={values.title}
                                         onChange={handleChange}
                                     />
                                 </Field>
@@ -167,7 +142,7 @@ export function CreateCourseForm() {
                                         type="text"
                                         required
                                         placeholder="e.g. Covers fundamentals of programming using Python"
-                                        value={formData.description}
+                                        value={values.description}
                                         onChange={handleChange}
                                     />
                                 </Field>
@@ -186,7 +161,7 @@ export function CreateCourseForm() {
                                         max={10}
                                         required
                                         placeholder="e.g. 3"
-                                        value={formData.credits}
+                                        value={values.credits}
                                         onChange={handleChange}
                                     />
                                 </Field>
