@@ -1,43 +1,30 @@
-import React from 'react';
+import { useQuery } from '@tanstack/react-query';
 
 import { PageHeader } from '@/components/common/PageHeader';
+import { unwrap } from '@/lib/query';
+import { queryKeys } from '@/lib/queryKeys';
 import { useApi } from '@/stores/apiStore';
-import { CourseCatalogueGroup } from '@/types/course';
 
 import { DepartmentGroup } from './DepartmentGroup';
 
 export function CourseCatalogue() {
     const api = useApi();
 
-    const [groups, setGroups] = React.useState<CourseCatalogueGroup[]>([]);
-    const [isLoading, setIsLoading] = React.useState(true);
-    const [error, setError] = React.useState<string | null>(null);
-
-    React.useEffect(() => {
-        const fetchData = async () => {
-            const res = await api.courses.getCatalogue();
-
-            if (!res.isSuccess || !res.body) {
-                setError(res.message || 'Failed to load catalogue.');
-            } else {
-                setGroups(res.body);
-            }
-
-            setIsLoading(false);
-        };
-
-        fetchData();
-    }, [api]);
+    const catalogueQuery = useQuery({
+        queryKey: queryKeys.courses.catalogue,
+        queryFn: () => unwrap(api.courses.getCatalogue()),
+    });
+    const groups = catalogueQuery.data ?? [];
 
     return (
         <>
             <PageHeader title="Course catalogue" description="Browse all available courses grouped by department." />
 
             <section className="rounded-3xl border border-border bg-surface p-6 shadow-soft">
-                {isLoading ? (
+                {catalogueQuery.isPending ? (
                     <p className="text-sm text-text-muted">Loading...</p>
-                ) : error ? (
-                    <p className="text-sm text-destructive">{error}</p>
+                ) : catalogueQuery.isError ? (
+                    <p className="text-sm text-destructive">{catalogueQuery.error.message}</p>
                 ) : groups.length === 0 ? (
                     <p className="text-sm text-text-muted">No courses available yet.</p>
                 ) : (

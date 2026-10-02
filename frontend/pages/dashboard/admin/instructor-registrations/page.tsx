@@ -10,5 +10,5 @@ export default function InstructorRegistrationsPage() {
         return <Navigate to="/dashboard/admin/instructor-registrations/pending" replace />;
     }
 
-    return <RegistrationsView key={status} kind="instructor" status={status} />;
+    return <RegistrationsView kind="instructor" status={status} />;
 }

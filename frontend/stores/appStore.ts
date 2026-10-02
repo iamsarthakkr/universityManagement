@@ -1,6 +1,7 @@
 import { toast } from 'sonner';
 import { create } from 'zustand';
 
+import { queryClient } from '@/lib/query';
 import { clearToken, getToken, setToken } from '@/lib/session';
 import { useApiStore } from '@/stores/apiStore';
 import { AppState, AppStoreActions, AppStoreData } from '@/types/app';
@@ -70,12 +71,14 @@ export const useAppStore = create<AppStore>()((set) => ({
 
         logout: () => {
             clearToken();
+            queryClient.clear();
             set({ user: null });
             toast.success('Logged out');
         },
 
         expireSession: () => {
             clearToken();
+            queryClient.clear();
             set({ user: null });
             toast.error('Your session has expired. Please log in again.', { id: 'session-expired' });
         },

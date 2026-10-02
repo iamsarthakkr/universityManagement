@@ -39,6 +39,17 @@ No React Context is used for app state; stores live in `stores/`.
 - Startup: `components/common/AppGate.tsx` (in `pages/RootLayout.tsx`) registers `expireSession` as the 401 handler and calls `init()` on mount. `init()` loads static data and restores the session (`/auth/me` if a token exists) in parallel: success → `READY`; a 401 just logs out; any other failure → `FAILED`.
 - `AppGate` also renders a loading overlay while `LOADING`, an error overlay whose retry re-runs the whole `init()` while `FAILED`, and the app only when `READY`. So `staticData` is always loaded for components — never add loading flags for it. Add app-wide reference data to `StaticData` + `init()` only if it's needed without login, since it blocks the whole app.
 
+### Server state (TanStack Query)
+
+Zustand holds **client** state (user, app state, theme, static data loaded at startup). Data fetched for a page and data changed by forms is **server** state and goes through React Query.
+
+- `lib/query.ts` — the shared `queryClient` (provided in `pages/RootLayout.tsx`), `ApiError`, and `unwrap()`. `http` never throws, so every `queryFn`/`mutationFn` wraps its call: `queryFn: () => unwrap(api.courses.getCatalogue())`. `unwrap` throws `ApiError` (`message`, `status`) when `isSuccess` is false.
+- Retries: 4xx never retry; network errors and 5xx retry once.
+- `lib/queryKeys.ts` — every query key lives here; never write keys inline. Keys are hierarchical so a prefix invalidates a whole group (e.g. `queryKeys.registrations.byKind(kind)` refreshes all statuses after approve/reject).
+- Mutations invalidate what they change in `onSuccess` and return the invalidation promise, so `isPending` stays true until fresh data is in (used to keep rows/buttons disabled).
+- `logout()`/`expireSession()` call `queryClient.clear()` so cached data never leaks to the next user on the same browser.
+- Login and app startup stay in the app store — don't move them to React Query.
+
 ### Theming
 
 - Light and dark values for every color live in `styles/globals.css` (`:root` and `.dark`); `@theme inline` maps them to Tailwind utilities. Use the semantic classes — `bg-background`/`bg-bg`, `bg-surface`/`bg-card`, `bg-surface-muted`/`bg-muted`, `text-text`/`text-foreground`, `text-text-muted`/`text-muted-foreground`, `border-border`, `text-brand`, `bg-brand-soft`, `bg-primary`, `shadow-soft` — never raw palette colors like `bg-white` or `text-slate-600`. If a palette color is unavoidable (e.g. status badges), add a `dark:` variant.

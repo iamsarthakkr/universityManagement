@@ -1,3 +1,4 @@
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import React from 'react';
 import { toast } from 'sonner';
 
@@ -7,6 +8,8 @@ import { Input } from '@/components/ui/base/input';
 import { DepartmentSelect } from '@/components/common/DepartmentSelect';
 import { PageHeader } from '@/components/common/PageHeader';
 import { useFormState } from '@/hooks/useFormState';
+import { unwrap } from '@/lib/query';
+import { queryKeys } from '@/lib/queryKeys';
 import { useApi } from '@/stores/apiStore';
 import { useAppStore } from '@/stores/appStore';
 import { CourseRequest } from '@/types/course';
@@ -34,7 +37,6 @@ export function CreateCourseForm() {
     const { values, handleChange, reset } = useFormState(initialFormData);
     const [selectedDept, setSelectedDept] = React.useState<Department | null>(null);
     const [codeInput, setCodeInput] = React.useState('');
-    const [isSubmitting, setIsSubmitting] = React.useState(false);
 
     const codeSuffix = selectedDept ? normalizeCodeSuffix(codeInput, selectedDept.code) : '';
     const courseCode = selectedDept && codeSuffix ? `${selectedDept.code}${codeSuffix}` : null;
@@ -50,37 +52,32 @@ export function CreateCourseForm() {
         setCodeInput(event.target.value.toUpperCase());
     }, []);
 
-    const handleSubmit = React.useCallback(
-        async (event: React.SubmitEvent<HTMLFormElement>) => {
-            event.preventDefault();
+    const queryClient = useQueryClient();
 
-            if (!selectedDept || !courseCode) {
-                toast.error('Enter a course number after the department code.');
-                return;
-            }
-
-            setIsSubmitting(true);
-
-            const res = await api.courses.createCourse({
-                ...values,
-                departmentId: selectedDept.id,
-                code: courseCode,
-            });
-
-            setIsSubmitting(false);
-
-            if (!res.isSuccess) {
-                toast.error('Failed to create course', { description: res.message || 'Unable to submit request.' });
-                return;
-            }
-
-            toast.success(res.message || 'Course created successfully.');
+    const createCourse = useMutation({
+        mutationFn: (request: CourseRequest) => unwrap(api.courses.createCourse(request)),
+        onSuccess: () => {
+            toast.success('Course created successfully.');
             reset();
             setSelectedDept(null);
             setCodeInput('');
+            return queryClient.invalidateQueries({ queryKey: queryKeys.courses.all });
         },
-        [api, values, reset, selectedDept, courseCode],
-    );
+        onError: (error) => {
+            toast.error('Failed to create course', { description: error.message });
+        },
+    });
+
+    const handleSubmit = (event: React.SubmitEvent<HTMLFormElement>) => {
+        event.preventDefault();
+
+        if (!selectedDept || !courseCode) {
+            toast.error('Enter a course number after the department code.');
+            return;
+        }
+
+        createCourse.mutate({ ...values, departmentId: selectedDept.id, code: courseCode });
+    };
 
     return (
         <>
@@ -169,8 +166,8 @@ export function CreateCourseForm() {
                         </CourseFormSection>
 
                         <div className="flex justify-end">
-                            <Button type="submit" disabled={isSubmitting} className="min-w-36">
-                                {isSubmitting ? 'Creating...' : 'Create course'}
+                            <Button type="submit" disabled={createCourse.isPending} className="min-w-36">
+                                {createCourse.isPending ? 'Creating...' : 'Create course'}
                             </Button>
                         </div>
                     </div>

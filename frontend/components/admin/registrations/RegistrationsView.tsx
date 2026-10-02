@@ -1,7 +1,10 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import React from 'react';
 import { toast } from 'sonner';
 
 import { PageHeader } from '@/components/common/PageHeader';
+import { unwrap } from '@/lib/query';
+import { queryKeys } from '@/lib/queryKeys';
 import { useApi } from '@/stores/apiStore';
 import { RemoteCall } from '@/types/common';
 import { IApi } from '@/types/IApi';
@@ -46,11 +49,6 @@ export const RegistrationsView = ({ kind, status }: Props) => {
     const api = useApi();
     const registrationApi = React.useMemo(() => getRegistrationApi(api, kind), [api, kind]);
 
-    const [items, setItems] = React.useState<RegistrationResponse[]>([]);
-    const [isLoading, setIsLoading] = React.useState(true);
-    const [error, setError] = React.useState<string | null>(null);
-    const [pendingId, setPendingId] = React.useState<number | null>(null);
-
     const statusLabel = STATUS_LABEL[status];
     const title = `${statusLabel} ${kind} registrations`;
     const description =
@@ -59,55 +57,41 @@ export const RegistrationsView = ({ kind, status }: Props) => {
             : `${statusLabel} ${kind} registration requests.`;
     const emptyMessage = `No ${statusLabel.toLowerCase()} ${kind} registration requests.`;
 
-    const loadItems = React.useCallback(async () => {
-        const res = await registrationApi.list(status);
-        if (!res.isSuccess) {
-            setError(res.message || 'Failed to load registration requests.');
-            return;
-        }
-        setError(null);
-        setItems(res.body ?? []);
-    }, [registrationApi, status]);
+    const queryClient = useQueryClient();
 
-    const runAction = React.useCallback(
-        async (id: number, action: 'approve' | 'reject') => {
-            setPendingId(id);
-            try {
-                const res = action === 'approve' ? await registrationApi.approve(id) : await registrationApi.reject(id);
+    const registrationsQuery = useQuery({
+        queryKey: queryKeys.registrations.list(kind, status),
+        queryFn: () => unwrap(registrationApi.list(status)),
+    });
+    const items = registrationsQuery.data ?? [];
 
-                if (!res.isSuccess) {
-                    toast.error(`Failed to ${action} request`, { description: res.message });
-                    return;
-                }
-
-                toast.success(
-                    action === 'approve' ? 'Request approved successfully!' : 'Request rejected successfully!',
-                );
-                await loadItems();
-            } finally {
-                setPendingId(null);
-            }
+    const registrationAction = useMutation({
+        mutationFn: ({ id, action }: { id: number; action: 'approve' | 'reject' }) =>
+            unwrap(action === 'approve' ? registrationApi.approve(id) : registrationApi.reject(id)),
+        onSuccess: (_, { action }) => {
+            toast.success(action === 'approve' ? 'Request approved successfully!' : 'Request rejected successfully!');
+            return queryClient.invalidateQueries({ queryKey: queryKeys.registrations.byKind(kind) });
         },
-        [registrationApi, loadItems],
-    );
+        onError: (error, { action }) => {
+            toast.error(`Failed to ${action} request`, { description: error.message });
+        },
+    });
 
-    const onApprove = React.useCallback((id: number) => runAction(id, 'approve'), [runAction]);
-    const onReject = React.useCallback((id: number) => runAction(id, 'reject'), [runAction]);
+    const pendingId = registrationAction.isPending ? (registrationAction.variables?.id ?? null) : null;
 
-    React.useEffect(() => {
-        setIsLoading(true);
-        loadItems().finally(() => setIsLoading(false));
-    }, [loadItems]);
+    const { mutate: runAction } = registrationAction;
+    const onApprove = React.useCallback((id: number) => runAction({ id, action: 'approve' }), [runAction]);
+    const onReject = React.useCallback((id: number) => runAction({ id, action: 'reject' }), [runAction]);
 
     return (
         <div className="space-y-6">
             <PageHeader title={title} description={description} />
 
             <div className="overflow-hidden rounded-3xl border border-border bg-surface shadow-soft">
-                {isLoading ? (
+                {registrationsQuery.isPending ? (
                     <p className="px-1 py-0.5">Loading...</p>
-                ) : error ? (
-                    <p className="px-1 py-0.5">{error}</p>
+                ) : registrationsQuery.isError ? (
+                    <p className="px-1 py-0.5">{registrationsQuery.error.message}</p>
                 ) : items.length === 0 ? (
                     <div className="p-6">
                         <p className="text-sm text-muted-foreground">{emptyMessage}</p>

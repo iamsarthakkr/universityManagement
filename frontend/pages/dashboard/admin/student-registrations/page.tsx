@@ -10,5 +10,5 @@ export default function StudentRegistrationsPage() {
         return <Navigate to="/dashboard/admin/student-registrations/pending" replace />;
     }
 
-    return <RegistrationsView key={status} kind="student" status={status} />;
+    return <RegistrationsView kind="student" status={status} />;
 }

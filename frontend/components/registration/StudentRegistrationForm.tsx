@@ -1,3 +1,4 @@
+import { useMutation } from '@tanstack/react-query';
 import React from 'react';
 import { toast } from 'sonner';
 
@@ -6,6 +7,7 @@ import { Button } from '@/components/ui/base/button';
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/base/field';
 import { Input } from '@/components/ui/base/input';
 import { useFormState } from '@/hooks/useFormState';
+import { unwrap } from '@/lib/query';
 import { toLocalIsoDate } from '@/lib/date';
 import { useApi } from '@/stores/apiStore';
 import type { StudentRegistrationRequest } from '@/types/registration';
@@ -25,26 +27,22 @@ const initialValues: StudentRegistrationRequest = {
 export const StudentRegistrationForm = () => {
     const api = useApi();
     const { values, handleChange, setField, reset } = useFormState(initialValues);
-    const [isSubmitting, setIsSubmitting] = React.useState(false);
-
-    const handleSubmit = React.useCallback(
-        async (event: React.SubmitEvent<HTMLFormElement>) => {
-            event.preventDefault();
-            setIsSubmitting(true);
-
-            const res = await api.registration.createStudentRegistration(values);
-            setIsSubmitting(false);
-
-            if (!res.isSuccess) {
-                toast.error('Request failed', { description: res.message || 'Unable to submit request.' });
-                return;
-            }
-
-            toast.success(res.message || 'Registration request submitted for approval.');
+    const submitRegistration = useMutation({
+        mutationFn: (request: StudentRegistrationRequest) =>
+            unwrap(api.registration.createStudentRegistration(request)),
+        onSuccess: () => {
+            toast.success('Registration request submitted for approval.');
             reset();
         },
-        [api, values, reset],
-    );
+        onError: (error) => {
+            toast.error('Request failed', { description: error.message });
+        },
+    });
+
+    const handleSubmit = (event: React.SubmitEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        submitRegistration.mutate(values);
+    };
 
     return (
         <RegistrationLayout
@@ -80,8 +78,8 @@ export const StudentRegistrationForm = () => {
                     </Field>
 
                     <Field>
-                        <Button type="submit" className="mt-2 w-full" disabled={isSubmitting}>
-                            {isSubmitting ? 'Submitting...' : 'Submit request'}
+                        <Button type="submit" className="mt-2 w-full" disabled={submitRegistration.isPending}>
+                            {submitRegistration.isPending ? 'Submitting...' : 'Submit request'}
                         </Button>
                     </Field>
                 </FieldGroup>
