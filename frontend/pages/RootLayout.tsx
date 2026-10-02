@@ -1,10 +1,16 @@
 import { Outlet } from 'react-router';
-import { Providers } from '@/context/Providers';
+
+import { AppGate } from '@/components/common/AppGate';
+import { Toaster } from '@/components/ui/base/toaster';
+import { TooltipProvider } from '@/components/ui/base/tooltip';
 
 export default function RootLayout() {
     return (
-        <Providers>
-            <Outlet />
-        </Providers>
+        <TooltipProvider>
+            <Toaster position="bottom-right" closeButton />
+            <AppGate>
+                <Outlet />
+            </AppGate>
+        </TooltipProvider>
     );
 }

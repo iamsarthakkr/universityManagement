@@ -3,7 +3,7 @@
 import { PageHeader } from '@/components/common/PageHeader';
 import { InstructorRegistrationResponse, RegistrationStatus } from '@/types/registration';
 import React from 'react';
-import { useApi } from '@/context/ApiContext';
+import { useApi } from '@/stores/apiStore';
 import { InstructorRegistrationsTable } from './InstructorRegistrationsTable';
 import { toast } from 'sonner';
 

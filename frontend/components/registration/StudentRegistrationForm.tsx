@@ -6,8 +6,8 @@ import { cn } from '@/lib/cn';
 import { Button } from '@/components/ui/base/button';
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/base/field';
 import { Input } from '@/components/ui/base/input';
-import { useApi } from '@/context/ApiContext';
-import { useAppContext } from '@/context/AppContext';
+import { useApi } from '@/stores/apiStore';
+import { useAppStore } from '@/stores/appStore';
 import type { StudentRegistrationRequest } from '@/types/registration';
 import { toast } from 'sonner';
 import RegistrationLayout from './RegistrationLayout';
@@ -24,7 +24,7 @@ const initialFormData: StudentRegistrationRequest = {
 
 export const StudentRegistrationForm = () => {
     const api = useApi();
-    const { staticData } = useAppContext();
+    const departments = useAppStore((state) => state.staticData.departments);
 
     const [formData, setFormData] = React.useState<StudentRegistrationRequest>(initialFormData);
 
@@ -161,7 +161,7 @@ export const StudentRegistrationForm = () => {
                             <option value="" disabled>
                                 Select a department
                             </option>
-                            {staticData.departments.map((d) => (
+                            {departments.map((d) => (
                                 <option key={d.id} value={d.id}>
                                     {d.name}
                                 </option>

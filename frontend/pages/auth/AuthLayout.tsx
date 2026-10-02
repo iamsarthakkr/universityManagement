@@ -3,11 +3,11 @@
 import { FieldDescription } from '@/components/ui/base/field';
 import { ICONS, UNIV_NAME, UNIV_SHORT } from '@/config/common';
 import { DASHBOARD_HOME } from '@/config/navigation/dashboardHome';
-import { useAuth } from '@/context/AuthContext';
+import { useAppStore } from '@/stores/appStore';
 import { Link, Navigate, Outlet } from 'react-router';
 
 export default function AuthLayout() {
-    const { user } = useAuth();
+    const user = useAppStore((state) => state.user);
 
     if (user) {
         return <Navigate to={DASHBOARD_HOME[user.role]} replace />;

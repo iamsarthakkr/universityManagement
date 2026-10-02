@@ -6,8 +6,8 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/base/button';
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/base/field';
 import { Input } from '@/components/ui/base/input';
-import { useApi } from '@/context/ApiContext';
-import { useAppContext } from '@/context/AppContext';
+import { useApi } from '@/stores/apiStore';
+import { useAppStore } from '@/stores/appStore';
 import { CourseRequest } from '@/types/course';
 import { Department } from '@/types/department';
 
@@ -26,7 +26,7 @@ const initialFormData: CourseRequest = {
 
 export function CreateCourseForm() {
     const api = useApi();
-    const { staticData } = useAppContext();
+    const departments = useAppStore((state) => state.staticData.departments);
 
     const [formData, setFormData] = React.useState<CourseRequest>(initialFormData);
     const [selectedDept, setSelectedDept] = React.useState<Department | null>(null);
@@ -35,7 +35,7 @@ export function CreateCourseForm() {
 
     const handleDepartmentChange = React.useCallback(
         (event: React.ChangeEvent<HTMLSelectElement>) => {
-            const dept = staticData.departments.find((d) => d.id === Number(event.target.value)) ?? null;
+            const dept = departments.find((d) => d.id === Number(event.target.value)) ?? null;
             setSelectedDept(dept);
             setFormData((prev) => ({
                 ...prev,
@@ -43,7 +43,7 @@ export function CreateCourseForm() {
                 code: dept ? `${dept.code}${codeWithoutPrefix}` : codeWithoutPrefix,
             }));
         },
-        [staticData.departments, codeWithoutPrefix],
+        [departments, codeWithoutPrefix],
     );
 
     const handleCodeSuffixChange = React.useCallback(
@@ -116,7 +116,7 @@ export function CreateCourseForm() {
                                             <option value="" disabled>
                                                 Select a department
                                             </option>
-                                            {staticData.departments.map((d) => (
+                                            {departments.map((d) => (
                                                 <option key={d.id} value={d.id}>
                                                     {d.name}
                                                 </option>

@@ -4,14 +4,16 @@ import * as React from 'react';
 
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarRail } from '@/components/ui/base/sidebar';
 import { getSidebarNav } from '@/config/navigation/sidebar';
-import { useAuth } from '@/context/AuthContext';
+import { useAppActions, useAppStore } from '@/stores/appStore';
 import { NavHeader } from './NavHeader';
 import { NavMain } from './NavMain';
 import { NavUser } from './NavUser';
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-    const auth = useAuth();
-    if (!auth.user) {
+    const user = useAppStore((state) => state.user);
+    const { logout } = useAppActions();
+
+    if (!user) {
         return null;
     }
 
@@ -21,10 +23,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <NavHeader />
             </SidebarHeader>
             <SidebarContent>
-                <NavMain entries={getSidebarNav(auth.user.role)} />
+                <NavMain entries={getSidebarNav(user.role)} />
             </SidebarContent>
             <SidebarFooter>
-                <NavUser user={auth.user} onLogout={auth.logout} />
+                <NavUser user={user} onLogout={logout} />
             </SidebarFooter>
             <SidebarRail />
         </Sidebar>

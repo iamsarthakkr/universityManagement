@@ -1,7 +1,9 @@
+import { getToken } from '@/lib/session';
 import { RemoteRes } from '@/types/common';
 
 type RequestConfig = Omit<RequestInit, 'body'> & {
     body?: unknown;
+    skipAuth?: boolean;
 };
 
 type ApiPayload = {
@@ -24,15 +26,6 @@ const DEFAULT_HEADERS: HeadersInit = {
     Accept: 'application/json',
     'Content-Type': 'application/json',
 };
-
-function readToken(): string | null {
-    try {
-        return localStorage.getItem('accessToken');
-    } catch (error) {
-        console.error('Unable to read access token from storage', error);
-        return null;
-    }
-}
 
 function errorResult<T>(message: string, status: number): RemoteRes<T> {
     return {
@@ -93,12 +86,13 @@ async function parseResponse<T>(response: Response, requestLabel: string): Promi
 }
 
 async function request<T>(path: string, config: RequestConfig = {}): Promise<RemoteRes<T>> {
-    const requestLabel = `${config.method ?? 'GET'} ${path}`;
-    const token = readToken();
+    const { skipAuth = false, body, ...init } = config;
+    const requestLabel = `${init.method ?? 'GET'} ${path}`;
+    const token = skipAuth ? null : getToken();
 
     const headers = new Headers({
         ...DEFAULT_HEADERS,
-        ...config.headers,
+        ...init.headers,
     });
 
     if (token) {
@@ -108,9 +102,9 @@ async function request<T>(path: string, config: RequestConfig = {}): Promise<Rem
     let response: Response;
     try {
         response = await fetch(`${API_BASE_URL}${path}`, {
-            ...config,
+            ...init,
             headers,
-            body: config.body !== undefined ? JSON.stringify(config.body) : undefined,
+            body: body !== undefined ? JSON.stringify(body) : undefined,
         });
     } catch (error) {
         console.error(`Network error: ${requestLabel}`, error);

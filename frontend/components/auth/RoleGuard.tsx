@@ -1,11 +1,11 @@
 import { Navigate, Outlet } from 'react-router';
 
 import { DASHBOARD_HOME } from '@/config/navigation/dashboardHome';
-import { useAuth } from '@/context/AuthContext';
+import { useAppStore } from '@/stores/appStore';
 import { Role } from '@/types/auth';
 
 export function RoleGuard({ roles }: { roles: Role[] }) {
-    const { user } = useAuth();
+    const user = useAppStore((state) => state.user);
 
     if (!user) {
         return null;
@@ -19,7 +19,7 @@ export function RoleGuard({ roles }: { roles: Role[] }) {
 }
 
 export function DashboardHomeRedirect() {
-    const { user } = useAuth();
+    const user = useAppStore((state) => state.user);
 
     if (!user) {
         return null;

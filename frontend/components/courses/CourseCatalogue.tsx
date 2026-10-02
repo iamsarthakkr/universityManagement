@@ -3,7 +3,7 @@
 import React from 'react';
 
 import { PageHeader } from '@/components/common/PageHeader';
-import { useApi } from '@/context/ApiContext';
+import { useApi } from '@/stores/apiStore';
 import { CourseCatalogueGroup } from '@/types/course';
 
 import { DepartmentGroup } from './DepartmentGroup';

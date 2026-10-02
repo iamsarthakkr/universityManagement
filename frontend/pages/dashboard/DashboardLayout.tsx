@@ -5,13 +5,13 @@ import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage } from '@/co
 import { Separator } from '@/components/ui/base/separator';
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/base/sidebar';
 import { UNIV_NAME } from '@/config/common';
-import { useAuth } from '@/context/AuthContext';
+import { useAppStore } from '@/stores/appStore';
 import { Navigate, Outlet } from 'react-router';
 
 export default function DashboardLayout() {
-    const { isAuthenticated } = useAuth();
+    const user = useAppStore((state) => state.user);
 
-    if (!isAuthenticated) {
+    if (!user) {
         return <Navigate to="/login" replace />;
     }
 

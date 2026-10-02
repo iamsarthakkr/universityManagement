@@ -21,18 +21,23 @@ There are no tests in the frontend. The backend lives in `../server/` (Spring Bo
 
 All backend calls go through `lib/http.ts` (`http.get/post/put/patch/delete`), which:
 - Reads `import.meta.env.VITE_API_BASE_URL` (defaults to `http://localhost:8080`; inlined at build time)
-- Attaches JWT from `localStorage.accessToken` as `Authorization: Bearer`
-- Returns a typed `RemoteRes<T>` (`{ isSuccess, body, message, errors, timestamp }`)
+- Attaches the JWT (via `lib/session.ts`, the only code that touches the `accessToken` key) as `Authorization: Bearer`, unless the call passes `{ skipAuth: true }` (used by `/auth/login`)
+- Returns a typed `RemoteRes<T>` (`{ isSuccess, body, message, errors, timestamp, status }`; `status` 0 = no response). Never throws.
+- Calls the handler registered with `setUnauthorizedHandler` when a request that carried a token gets a 401
 
 The API is structured as a typed interface (`types/IApi.ts`) with implementations in `lib/api/`. Add new API domains by implementing the interface and registering in `lib/api/api.ts`.
 
-### Context / state
+### State (Zustand)
 
-- `ApiContext` — singleton `IApi` instance, no state, just the API object
-- `AuthContext` — JWT token + `AuthUser` + login/logout. Token persisted in `localStorage`. On mount, calls `api.auth.me()` to restore session. It does **not** navigate: the layouts react to auth state and redirect with `<Navigate replace>` (authenticated → role home from `DASHBOARD_HOME`; logged out → `/login`).
-- Session expiry: `lib/http.ts` calls the handler registered via `setUnauthorizedHandler` when a request that carried a token gets a 401. `AuthProvider` registers it to clear the session; the dashboard guard then redirects. Every `RemoteRes` carries the HTTP `status` (0 = no response).
-- `AppContext` — app bootstrap. Loads static reference data (`staticData.departments`) and waits for auth session restore. App state (`AppState`: `LOADING` / `FAILED` / `READY`) is internal: it renders a full-screen loading overlay, or an error overlay with retry, and only renders the app once `READY`. Consumers use `useAppContext()` and read `staticData` (e.g. `staticData.departments`), which is always loaded — never add loading flags for static data. Add new app-wide reference data here (only if it's needed before/without login, since it blocks the whole app).
-- All wrapped in `context/Providers.tsx` (`Api` → `Auth` → `App`), rendered by `pages/RootLayout.tsx` inside the router.
+No React Context is used for app state; stores live in `stores/`.
+
+- `stores/apiStore.ts` — holds the singleton `IApi`. Components use `useApi()`; store actions use `useApiStore.getState().api`.
+- `stores/appStore.ts` — `useAppStore` holds **data** (`appState`, `error`, `user`, `staticData`) and a separate, stable `actions` object (`init`, `login`, `logout`, `expireSession`).
+  - Read data with a selector: `useAppStore((state) => state.user)`. Select the narrowest value you need; never select a new object/array literal (Zustand v5 will re-render in a loop).
+  - Call actions via `useAppActions()` — it never triggers re-renders.
+  - `user === null` means logged out. Actions don't navigate: `AuthLayout`/`DashboardLayout` redirect with `<Navigate replace>` (authenticated → role home from `DASHBOARD_HOME`; logged out → `/login`).
+- Startup: `components/common/AppGate.tsx` (in `pages/RootLayout.tsx`) registers `expireSession` as the 401 handler and calls `init()` on mount. `init()` loads static data and restores the session (`/auth/me` if a token exists) in parallel: success → `READY`; a 401 just logs out; any other failure → `FAILED`.
+- `AppGate` also renders a loading overlay while `LOADING`, an error overlay whose retry re-runs the whole `init()` while `FAILED`, and the app only when `READY`. So `staticData` is always loaded for components — never add loading flags for it. Add app-wide reference data to `StaticData` + `init()` only if it's needed without login, since it blocks the whole app.
 
 ### Route structure
 
