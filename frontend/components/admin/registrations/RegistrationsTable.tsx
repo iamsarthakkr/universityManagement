@@ -1,17 +1,19 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/base/table';
-import { RegistrationStatus, InstructorRegistrationResponse } from '@/types/registration';
 import { Callback1 } from '@/types/common';
+import { RegistrationKind, RegistrationResponse, RegistrationStatus } from '@/types/registration';
 import { AdminActions, Status } from './common';
 
 interface Props {
-    items: InstructorRegistrationResponse[];
+    kind: RegistrationKind;
+    items: RegistrationResponse[];
     pendingId: number | null;
     onApprove: Callback1<number>;
     onReject: Callback1<number>;
 }
 
-export const InstructorRegistrationsTable = (props: Props) => {
-    const { items, pendingId, onApprove, onReject } = props;
+export const RegistrationsTable = (props: Props) => {
+    const { kind, items, pendingId, onApprove, onReject } = props;
+    const showDateOfBirth = kind === 'student';
     const hasActions = items.some((item) => item.status === RegistrationStatus.PENDING);
 
     return (
@@ -21,6 +23,7 @@ export const InstructorRegistrationsTable = (props: Props) => {
                     <TableHead className="text-center">Name</TableHead>
                     <TableHead className="text-center">Username</TableHead>
                     <TableHead className="text-center">Email</TableHead>
+                    {showDateOfBirth && <TableHead className="text-center">Date of Birth</TableHead>}
                     <TableHead className="text-center">Department</TableHead>
                     <TableHead className="text-center">Status</TableHead>
                     <TableHead className="text-center">Submitted</TableHead>
@@ -36,6 +39,11 @@ export const InstructorRegistrationsTable = (props: Props) => {
                         </TableCell>
                         <TableCell className="text-center">{item.username}</TableCell>
                         <TableCell className="text-center">{item.email}</TableCell>
+                        {showDateOfBirth && (
+                            <TableCell className="text-center">
+                                {'dateOfBirth' in item ? item.dateOfBirth : ''}
+                            </TableCell>
+                        )}
                         <TableCell className="text-center">{item.department.name}</TableCell>
                         <TableCell className="text-center">
                             <Status status={item.status} />

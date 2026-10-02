@@ -6,6 +6,24 @@ export enum RegistrationStatus {
     REJECTED = 'REJECTED',
 }
 
+export type RegistrationKind = 'student' | 'instructor';
+
+export function parseRegistrationStatus(value: string | undefined): RegistrationStatus | null {
+    const status = value?.toUpperCase();
+    return Object.values(RegistrationStatus).find((candidate) => candidate === status) ?? null;
+}
+
+type RegistrationResponseBase = {
+    id: number;
+    username: string;
+    email: string;
+    firstName: string;
+    lastName?: string;
+    status: RegistrationStatus;
+    submittedAt: string;
+    department: Department;
+};
+
 export type StudentRegistrationRequest = {
     username: string;
     password: string;
@@ -15,20 +33,10 @@ export type StudentRegistrationRequest = {
     dateOfBirth: string;
     departmentId: number;
 };
-export type StudentRegistrationData = StudentRegistrationRequest; // alias
 
-export type StudentRegistrationResponse = {
-    id: number;
-    username: string;
-    email: string;
-    firstName: string;
-    lastName?: string;
+export type StudentRegistrationResponse = RegistrationResponseBase & {
     dateOfBirth: string;
-    status: RegistrationStatus;
-    submittedAt: string;
-    department: Department;
 };
-export type StudentRegistrationItem = StudentRegistrationResponse; // alias
 
 export type InstructorRegistrationRequest = {
     username: string;
@@ -40,14 +48,6 @@ export type InstructorRegistrationRequest = {
 };
 export type InstructorRegistrationData = InstructorRegistrationRequest; // alias
 
-export type InstructorRegistrationResponse = {
-    id: number;
-    username: string;
-    email: string;
-    firstName: string;
-    lastName?: string;
-    department: Department;
-    status: RegistrationStatus;
-    submittedAt: string;
-};
-export type InstructorRegistrationItem = InstructorRegistrationResponse; // alias
+export type InstructorRegistrationResponse = RegistrationResponseBase;
+
+export type RegistrationResponse = StudentRegistrationResponse | InstructorRegistrationResponse;

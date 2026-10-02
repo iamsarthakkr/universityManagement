@@ -45,40 +45,12 @@ export const router = createBrowserRouter([
                         children: [
                             { index: true, lazy: lazyPage(() => import('@/pages/dashboard/admin/page')) },
                             {
-                                path: 'student-registrations/pending',
-                                lazy: lazyPage(
-                                    () => import('@/pages/dashboard/admin/student-registrations/pending/page'),
-                                ),
+                                path: 'student-registrations/:status',
+                                lazy: lazyPage(() => import('@/pages/dashboard/admin/student-registrations/page')),
                             },
                             {
-                                path: 'student-registrations/approved',
-                                lazy: lazyPage(
-                                    () => import('@/pages/dashboard/admin/student-registrations/approved/page'),
-                                ),
-                            },
-                            {
-                                path: 'student-registrations/rejected',
-                                lazy: lazyPage(
-                                    () => import('@/pages/dashboard/admin/student-registrations/rejected/page'),
-                                ),
-                            },
-                            {
-                                path: 'instructor-registrations/pending',
-                                lazy: lazyPage(
-                                    () => import('@/pages/dashboard/admin/instructor-registrations/pending/page'),
-                                ),
-                            },
-                            {
-                                path: 'instructor-registrations/approved',
-                                lazy: lazyPage(
-                                    () => import('@/pages/dashboard/admin/instructor-registrations/approved/page'),
-                                ),
-                            },
-                            {
-                                path: 'instructor-registrations/rejected',
-                                lazy: lazyPage(
-                                    () => import('@/pages/dashboard/admin/instructor-registrations/rejected/page'),
-                                ),
+                                path: 'instructor-registrations/:status',
+                                lazy: lazyPage(() => import('@/pages/dashboard/admin/instructor-registrations/page')),
                             },
                         ],
                     },
