@@ -1,5 +1,3 @@
-'use client';
-
 import { PageHeader } from '@/components/common/PageHeader';
 import { RegistrationStatus, StudentRegistrationResponse } from '@/types/registration';
 import React from 'react';

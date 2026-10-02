@@ -1,7 +1,3 @@
-'use client';
-
-import React from 'react';
-
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/base/table';
 import { RegistrationStatus, StudentRegistrationResponse } from '@/types/registration';
 import { Callback1 } from '@/types/common';

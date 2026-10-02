@@ -1,5 +1,3 @@
-'use client';
-
 import { ThemeToggle } from '@/components/common/ThemeToggle';
 import { ICONS, UNIV_NAME, UNIV_SHORT } from '@/config/common';
 import { DASHBOARD_HOME } from '@/config/navigation/dashboardHome';

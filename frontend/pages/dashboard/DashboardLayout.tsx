@@ -1,5 +1,3 @@
-'use client';
-
 import { ThemeToggle } from '@/components/common/ThemeToggle';
 import { AppSidebar } from '@/components/dashboard/AppSidebar';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage } from '@/components/ui/base/breadcrumb';

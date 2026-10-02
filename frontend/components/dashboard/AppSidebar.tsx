@@ -1,5 +1,3 @@
-'use client';
-
 import * as React from 'react';
 
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarRail } from '@/components/ui/base/sidebar';

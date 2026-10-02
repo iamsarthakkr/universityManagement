@@ -1,5 +1,3 @@
-'use client';
-
 import React from 'react';
 
 import { cn } from '@/lib/cn';
@@ -21,7 +19,7 @@ const initialFormData: InstructorRegistrationData = {
     departmentId: 0,
 };
 
-export const InstructorRegistrationForm = ({ className, ...props }: React.ComponentProps<'div'>) => {
+export const InstructorRegistrationForm = () => {
     const api = useApi();
     const departments = useAppStore((state) => state.staticData.departments);
 
@@ -137,9 +135,7 @@ export const InstructorRegistrationForm = ({ className, ...props }: React.Compon
                             name="department"
                             required
                             value={formData.departmentId || ''}
-                            onChange={(e) =>
-                                setFormData((prev) => ({ ...prev, departmentId: Number(e.target.value) }))
-                            }
+                            onChange={(e) => setFormData((prev) => ({ ...prev, departmentId: Number(e.target.value) }))}
                             className={cn(
                                 'h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none',
                                 'focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50',

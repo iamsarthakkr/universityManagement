@@ -1,5 +1,3 @@
-'use client';
-
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/base/collapsible';
 import {
     SidebarGroup,

@@ -1,5 +1,3 @@
-'use client';
-
 import { Link } from 'react-router';
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/base/sidebar';
 import { ICONS, UNIV_SHORT } from '@/config/common';
