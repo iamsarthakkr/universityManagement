@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/base/button';
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/base/field';
 import { Input } from '@/components/ui/base/input';
 import { useApi } from '@/context/ApiContext';
-import { useStaticData } from '@/context/StaticDataContext';
+import { useAppContext } from '@/context/AppContext';
 import type { StudentRegistrationRequest } from '@/types/registration';
 import { toast } from 'sonner';
 import RegistrationLayout from './RegistrationLayout';
@@ -24,7 +24,7 @@ const initialFormData: StudentRegistrationRequest = {
 
 export const StudentRegistrationForm = () => {
     const api = useApi();
-    const { departments, isLoading: depsLoading } = useStaticData();
+    const { staticData } = useAppContext();
 
     const [formData, setFormData] = React.useState<StudentRegistrationRequest>(initialFormData);
 
@@ -147,7 +147,6 @@ export const StudentRegistrationForm = () => {
                             id="department"
                             name="department"
                             required
-                            disabled={depsLoading}
                             value={formData.departmentId || ''}
                             onChange={(e) =>
                                 setFormData((prev) => ({ ...prev, departmentId: Number(e.target.value) }))
@@ -160,9 +159,9 @@ export const StudentRegistrationForm = () => {
                             )}
                         >
                             <option value="" disabled>
-                                {depsLoading ? 'Loading...' : 'Select a department'}
+                                Select a department
                             </option>
-                            {departments.map((d) => (
+                            {staticData.departments.map((d) => (
                                 <option key={d.id} value={d.id}>
                                     {d.name}
                                 </option>

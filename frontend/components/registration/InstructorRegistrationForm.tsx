@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/base/button';
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/base/field';
 import { Input } from '@/components/ui/base/input';
 import { useApi } from '@/context/ApiContext';
-import { useStaticData } from '@/context/StaticDataContext';
+import { useAppContext } from '@/context/AppContext';
 import type { InstructorRegistrationData } from '@/types/registration';
 import { toast } from 'sonner';
 import RegistrationLayout from './RegistrationLayout';
@@ -23,7 +23,7 @@ const initialFormData: InstructorRegistrationData = {
 
 export const InstructorRegistrationForm = ({ className, ...props }: React.ComponentProps<'div'>) => {
     const api = useApi();
-    const { departments, isLoading: depsLoading } = useStaticData();
+    const { staticData } = useAppContext();
 
     const [formData, setFormData] = React.useState<InstructorRegistrationData>(initialFormData);
 
@@ -131,7 +131,6 @@ export const InstructorRegistrationForm = ({ className, ...props }: React.Compon
                             id="department"
                             name="department"
                             required
-                            disabled={depsLoading}
                             value={formData.departmentId || ''}
                             onChange={(e) =>
                                 setFormData((prev) => ({ ...prev, departmentId: Number(e.target.value) }))
@@ -144,9 +143,9 @@ export const InstructorRegistrationForm = ({ className, ...props }: React.Compon
                             )}
                         >
                             <option value="" disabled>
-                                {depsLoading ? 'Loading...' : 'Select a department'}
+                                Select a department
                             </option>
-                            {departments.map((d) => (
+                            {staticData.departments.map((d) => (
                                 <option key={d.id} value={d.id}>
                                     {d.name}
                                 </option>

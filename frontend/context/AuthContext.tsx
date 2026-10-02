@@ -3,10 +3,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useApi } from '@/context/ApiContext';
 import { setUnauthorizedHandler } from '@/lib/http';
-import { AuthUser } from '@/types/auth';
+import { AuthStatus, AuthUser } from '@/types/auth';
 import { toast } from 'sonner';
-
-type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated';
 
 type AuthContextValue = {
     user: AuthUser | null;

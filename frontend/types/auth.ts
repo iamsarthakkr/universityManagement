@@ -1,5 +1,7 @@
 export type Role = 'ADMIN' | 'STUDENT' | 'INSTRUCTOR';
 
+export type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated';
+
 export type LoginRequest = {
     username: string;
     password: string;

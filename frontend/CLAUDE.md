@@ -31,7 +31,8 @@ The API is structured as a typed interface (`types/IApi.ts`) with implementation
 - `ApiContext` — singleton `IApi` instance, no state, just the API object
 - `AuthContext` — JWT token + `AuthUser` + login/logout. Token persisted in `localStorage`. On mount, calls `api.auth.me()` to restore session. It does **not** navigate: the layout guards (`useAuthRedirect`) react to `status` and redirect with `replace` (authenticated → role home from `DASHBOARD_HOME`; logged out → `/login`).
 - Session expiry: `lib/http.ts` calls the handler registered via `setUnauthorizedHandler` when a request that carried a token gets a 401. `AuthProvider` registers it to clear the session; the dashboard guard then redirects. Every `RemoteRes` carries the HTTP `status` (0 = no response).
-- Both wrapped in `context/Providers.tsx`, rendered by `pages/RootLayout.tsx` *inside* the router (AuthProvider uses `useNavigate`, which throws outside a router).
+- `AppContext` — app bootstrap. Loads static reference data (`staticData.departments`) and waits for auth session restore. App state (`AppState`: `LOADING` / `FAILED` / `READY`) is internal: it renders a full-screen loading overlay, or an error overlay with retry, and only renders the app once `READY`. Consumers use `useAppContext()` and read `staticData` (e.g. `staticData.departments`), which is always loaded — never add loading flags for static data. Add new app-wide reference data here (only if it's needed before/without login, since it blocks the whole app).
+- All wrapped in `context/Providers.tsx` (`Api` → `Auth` → `App`), rendered by `pages/RootLayout.tsx` inside the router.
 
 ### Route structure
 

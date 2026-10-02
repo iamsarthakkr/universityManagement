@@ -2,7 +2,7 @@
 
 import { ApiProvider } from '@/context/ApiContext';
 import { AuthProvider } from './AuthContext';
-import { StaticDataProvider } from './StaticDataContext';
+import { AppProvider } from './AppContext';
 import { TooltipProvider } from '@/components/ui/base/tooltip';
 import { Toaster } from '@/components/ui/base/toaster';
 
@@ -12,7 +12,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
             <Toaster position="bottom-right" closeButton />
             <ApiProvider>
                 <AuthProvider>
-                    <StaticDataProvider>{children}</StaticDataProvider>
+                    <AppProvider>{children}</AppProvider>
                 </AuthProvider>
             </ApiProvider>
         </TooltipProvider>

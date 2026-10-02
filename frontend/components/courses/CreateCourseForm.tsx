@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/base/button';
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/base/field';
 import { Input } from '@/components/ui/base/input';
 import { useApi } from '@/context/ApiContext';
-import { useStaticData } from '@/context/StaticDataContext';
+import { useAppContext } from '@/context/AppContext';
 import { CourseRequest } from '@/types/course';
 import { Department } from '@/types/department';
 
@@ -26,7 +26,7 @@ const initialFormData: CourseRequest = {
 
 export function CreateCourseForm() {
     const api = useApi();
-    const { departments, isLoading: depsLoading } = useStaticData();
+    const { staticData } = useAppContext();
 
     const [formData, setFormData] = React.useState<CourseRequest>(initialFormData);
     const [selectedDept, setSelectedDept] = React.useState<Department | null>(null);
@@ -35,7 +35,7 @@ export function CreateCourseForm() {
 
     const handleDepartmentChange = React.useCallback(
         (event: React.ChangeEvent<HTMLSelectElement>) => {
-            const dept = departments.find((d) => d.id === Number(event.target.value)) ?? null;
+            const dept = staticData.departments.find((d) => d.id === Number(event.target.value)) ?? null;
             setSelectedDept(dept);
             setFormData((prev) => ({
                 ...prev,
@@ -43,7 +43,7 @@ export function CreateCourseForm() {
                 code: dept ? `${dept.code}${codeWithoutPrefix}` : codeWithoutPrefix,
             }));
         },
-        [departments, codeWithoutPrefix],
+        [staticData.departments, codeWithoutPrefix],
     );
 
     const handleCodeSuffixChange = React.useCallback(
@@ -109,15 +109,14 @@ export function CreateCourseForm() {
                                         <select
                                             id="department"
                                             required
-                                            disabled={depsLoading}
                                             value={selectedDept?.id ?? ''}
                                             onChange={handleDepartmentChange}
                                             className={selectClassName}
                                         >
                                             <option value="" disabled>
-                                                {depsLoading ? 'Loading...' : 'Select a department'}
+                                                Select a department
                                             </option>
-                                            {departments.map((d) => (
+                                            {staticData.departments.map((d) => (
                                                 <option key={d.id} value={d.id}>
                                                     {d.name}
                                                 </option>
