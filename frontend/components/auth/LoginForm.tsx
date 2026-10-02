@@ -7,7 +7,7 @@ import { cn } from '@/lib/cn';
 import { Button } from '@/components/ui/base/button';
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/base/field';
 import { Input } from '@/components/ui/base/input';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/base/card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/base/card';
 import { useAppActions } from '@/stores/appStore';
 import { LoginData } from '@/types/auth';
 
@@ -37,7 +37,6 @@ export const LoginForm = ({ className, ...props }: React.ComponentProps<'div'>) 
     const handleLogin = React.useCallback(
         async (event: React.SubmitEvent<HTMLFormElement>) => {
             event.preventDefault();
-            event.stopPropagation();
 
             setIsLoading(true);
             const result = await login(formData.username, formData.password);
@@ -63,7 +62,8 @@ export const LoginForm = ({ className, ...props }: React.ComponentProps<'div'>) 
                                 <Input
                                     id="username"
                                     name="username"
-                                    type="username"
+                                    type="text"
+                                    autoComplete="username"
                                     value={formData.username}
                                     onChange={handleChange}
                                     required
@@ -75,15 +75,20 @@ export const LoginForm = ({ className, ...props }: React.ComponentProps<'div'>) 
                                     id="password"
                                     name="password"
                                     type="password"
+                                    autoComplete="current-password"
                                     value={formData.password}
                                     onChange={handleChange}
                                     required
                                 />
                             </Field>
-                            {errorMessage && <p className="text-center text-sm  text-red-400">{errorMessage}</p>}
+                            {errorMessage && (
+                                <p role="alert" className="text-center text-sm text-destructive">
+                                    {errorMessage}
+                                </p>
+                            )}
                             <Field>
                                 <Button type="submit" disabled={isLoading}>
-                                    {isLoading ? 'Logging in' : 'LogIn'}
+                                    {isLoading ? 'Logging in...' : 'Log in'}
                                 </Button>
                             </Field>
                         </FieldGroup>

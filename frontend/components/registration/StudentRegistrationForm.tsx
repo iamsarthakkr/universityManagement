@@ -74,6 +74,7 @@ export const StudentRegistrationForm = () => {
                         <Input
                             id="username"
                             name="username"
+                            autoComplete="username"
                             type="text"
                             required
                             value={formData.username}
@@ -86,6 +87,7 @@ export const StudentRegistrationForm = () => {
                         <Input
                             id="password"
                             name="password"
+                            autoComplete="new-password"
                             type="password"
                             required
                             value={formData.password}
@@ -98,6 +100,7 @@ export const StudentRegistrationForm = () => {
                         <Input
                             id="email"
                             name="email"
+                            autoComplete="email"
                             type="email"
                             required
                             value={formData.email}
@@ -111,6 +114,7 @@ export const StudentRegistrationForm = () => {
                             <Input
                                 id="firstName"
                                 name="firstName"
+                                autoComplete="given-name"
                                 type="text"
                                 required
                                 value={formData.firstName}
@@ -123,6 +127,7 @@ export const StudentRegistrationForm = () => {
                             <Input
                                 id="lastName"
                                 name="lastName"
+                                autoComplete="family-name"
                                 type="text"
                                 value={formData.lastName}
                                 onChange={handleChange}
@@ -135,6 +140,7 @@ export const StudentRegistrationForm = () => {
                         <Input
                             id="dateOfBirth"
                             name="dateOfBirth"
+                            autoComplete="bday"
                             type="date"
                             required
                             max={toLocalIsoDate(new Date())}

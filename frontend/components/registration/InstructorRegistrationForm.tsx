@@ -69,6 +69,7 @@ export const InstructorRegistrationForm = ({ className, ...props }: React.Compon
                         <Input
                             id="username"
                             name="username"
+                            autoComplete="username"
                             type="text"
                             required
                             value={formData.username}
@@ -81,6 +82,7 @@ export const InstructorRegistrationForm = ({ className, ...props }: React.Compon
                         <Input
                             id="password"
                             name="password"
+                            autoComplete="new-password"
                             type="password"
                             required
                             value={formData.password}
@@ -93,6 +95,7 @@ export const InstructorRegistrationForm = ({ className, ...props }: React.Compon
                         <Input
                             id="email"
                             name="email"
+                            autoComplete="email"
                             type="email"
                             required
                             value={formData.email}
@@ -106,6 +109,7 @@ export const InstructorRegistrationForm = ({ className, ...props }: React.Compon
                             <Input
                                 id="firstName"
                                 name="firstName"
+                                autoComplete="given-name"
                                 type="text"
                                 required
                                 value={formData.firstName}
@@ -118,6 +122,7 @@ export const InstructorRegistrationForm = ({ className, ...props }: React.Compon
                             <Input
                                 id="lastName"
                                 name="lastName"
+                                autoComplete="family-name"
                                 type="text"
                                 value={formData.lastName}
                                 onChange={handleChange}
