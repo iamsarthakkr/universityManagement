@@ -3,6 +3,7 @@
 import React from 'react';
 
 import { cn } from '@/lib/cn';
+import { toLocalIsoDate } from '@/lib/date';
 import { Button } from '@/components/ui/base/button';
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/base/field';
 import { Input } from '@/components/ui/base/input';
@@ -136,6 +137,7 @@ export const StudentRegistrationForm = () => {
                             name="dateOfBirth"
                             type="date"
                             required
+                            max={toLocalIsoDate(new Date())}
                             value={formData.dateOfBirth}
                             onChange={handleChange}
                         />

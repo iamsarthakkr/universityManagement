@@ -4,7 +4,7 @@ import React from 'react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/base/button';
-import { Field, FieldGroup, FieldLabel } from '@/components/ui/base/field';
+import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/components/ui/base/field';
 import { Input } from '@/components/ui/base/input';
 import { useApi } from '@/stores/apiStore';
 import { useAppStore } from '@/stores/appStore';
@@ -16,47 +16,41 @@ import { cn } from '@/lib/cn';
 
 import { CourseFormLayout, CourseFormSection } from './CourseFormLayout';
 
-const initialFormData: CourseRequest = {
-    departmentId: 0,
-    code: '',
+type CourseFormData = Omit<CourseRequest, 'departmentId' | 'code'>;
+
+const initialFormData: CourseFormData = {
     title: '',
     description: '',
     credits: 1,
 };
 
+function normalizeCodeSuffix(input: string, departmentCode: string) {
+    const code = input.replace(/\s+/g, '').toUpperCase();
+    return code.startsWith(departmentCode) ? code.slice(departmentCode.length) : code;
+}
+
 export function CreateCourseForm() {
     const api = useApi();
     const departments = useAppStore((state) => state.staticData.departments);
 
-    const [formData, setFormData] = React.useState<CourseRequest>(initialFormData);
+    const [formData, setFormData] = React.useState<CourseFormData>(initialFormData);
     const [selectedDept, setSelectedDept] = React.useState<Department | null>(null);
-    const [codeWithoutPrefix, setCodeWithoutPrefix] = React.useState('');
+    const [codeInput, setCodeInput] = React.useState('');
     const [isSubmitting, setIsSubmitting] = React.useState(false);
+
+    const codeSuffix = selectedDept ? normalizeCodeSuffix(codeInput, selectedDept.code) : '';
+    const courseCode = selectedDept && codeSuffix ? `${selectedDept.code}${codeSuffix}` : null;
 
     const handleDepartmentChange = React.useCallback(
         (event: React.ChangeEvent<HTMLSelectElement>) => {
-            const dept = departments.find((d) => d.id === Number(event.target.value)) ?? null;
-            setSelectedDept(dept);
-            setFormData((prev) => ({
-                ...prev,
-                departmentId: dept?.id ?? 0,
-                code: dept ? `${dept.code}${codeWithoutPrefix}` : codeWithoutPrefix,
-            }));
+            setSelectedDept(departments.find((d) => d.id === Number(event.target.value)) ?? null);
         },
-        [departments, codeWithoutPrefix],
+        [departments],
     );
 
-    const handleCodeSuffixChange = React.useCallback(
-        (event: React.ChangeEvent<HTMLInputElement>) => {
-            const suffix = event.target.value;
-            setCodeWithoutPrefix(suffix);
-            setFormData((prev) => ({
-                ...prev,
-                code: selectedDept ? `${selectedDept.code}${suffix}` : suffix,
-            }));
-        },
-        [selectedDept],
-    );
+    const handleCodeChange = React.useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+        setCodeInput(event.target.value.toUpperCase());
+    }, []);
 
     const handleChange = React.useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value, type } = event.target;
@@ -69,9 +63,19 @@ export function CreateCourseForm() {
     const handleSubmit = React.useCallback(
         async (event: React.SubmitEvent<HTMLFormElement>) => {
             event.preventDefault();
+
+            if (!selectedDept || !courseCode) {
+                toast.error('Enter a course number after the department code.');
+                return;
+            }
+
             setIsSubmitting(true);
 
-            const res = await api.courses.createCourse(formData);
+            const res = await api.courses.createCourse({
+                ...formData,
+                departmentId: selectedDept.id,
+                code: courseCode,
+            });
 
             setIsSubmitting(false);
 
@@ -83,9 +87,9 @@ export function CreateCourseForm() {
             toast.success(res.message || 'Course created successfully.');
             setFormData(initialFormData);
             setSelectedDept(null);
-            setCodeWithoutPrefix('');
+            setCodeInput('');
         },
-        [api, formData],
+        [api, formData, selectedDept, courseCode],
     );
 
     const selectClassName = cn(
@@ -136,11 +140,13 @@ export function CreateCourseForm() {
                                                 name="code"
                                                 type="text"
                                                 required
-                                                placeholder={selectedDept ? '101' : 'e.g. CS101'}
-                                                value={codeWithoutPrefix}
-                                                onChange={handleCodeSuffixChange}
+                                                disabled={!selectedDept}
+                                                placeholder={selectedDept ? 'e.g. 101' : 'Select a department first'}
+                                                value={codeInput}
+                                                onChange={handleCodeChange}
                                             />
                                         </div>
+                                        {courseCode && <FieldDescription>Saved as {courseCode}</FieldDescription>}
                                     </Field>
                                 </div>
                                 <Field>
