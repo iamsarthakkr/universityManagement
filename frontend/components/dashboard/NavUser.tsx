@@ -4,7 +4,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/base/avatar
 import {
     DropdownMenu,
     DropdownMenuContent,
-    DropdownMenuGroup,
     DropdownMenuItem,
     DropdownMenuLabel,
     DropdownMenuSeparator,
@@ -13,7 +12,7 @@ import {
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/base/sidebar';
 import { AuthUser } from '@/types/auth';
 import { Callback } from '@/types/common';
-import { ChevronsUpDownIcon, BadgeCheckIcon, LogOutIcon } from 'lucide-react';
+import { ChevronsUpDownIcon, LogOutIcon } from 'lucide-react';
 
 interface Props {
     user: AuthUser;
@@ -65,13 +64,6 @@ export function NavUser({ user, onLogout }: Props) {
                                 </div>
                             </div>
                         </DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuGroup>
-                            <DropdownMenuItem>
-                                <BadgeCheckIcon />
-                                Account
-                            </DropdownMenuItem>
-                        </DropdownMenuGroup>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={onLogout}>
                             <LogOutIcon />

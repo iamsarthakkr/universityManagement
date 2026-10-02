@@ -15,6 +15,7 @@ interface Props {
 
 export const InstructorRegistrationsTable = (props: Props) => {
     const { items, pendingId, onApprove, onReject } = props;
+    const hasActions = items.some((item) => item.status === RegistrationStatus.PENDING);
 
     return (
         <Table>
@@ -26,7 +27,7 @@ export const InstructorRegistrationsTable = (props: Props) => {
                     <TableHead className="text-center">Department</TableHead>
                     <TableHead className="text-center">Status</TableHead>
                     <TableHead className="text-center">Submitted</TableHead>
-                    <TableHead className="text-center">Actions</TableHead>
+                    {hasActions && <TableHead className="text-center">Actions</TableHead>}
                 </TableRow>
             </TableHeader>
 
@@ -44,15 +45,18 @@ export const InstructorRegistrationsTable = (props: Props) => {
                         </TableCell>
                         <TableCell className="text-center">{item.submittedAt}</TableCell>
 
-                        <TableCell className="text-center">
-                            <AdminActions
-                                id={item.id}
-                                showActions={item.status === RegistrationStatus.PENDING}
-                                disabled={pendingId === item.id}
-                                onApprove={onApprove}
-                                onReject={onReject}
-                            />
-                        </TableCell>
+                        {hasActions && (
+                            <TableCell className="text-center">
+                                {item.status === RegistrationStatus.PENDING && (
+                                    <AdminActions
+                                        id={item.id}
+                                        disabled={pendingId === item.id}
+                                        onApprove={onApprove}
+                                        onReject={onReject}
+                                    />
+                                )}
+                            </TableCell>
+                        )}
                     </TableRow>
                 ))}
             </TableBody>

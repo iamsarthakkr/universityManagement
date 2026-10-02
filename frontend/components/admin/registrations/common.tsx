@@ -3,7 +3,6 @@ import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
-    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/base/dropdownMenu';
 import { cn } from '@/lib/cn';
@@ -19,14 +18,13 @@ const statusStyles: Record<RegistrationStatus, string> = {
 
 type ActionsProps = {
     id: number;
-    showActions: boolean;
     disabled?: boolean;
     onApprove: Callback1<number>;
     onReject: Callback1<number>;
 };
 
 export const AdminActions = (props: ActionsProps) => {
-    const { id, showActions, disabled = false, onApprove, onReject } = props;
+    const { id, disabled = false, onApprove, onReject } = props;
 
     return (
         <DropdownMenu>
@@ -38,19 +36,12 @@ export const AdminActions = (props: ActionsProps) => {
             </DropdownMenuTrigger>
 
             <DropdownMenuContent align="end">
-                <DropdownMenuItem>View details</DropdownMenuItem>
-
-                {showActions && (
-                    <>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem disabled={disabled} onClick={() => onApprove(id)}>
-                            Approve
-                        </DropdownMenuItem>
-                        <DropdownMenuItem disabled={disabled} onClick={() => onReject(id)} variant="destructive">
-                            Reject
-                        </DropdownMenuItem>
-                    </>
-                )}
+                <DropdownMenuItem disabled={disabled} onClick={() => onApprove(id)}>
+                    Approve
+                </DropdownMenuItem>
+                <DropdownMenuItem disabled={disabled} onClick={() => onReject(id)} variant="destructive">
+                    Reject
+                </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
     );
