@@ -1,10 +1,12 @@
 import React from 'react';
 
+import { SectionCard } from '@/components/common/SectionCard';
+
 export function CourseFormLayout({ children }: { children: React.ReactNode }) {
     return (
-        <section className="rounded-3xl border border-border bg-surface p-6 shadow-soft">
+        <SectionCard>
             <div className="flex flex-col gap-8">{children}</div>
-        </section>
+        </SectionCard>
     );
 }
 

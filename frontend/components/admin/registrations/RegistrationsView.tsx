@@ -3,6 +3,8 @@ import React from 'react';
 import { toast } from 'sonner';
 
 import { PageHeader } from '@/components/common/PageHeader';
+import { QueryState } from '@/components/common/QueryState';
+import { SectionCard } from '@/components/common/SectionCard';
 import { unwrap } from '@/lib/query';
 import { queryKeys } from '@/lib/queryKeys';
 import { useApi } from '@/stores/apiStore';
@@ -87,16 +89,8 @@ export const RegistrationsView = ({ kind, status }: Props) => {
         <div className="space-y-6">
             <PageHeader title={title} description={description} />
 
-            <div className="overflow-hidden rounded-3xl border border-border bg-surface shadow-soft">
-                {registrationsQuery.isPending ? (
-                    <p className="px-1 py-0.5">Loading...</p>
-                ) : registrationsQuery.isError ? (
-                    <p className="px-1 py-0.5">{registrationsQuery.error.message}</p>
-                ) : items.length === 0 ? (
-                    <div className="p-6">
-                        <p className="text-sm text-muted-foreground">{emptyMessage}</p>
-                    </div>
-                ) : (
+            <SectionCard className="overflow-hidden p-0">
+                <QueryState query={registrationsQuery} isEmpty={items.length === 0} emptyMessage={emptyMessage}>
                     <RegistrationsTable
                         kind={kind}
                         items={items}
@@ -104,8 +98,8 @@ export const RegistrationsView = ({ kind, status }: Props) => {
                         onApprove={onApprove}
                         onReject={onReject}
                     />
-                )}
-            </div>
+                </QueryState>
+            </SectionCard>
         </div>
     );
 };

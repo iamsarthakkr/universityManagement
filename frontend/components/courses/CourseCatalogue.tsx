@@ -1,6 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 
 import { PageHeader } from '@/components/common/PageHeader';
+import { QueryState } from '@/components/common/QueryState';
+import { SectionCard } from '@/components/common/SectionCard';
 import { unwrap } from '@/lib/query';
 import { queryKeys } from '@/lib/queryKeys';
 import { useApi } from '@/stores/apiStore';
@@ -20,21 +22,19 @@ export function CourseCatalogue() {
         <>
             <PageHeader title="Course catalogue" description="Browse all available courses grouped by department." />
 
-            <section className="rounded-3xl border border-border bg-surface p-6 shadow-soft">
-                {catalogueQuery.isPending ? (
-                    <p className="text-sm text-text-muted">Loading...</p>
-                ) : catalogueQuery.isError ? (
-                    <p className="text-sm text-destructive">{catalogueQuery.error.message}</p>
-                ) : groups.length === 0 ? (
-                    <p className="text-sm text-text-muted">No courses available yet.</p>
-                ) : (
+            <SectionCard>
+                <QueryState
+                    query={catalogueQuery}
+                    isEmpty={groups.length === 0}
+                    emptyMessage="No courses available yet."
+                >
                     <div className="divide-y divide-border">
                         {groups.map((group) => (
                             <DepartmentGroup key={group.departmentId} group={group} />
                         ))}
                     </div>
-                )}
-            </section>
+                </QueryState>
+            </SectionCard>
         </>
     );
 }
