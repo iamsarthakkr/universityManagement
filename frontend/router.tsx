@@ -1,5 +1,5 @@
 import { ComponentType } from 'react';
-import { createBrowserRouter, Navigate } from 'react-router';
+import { createBrowserRouter, Navigate, RouteObject } from 'react-router';
 
 import { DashboardHomeRedirect, RoleGuard } from '@/components/auth/RoleGuard';
 import { LoadingOverlay } from '@/components/common/AppStateOverlay';
@@ -14,7 +14,7 @@ function lazyPage(load: () => Promise<{ default: ComponentType }>) {
     };
 }
 
-export const router = createBrowserRouter([
+export const routes: RouteObject[] = [
     {
         element: <RootLayout />,
         HydrateFallback: LoadingOverlay,
@@ -88,4 +88,6 @@ export const router = createBrowserRouter([
             { path: '*', element: <Navigate to="/" replace /> },
         ],
     },
-]);
+];
+
+export const router = createBrowserRouter(routes);

@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/base/input';
 import { DepartmentSelect } from '@/components/common/DepartmentSelect';
 import { PageHeader } from '@/components/common/PageHeader';
 import { useFormState } from '@/hooks/useFormState';
+import { normalizeCodeSuffix } from '@/lib/courseCode';
 import { unwrap } from '@/lib/query';
 import { queryKeys } from '@/lib/queryKeys';
 import { useApi } from '@/stores/apiStore';
@@ -24,11 +25,6 @@ const initialFormData: CourseFormData = {
     description: '',
     credits: 1,
 };
-
-function normalizeCodeSuffix(input: string, departmentCode: string) {
-    const code = input.replace(/\s+/g, '').toUpperCase();
-    return code.startsWith(departmentCode) ? code.slice(departmentCode.length) : code;
-}
 
 export function CreateCourseForm() {
     const api = useApi();

@@ -9,9 +9,21 @@ npm run dev      # Start Vite dev server (port 3000 - backend CORS only allows t
 npm run build    # tsc type-check + Vite build into dist/
 npm run preview  # Serve the production build
 npm run lint     # ESLint
+npm test         # Vitest in watch mode
+npm run test:run # Vitest once (CI)
 ```
 
-There are no tests in the frontend. The backend lives in `../server/` (Spring Boot, runs on port 8080).
+The backend lives in `../server/` (Spring Boot, runs on port 8080).
+
+## Testing
+
+Vitest + jsdom + Testing Library, configured in the `test` block of `vite.config.ts` (same `@/` alias as the app).
+
+- Unit/component tests sit next to the code as `*.test.ts(x)`. App-level tests (routing, guards, startup) live in `tests/`.
+- `tests/setup.ts` stubs `matchMedia` (live `matches`; `setPrefersDark()` to switch), `ResizeObserver` and pointer APIs for Radix, and resets localStorage, the app store, the query cache and the 401 handler between tests.
+- Mock the network, not the modules: `mockFetch({ 'GET /path': jsonOk(body), 'POST /path': jsonError(400, 'msg') })` from `tests/mockFetch.ts` stubs global `fetch` and returns the recorded requests (method, path, headers, parsed body). Unmocked routes fail like a network error. This keeps `http.ts`, `unwrap`, the stores and React Query in the path under test.
+- `tests/render.tsx`: `renderWithProviders(ui)` (query client + tooltip provider + memory router) for components; `renderApp(path)` mounts the real `routes` from `router.tsx` for end-to-end flows.
+- Use 4xx errors when testing query error states — 5xx/network errors retry once with a delay.
 
 ## Architecture
 
