@@ -5,16 +5,14 @@ import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage } from '@/co
 import { Separator } from '@/components/ui/base/separator';
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/base/sidebar';
 import { UNIV_NAME } from '@/config/common';
-import { useAuthRedirect } from '@/hooks/useAuthRedirect';
-import { Outlet } from 'react-router';
+import { useAuth } from '@/context/AuthContext';
+import { Navigate, Outlet } from 'react-router';
 
 export default function DashboardLayout() {
-    const { isLoading, isAuthenticated } = useAuthRedirect({
-        requireAuth: true,
-    });
+    const { isAuthenticated } = useAuth();
 
-    if (isLoading || !isAuthenticated) {
-        return null;
+    if (!isAuthenticated) {
+        return <Navigate to="/login" replace />;
     }
 
     return (

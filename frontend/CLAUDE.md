@@ -29,7 +29,7 @@ The API is structured as a typed interface (`types/IApi.ts`) with implementation
 ### Context / state
 
 - `ApiContext` — singleton `IApi` instance, no state, just the API object
-- `AuthContext` — JWT token + `AuthUser` + login/logout. Token persisted in `localStorage`. On mount, calls `api.auth.me()` to restore session. It does **not** navigate: the layout guards (`useAuthRedirect`) react to `status` and redirect with `replace` (authenticated → role home from `DASHBOARD_HOME`; logged out → `/login`).
+- `AuthContext` — JWT token + `AuthUser` + login/logout. Token persisted in `localStorage`. On mount, calls `api.auth.me()` to restore session. It does **not** navigate: the layouts react to auth state and redirect with `<Navigate replace>` (authenticated → role home from `DASHBOARD_HOME`; logged out → `/login`).
 - Session expiry: `lib/http.ts` calls the handler registered via `setUnauthorizedHandler` when a request that carried a token gets a 401. `AuthProvider` registers it to clear the session; the dashboard guard then redirects. Every `RemoteRes` carries the HTTP `status` (0 = no response).
 - `AppContext` — app bootstrap. Loads static reference data (`staticData.departments`) and waits for auth session restore. App state (`AppState`: `LOADING` / `FAILED` / `READY`) is internal: it renders a full-screen loading overlay, or an error overlay with retry, and only renders the app once `READY`. Consumers use `useAppContext()` and read `staticData` (e.g. `staticData.departments`), which is always loaded — never add loading flags for static data. Add new app-wide reference data here (only if it's needed before/without login, since it blocks the whole app).
 - All wrapped in `context/Providers.tsx` (`Api` → `Auth` → `App`), rendered by `pages/RootLayout.tsx` inside the router.
@@ -56,7 +56,7 @@ pages/
 Layouts render children via `<Outlet />`. Use `Link`/`useNavigate` from `react-router` (never plain `<a href>` for
 internal links - it reloads the whole app). `/` and unknown paths redirect to `/login`.
 
-`hooks/useAuthRedirect.tsx` guards the layouts — unauthenticated users go to `/login`, authenticated users on auth pages go to their role home.
+`AuthLayout` sends authenticated users to their role home; `DashboardLayout` sends unauthenticated users to `/login`. Both use `<Navigate replace>` directly — auth is never `loading` inside the app because `AppProvider` waits for it.
 
 Role access is declared in `router.tsx` with `<RoleGuard roles={[...]} />` (`components/auth/RoleGuard.tsx`), which redirects other roles to their own home. `/dashboard` redirects to the role home. Role home paths live in `config/navigation/dashboardHome.ts`. The backend enforces roles too; the frontend guards are for UX.
 

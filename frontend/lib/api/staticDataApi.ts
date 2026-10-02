@@ -4,6 +4,5 @@ import { http } from '../http';
 export const createStaticDataApi = (): IStaticDataApi => {
     return {
         getDepartments: () => http.get('/departments'),
-        getInstructors: () => http.get('/instructor'),
     };
 };
