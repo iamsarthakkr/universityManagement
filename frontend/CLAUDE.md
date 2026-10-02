@@ -48,7 +48,7 @@ No React Context is used for app state; stores live in `stores/`.
 ### Route structure
 
 Entry: `index.html` -> `main.tsx` -> `router.tsx`. All routes are declared explicitly in `router.tsx`;
-adding a page means creating the component under `pages/` **and** registering it there.
+adding a page means creating the component (default export) under `pages/` **and** registering it there with `lazy: lazyPage(() => import('@/pages/...'))` so each page is its own chunk. Layouts and guards are imported eagerly. The root route's `HydrateFallback` shows the loading overlay while the first page chunk loads.
 
 ```
 pages/

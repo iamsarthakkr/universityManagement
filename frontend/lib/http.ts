@@ -22,11 +22,6 @@ export function setUnauthorizedHandler(handler: (() => void) | null) {
     unauthorizedHandler = handler;
 }
 
-const DEFAULT_HEADERS: HeadersInit = {
-    Accept: 'application/json',
-    'Content-Type': 'application/json',
-};
-
 function errorResult<T>(message: string, status: number): RemoteRes<T> {
     return {
         message,
@@ -90,10 +85,13 @@ async function request<T>(path: string, config: RequestConfig = {}): Promise<Rem
     const requestLabel = `${init.method ?? 'GET'} ${path}`;
     const token = skipAuth ? null : getToken();
 
-    const headers = new Headers({
-        ...DEFAULT_HEADERS,
-        ...init.headers,
-    });
+    const headers = new Headers(init.headers);
+    if (!headers.has('Accept')) {
+        headers.set('Accept', 'application/json');
+    }
+    if (body !== undefined && !headers.has('Content-Type')) {
+        headers.set('Content-Type', 'application/json');
+    }
 
     if (token) {
         headers.set('Authorization', `Bearer ${token}`);
