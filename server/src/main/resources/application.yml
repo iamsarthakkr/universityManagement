@@ -37,4 +37,4 @@ info:
   app:
     name: University Enrollment Management
     description: Backend API for university enrollment workflows
-    version: 1.0.0
+    version: '@project.version@'

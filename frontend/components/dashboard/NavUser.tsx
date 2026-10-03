@@ -8,6 +8,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/base/dropdownMenu';
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/base/sidebar';
+import { APP_VERSION } from '@/lib/appVersion';
 import { AuthUser } from '@/types/auth';
 import { Callback } from '@/types/common';
 import { ChevronsUpDownIcon, LogOutIcon } from 'lucide-react';
@@ -74,6 +75,10 @@ export function NavUser({ user, onLogout }: Props) {
                             <LogOutIcon />
                             Log out
                         </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuLabel className="py-1 text-xs font-normal text-muted-foreground">
+                            Version {APP_VERSION}
+                        </DropdownMenuLabel>
                     </DropdownMenuContent>
                 </DropdownMenu>
             </SidebarMenuItem>
