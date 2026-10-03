@@ -215,8 +215,8 @@ Concurrency-sensitive enrollment operations also have dedicated test coverage.
 
 ```text
 universityManagement/
-├── .github/workflows/            # ci.yml (tests) and deploy.yml (images + VPS deploy)
-├── deploy/                        # production compose + deploy script (see DEPLOY.md)
+├── .github/workflows/            # ci.yml (tests) and release.yml (versioned images)
+├── deploy/                        # production compose + deploy/rollback scripts (see DEPLOY.md)
 ├── compose.dev.yml                # local MySQL for development
 ├── versions.yml                   # release history of the api and frontend (see DEPLOY.md)
 ├── frontend/                      # Vite + React SPA
@@ -297,7 +297,7 @@ Schema evolution is version-controlled and applied automatically during applicat
 
 The API and frontend are versioned independently in `versions.yml`, kept in sync with `server/pom.xml` and
 `frontend/package.json`. The running versions are reported by `GET /actuator/info` and shown in the user menu.
-Releasing a new version is described in [DEPLOY.md](DEPLOY.md#releasing).
+Releasing a new version is described in [DEPLOY.md](DEPLOY.md#releasing-a-version).
 
 ## Deployment
 

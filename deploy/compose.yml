@@ -2,7 +2,7 @@ name: university-management
 
 services:
   server:
-    image: ghcr.io/iamsarthakkr/university-management-api:${API_IMAGE_TAG:-latest}
+    image: ghcr.io/iamsarthakkr/university-management-api:${API_VERSION:?API_VERSION is required}
     restart: unless-stopped
     environment:
       SPRING_PROFILES_ACTIVE: prod
@@ -21,7 +21,7 @@ services:
       - database
 
   frontend:
-    image: ghcr.io/iamsarthakkr/university-management-frontend:${FRONTEND_IMAGE_TAG:-latest}
+    image: ghcr.io/iamsarthakkr/university-management-frontend:${FRONTEND_VERSION:?FRONTEND_VERSION is required}
     restart: unless-stopped
     ports:
       - "127.0.0.1:${FRONTEND_HOST_PORT:-3000}:80"
