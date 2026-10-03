@@ -1,0 +1,22 @@
+name: university-management-dev
+
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: universityManagementDev
+      MYSQL_USER: university
+      MYSQL_PASSWORD: university
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
+    volumes:
+      - university_dev_mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  university_dev_mysql:

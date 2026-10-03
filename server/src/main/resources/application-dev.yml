@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: universityManagementDev
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/universityManagementDev}
+    username: ${DB_USERNAME:university}
+    password: ${DB_PASSWORD:university}
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:dev-only-jwt-secret-not-for-production-use}
+    expiration-ms: ${JWT_EXPIRATION_MS:1800000}
+  admin:
+    username: ${ADMIN_USERNAME:admin}
+    password: ${ADMIN_PASSWORD:admin123}
+    email: ${ADMIN_EMAIL:admin@university.local}
