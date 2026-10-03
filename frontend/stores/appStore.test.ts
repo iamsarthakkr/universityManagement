@@ -87,6 +87,33 @@ describe('appStore auth actions', () => {
         expect(useAppStore.getState().user).toEqual(USER);
     });
 
+    it('fails the login without setting a user when the token cannot be saved', async () => {
+        vi.spyOn(console, 'error').mockImplementation(() => {});
+        vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+            throw new Error('QuotaExceededError');
+        });
+        mockFetch({ 'POST /auth/login': jsonOk({ accessToken: 'token', user: USER }) });
+
+        const result = await actions().login('sam', 'secret');
+
+        expect(result.success).toBe(false);
+        expect(result.message).toMatch(/blocking site storage/i);
+        expect(useAppStore.getState().user).toBeNull();
+    });
+
+    it('still logs out in the app when storage refuses to remove the token', () => {
+        setToken('valid');
+        useAppStore.setState({ user: USER });
+        vi.spyOn(console, 'error').mockImplementation(() => {});
+        vi.spyOn(Storage.prototype, 'removeItem').mockImplementation(() => {
+            throw new Error('blocked');
+        });
+
+        actions().logout();
+
+        expect(useAppStore.getState().user).toBeNull();
+    });
+
     it('returns the server message on a failed login and never sends a stale token', async () => {
         withUnauthorizedHandler();
         setToken('stale');

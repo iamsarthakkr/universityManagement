@@ -9,18 +9,22 @@ export function getToken(): string | null {
     }
 }
 
-export function setToken(token: string) {
+export function setToken(token: string): boolean {
     try {
         localStorage.setItem(TOKEN_KEY, token);
+        return true;
     } catch (error) {
         console.error('Unable to save access token to storage', error);
+        return false;
     }
 }
 
-export function clearToken() {
+export function clearToken(): boolean {
     try {
         localStorage.removeItem(TOKEN_KEY);
+        return true;
     } catch (error) {
         console.error('Unable to remove access token from storage', error);
+        return false;
     }
 }

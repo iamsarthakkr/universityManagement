@@ -63,17 +63,29 @@ export const useAppStore = create<AppStore>()((set) => ({
                 return { success: false, message: res.message || 'Login failed.' };
             }
 
-            setToken(res.body.accessToken);
+            if (!setToken(res.body.accessToken)) {
+                return {
+                    success: false,
+                    message:
+                        'Your browser is blocking site storage, so you cannot stay signed in. Allow site data for this site and try again.',
+                };
+            }
+
             set({ user: res.body.user });
             toast.success('Login successful');
             return { success: true, message: res.message };
         },
 
         logout: () => {
-            clearToken();
+            const removed = clearToken();
             queryClient.clear();
             set({ user: null });
             toast.success('Logged out');
+            if (!removed) {
+                toast.warning(
+                    "Your browser blocked clearing the saved session. Clear this site's data to fully sign out on this device.",
+                );
+            }
         },
 
         expireSession: () => {
