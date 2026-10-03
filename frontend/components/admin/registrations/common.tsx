@@ -3,7 +3,6 @@ import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
-    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/base/dropdownMenu';
 import { cn } from '@/lib/cn';
@@ -12,20 +11,22 @@ import { RegistrationStatus } from '@/types/registration';
 import { MoreHorizontalIcon } from 'lucide-react';
 
 const statusStyles: Record<RegistrationStatus, string> = {
-    PENDING: 'bg-yellow-50 text-yellow-700 ring-yellow-600/20',
-    APPROVED: 'bg-green-50 text-green-700 ring-green-600/20',
-    REJECTED: 'bg-red-50 text-red-700 ring-red-600/20',
+    PENDING:
+        'bg-yellow-50 text-yellow-700 ring-yellow-600/20 dark:bg-yellow-400/10 dark:text-yellow-300 dark:ring-yellow-400/20',
+    APPROVED:
+        'bg-green-50 text-green-700 ring-green-600/20 dark:bg-green-400/10 dark:text-green-300 dark:ring-green-400/20',
+    REJECTED: 'bg-red-50 text-red-700 ring-red-600/20 dark:bg-red-400/10 dark:text-red-300 dark:ring-red-400/20',
 };
 
 type ActionsProps = {
     id: number;
-    showActions: boolean;
+    disabled?: boolean;
     onApprove: Callback1<number>;
     onReject: Callback1<number>;
 };
 
 export const AdminActions = (props: ActionsProps) => {
-    const { id, showActions, onApprove, onReject } = props;
+    const { id, disabled = false, onApprove, onReject } = props;
 
     return (
         <DropdownMenu>
@@ -37,17 +38,12 @@ export const AdminActions = (props: ActionsProps) => {
             </DropdownMenuTrigger>
 
             <DropdownMenuContent align="end">
-                <DropdownMenuItem>View details</DropdownMenuItem>
-
-                {showActions && (
-                    <>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => onApprove(id)}>Approve</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => onReject(id)} variant="destructive">
-                            Reject
-                        </DropdownMenuItem>
-                    </>
-                )}
+                <DropdownMenuItem disabled={disabled} onClick={() => onApprove(id)}>
+                    Approve
+                </DropdownMenuItem>
+                <DropdownMenuItem disabled={disabled} onClick={() => onReject(id)} variant="destructive">
+                    Reject
+                </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
     );

@@ -1,15 +1,14 @@
-import { PageHeader } from '@/components/common/PageHeader';
+import { Navigate, useParams } from 'react-router';
 
-export default function StudentRegistrationsPage() {
-    return (
-        <>
-            <PageHeader
-                title="Instructor registration portal"
-                description="Manage pending/approved/rejected instructor registrations here."
-            />
-            <div className="rounded-2xl border bg-card p-6">
-                <p className="text-sm text-muted-foreground">Select a registration status from the sidebar.</p>
-            </div>
-        </>
-    );
+import { RegistrationsView } from '@/components/admin/registrations/RegistrationsView';
+import { parseRegistrationStatus } from '@/types/registration';
+
+export default function InstructorRegistrationsPage() {
+    const status = parseRegistrationStatus(useParams().status);
+
+    if (!status) {
+        return <Navigate to="/dashboard/admin/instructor-registrations/pending" replace />;
+    }
+
+    return <RegistrationsView kind="instructor" status={status} />;
 }

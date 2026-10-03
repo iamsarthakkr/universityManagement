@@ -4,6 +4,7 @@ export type RemoteRes<T> = {
     errors?: Record<string, string>;
     isSuccess: boolean;
     timestamp: Date;
+    status: number;
 };
 
 export type Callback = () => void;

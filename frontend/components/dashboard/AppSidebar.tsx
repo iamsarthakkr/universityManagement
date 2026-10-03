@@ -1,34 +1,30 @@
-'use client';
-
 import * as React from 'react';
 
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarRail } from '@/components/ui/base/sidebar';
-import { NAV_MAIN } from '@/config/navigation/sidebar';
-import { useAuth } from '@/context/AuthContext';
+import { getSidebarNav } from '@/config/navigation/sidebar';
+import { useAppActions, useAppStore } from '@/stores/appStore';
 import { NavHeader } from './NavHeader';
 import { NavMain } from './NavMain';
 import { NavUser } from './NavUser';
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-    const auth = useAuth();
-    if (!auth.user) {
+    const user = useAppStore((state) => state.user);
+    const { logout } = useAppActions();
+
+    if (!user) {
         return null;
     }
 
-    const navItems = NAV_MAIN.filter((item) => auth.user && item.roles.includes(auth.user.role)).map((item) => ({
-        ...item,
-        items: item.items?.filter((sub) => !sub.roles || sub.roles.includes(auth.user!.role)),
-    }));
     return (
         <Sidebar collapsible="icon" {...props}>
             <SidebarHeader>
                 <NavHeader />
             </SidebarHeader>
             <SidebarContent>
-                <NavMain items={navItems} />
+                <NavMain entries={getSidebarNav(user.role)} />
             </SidebarContent>
             <SidebarFooter>
-                <NavUser user={auth.user} onLogout={auth.logout} />
+                <NavUser user={user} onLogout={logout} />
             </SidebarFooter>
             <SidebarRail />
         </Sidebar>

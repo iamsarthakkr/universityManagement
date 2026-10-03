@@ -1,5 +1,3 @@
-'use client';
-
 import { ChevronDownIcon } from 'lucide-react';
 
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/base/collapsible';

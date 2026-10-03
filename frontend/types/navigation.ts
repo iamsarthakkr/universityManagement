@@ -2,17 +2,24 @@ import { LucideIcon } from 'lucide-react';
 
 import { Role } from './auth';
 
-export type SidebarNavSubItem = {
+export type SidebarNavLink = {
     title: string;
     url: string;
-    roles?: Array<Role>;
+    roles?: Role[];
 };
 
-export type SidebarNavItem = {
+type SidebarNavEntryBase = {
     title: string;
-    url: string;
     icon: LucideIcon;
-    open?: boolean;
-    roles: Array<Role>;
-    items?: SidebarNavSubItem[];
+    roles: Role[];
 };
+
+export type SidebarNavTopLink = SidebarNavEntryBase & {
+    url: string;
+};
+
+export type SidebarNavGroup = SidebarNavEntryBase & {
+    items: SidebarNavLink[];
+};
+
+export type SidebarNavEntry = SidebarNavTopLink | SidebarNavGroup;

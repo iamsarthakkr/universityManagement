@@ -1,14 +1,11 @@
+import { ComingSoonPanel } from '@/components/common/ComingSoonPanel';
 import { PageHeader } from '@/components/common/PageHeader';
-import { PlaceholderPanel } from '@/components/common/PlaceholderPanel';
 
 export default function InstructorCoursesPage() {
     return (
         <>
-            <PageHeader title="Assigned courses" description="Placeholder for courses assigned to the instructor." />
-            <PlaceholderPanel
-                title="Assigned courses pending"
-                description="Wire this to instructor-course APIs when backend endpoints are added."
-            />
+            <PageHeader title="Assigned courses" description="Courses you are assigned to teach." />
+            <ComingSoonPanel description="Courses assigned to you will appear here." />
         </>
     );
 }

@@ -17,8 +17,6 @@ export default tseslint.config(
             globals: { ...globals.browser },
         },
         plugins: { 'react-hooks': reactHooks },
-        // Classic hooks rules only, matching what next/core-web-vitals enforced.
-        // The v7 React Compiler rules (set-state-in-effect etc.) are a separate cleanup.
         rules: {
             'react-hooks/rules-of-hooks': 'error',
             'react-hooks/exhaustive-deps': 'warn',

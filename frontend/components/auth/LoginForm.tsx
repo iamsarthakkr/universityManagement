@@ -1,5 +1,3 @@
-'use client';
-
 import React from 'react';
 import { Link } from 'react-router';
 
@@ -7,45 +5,32 @@ import { cn } from '@/lib/cn';
 import { Button } from '@/components/ui/base/button';
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/base/field';
 import { Input } from '@/components/ui/base/input';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/base/card';
-import { useAuth } from '@/context/AuthContext';
-import { LoginData } from '@/types/auth';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/base/card';
+import { useFormState } from '@/hooks/useFormState';
+import { useAppActions } from '@/stores/appStore';
+import { LoginRequest } from '@/types/auth';
+
+const initialValues: LoginRequest = {
+    username: '',
+    password: '',
+};
 
 export const LoginForm = ({ className, ...props }: React.ComponentProps<'div'>) => {
-    const auth = useAuth();
-    const [formData, setFormData] = React.useState<LoginData>({
-        username: '',
-        password: '',
-    });
+    const { login } = useAppActions();
+    const { values, handleChange } = useFormState(initialValues);
     const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
-
     const [isLoading, setIsLoading] = React.useState(false);
-    const handleChange = React.useCallback(
-        (event: React.ChangeEvent<HTMLInputElement>) => {
-            const { name, value } = event.target;
-
-            setFormData((prev) => ({
-                ...prev,
-
-                [name]: value,
-            }));
-        },
-
-        [],
-    );
 
     const handleLogin = React.useCallback(
         async (event: React.SubmitEvent<HTMLFormElement>) => {
             event.preventDefault();
-            event.stopPropagation();
 
             setIsLoading(true);
-            const res = await auth.login(formData.username, formData.password);
-            setErrorMessage(!res ? 'Login falied' : null);
+            const result = await login(values.username, values.password);
+            setErrorMessage(result.success ? null : result.message);
             setIsLoading(false);
         },
-
-        [auth, formData],
+        [login, values],
     );
 
     return (
@@ -63,8 +48,9 @@ export const LoginForm = ({ className, ...props }: React.ComponentProps<'div'>) 
                                 <Input
                                     id="username"
                                     name="username"
-                                    type="username"
-                                    value={formData.username}
+                                    type="text"
+                                    autoComplete="username"
+                                    value={values.username}
                                     onChange={handleChange}
                                     required
                                 />
@@ -75,15 +61,20 @@ export const LoginForm = ({ className, ...props }: React.ComponentProps<'div'>) 
                                     id="password"
                                     name="password"
                                     type="password"
-                                    value={formData.password}
+                                    autoComplete="current-password"
+                                    value={values.password}
                                     onChange={handleChange}
                                     required
                                 />
                             </Field>
-                            {errorMessage && <p className="text-center text-sm  text-red-400">{errorMessage}</p>}
+                            {errorMessage && (
+                                <p role="alert" className="text-center text-sm text-destructive">
+                                    {errorMessage}
+                                </p>
+                            )}
                             <Field>
                                 <Button type="submit" disabled={isLoading}>
-                                    {isLoading ? 'Logging in' : 'LogIn'}
+                                    {isLoading ? 'Logging in...' : 'Log in'}
                                 </Button>
                             </Field>
                         </FieldGroup>

@@ -1,24 +1,26 @@
-'use client';
-
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import React from 'react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/base/button';
-import { Field, FieldGroup, FieldLabel } from '@/components/ui/base/field';
+import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/components/ui/base/field';
 import { Input } from '@/components/ui/base/input';
-import { useApi } from '@/context/ApiContext';
-import { useStaticData } from '@/context/StaticDataContext';
+import { DepartmentSelect } from '@/components/common/DepartmentSelect';
+import { PageHeader } from '@/components/common/PageHeader';
+import { useFormState } from '@/hooks/useFormState';
+import { normalizeCodeSuffix } from '@/lib/courseCode';
+import { unwrap } from '@/lib/query';
+import { queryKeys } from '@/lib/queryKeys';
+import { useApi } from '@/stores/apiStore';
+import { useAppStore } from '@/stores/appStore';
 import { CourseRequest } from '@/types/course';
 import { Department } from '@/types/department';
 
-import { PageHeader } from '@/components/common/PageHeader';
-import { cn } from '@/lib/cn';
-
 import { CourseFormLayout, CourseFormSection } from './CourseFormLayout';
 
-const initialFormData: CourseRequest = {
-    departmentId: 0,
-    code: '',
+type CourseFormData = Omit<CourseRequest, 'departmentId' | 'code'>;
+
+const initialFormData: CourseFormData = {
     title: '',
     description: '',
     credits: 1,
@@ -26,74 +28,52 @@ const initialFormData: CourseRequest = {
 
 export function CreateCourseForm() {
     const api = useApi();
-    const { departments, isLoading: depsLoading } = useStaticData();
+    const departments = useAppStore((state) => state.staticData.departments);
 
-    const [formData, setFormData] = React.useState<CourseRequest>(initialFormData);
+    const { values, handleChange, reset } = useFormState(initialFormData);
     const [selectedDept, setSelectedDept] = React.useState<Department | null>(null);
-    const [codeWithoutPrefix, setCodeWithoutPrefix] = React.useState('');
-    const [isSubmitting, setIsSubmitting] = React.useState(false);
+    const [codeInput, setCodeInput] = React.useState('');
+
+    const codeSuffix = selectedDept ? normalizeCodeSuffix(codeInput, selectedDept.code) : '';
+    const courseCode = selectedDept && codeSuffix ? `${selectedDept.code}${codeSuffix}` : null;
 
     const handleDepartmentChange = React.useCallback(
-        (event: React.ChangeEvent<HTMLSelectElement>) => {
-            const dept = departments.find((d) => d.id === Number(event.target.value)) ?? null;
-            setSelectedDept(dept);
-            setFormData((prev) => ({
-                ...prev,
-                departmentId: dept?.id ?? 0,
-                code: dept ? `${dept.code}${codeWithoutPrefix}` : codeWithoutPrefix,
-            }));
+        (departmentId: number) => {
+            setSelectedDept(departments.find((department) => department.id === departmentId) ?? null);
         },
-        [departments, codeWithoutPrefix],
+        [departments],
     );
 
-    const handleCodeSuffixChange = React.useCallback(
-        (event: React.ChangeEvent<HTMLInputElement>) => {
-            const suffix = event.target.value;
-            setCodeWithoutPrefix(suffix);
-            setFormData((prev) => ({
-                ...prev,
-                code: selectedDept ? `${selectedDept.code}${suffix}` : suffix,
-            }));
-        },
-        [selectedDept],
-    );
-
-    const handleChange = React.useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value, type } = event.target;
-        setFormData((prev) => ({
-            ...prev,
-            [name]: type === 'number' ? Number(value) : value,
-        }));
+    const handleCodeChange = React.useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+        setCodeInput(event.target.value.toUpperCase());
     }, []);
 
-    const handleSubmit = React.useCallback(
-        async (event: React.SubmitEvent<HTMLFormElement>) => {
-            event.preventDefault();
-            setIsSubmitting(true);
+    const queryClient = useQueryClient();
 
-            const res = await api.courses.createCourse(formData);
-
-            setIsSubmitting(false);
-
-            if (!res.isSuccess) {
-                toast.error('Failed to create course', { description: res.message || 'Unable to submit request.' });
-                return;
-            }
-
-            toast.success(res.message || 'Course created successfully.');
-            setFormData(initialFormData);
+    const createCourse = useMutation({
+        mutationFn: (request: CourseRequest) => unwrap(api.courses.createCourse(request)),
+        onSuccess: () => {
+            toast.success('Course created successfully.');
+            reset();
             setSelectedDept(null);
-            setCodeWithoutPrefix('');
+            setCodeInput('');
+            return queryClient.invalidateQueries({ queryKey: queryKeys.courses.all });
         },
-        [api, formData],
-    );
+        onError: (error) => {
+            toast.error('Failed to create course', { description: error.message });
+        },
+    });
 
-    const selectClassName = cn(
-        'h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none',
-        'focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50',
-        'disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50',
-        'md:text-sm dark:bg-input/30',
-    );
+    const handleSubmit = (event: React.SubmitEvent<HTMLFormElement>) => {
+        event.preventDefault();
+
+        if (!selectedDept || !courseCode) {
+            toast.error('Enter a course number after the department code.');
+            return;
+        }
+
+        createCourse.mutate({ ...values, departmentId: selectedDept.id, code: courseCode });
+    };
 
     return (
         <>
@@ -106,23 +86,12 @@ export function CreateCourseForm() {
                                 <div className="grid gap-4 sm:grid-cols-2">
                                     <Field>
                                         <FieldLabel htmlFor="department">Department</FieldLabel>
-                                        <select
+                                        <DepartmentSelect
                                             id="department"
                                             required
-                                            disabled={depsLoading}
-                                            value={selectedDept?.id ?? ''}
+                                            value={selectedDept?.id ?? null}
                                             onChange={handleDepartmentChange}
-                                            className={selectClassName}
-                                        >
-                                            <option value="" disabled>
-                                                {depsLoading ? 'Loading...' : 'Select a department'}
-                                            </option>
-                                            {departments.map((d) => (
-                                                <option key={d.id} value={d.id}>
-                                                    {d.name}
-                                                </option>
-                                            ))}
-                                        </select>
+                                        />
                                     </Field>
                                     <Field>
                                         <FieldLabel htmlFor="code">Course Code</FieldLabel>
@@ -137,11 +106,13 @@ export function CreateCourseForm() {
                                                 name="code"
                                                 type="text"
                                                 required
-                                                placeholder={selectedDept ? '101' : 'e.g. CS101'}
-                                                value={codeWithoutPrefix}
-                                                onChange={handleCodeSuffixChange}
+                                                disabled={!selectedDept}
+                                                placeholder={selectedDept ? 'e.g. 101' : 'Select a department first'}
+                                                value={codeInput}
+                                                onChange={handleCodeChange}
                                             />
                                         </div>
+                                        {courseCode && <FieldDescription>Saved as {courseCode}</FieldDescription>}
                                     </Field>
                                 </div>
                                 <Field>
@@ -152,7 +123,7 @@ export function CreateCourseForm() {
                                         type="text"
                                         required
                                         placeholder="e.g. Introduction to Programming"
-                                        value={formData.title}
+                                        value={values.title}
                                         onChange={handleChange}
                                     />
                                 </Field>
@@ -164,7 +135,7 @@ export function CreateCourseForm() {
                                         type="text"
                                         required
                                         placeholder="e.g. Covers fundamentals of programming using Python"
-                                        value={formData.description}
+                                        value={values.description}
                                         onChange={handleChange}
                                     />
                                 </Field>
@@ -183,7 +154,7 @@ export function CreateCourseForm() {
                                         max={10}
                                         required
                                         placeholder="e.g. 3"
-                                        value={formData.credits}
+                                        value={values.credits}
                                         onChange={handleChange}
                                     />
                                 </Field>
@@ -191,8 +162,8 @@ export function CreateCourseForm() {
                         </CourseFormSection>
 
                         <div className="flex justify-end">
-                            <Button type="submit" disabled={isSubmitting} className="min-w-36">
-                                {isSubmitting ? 'Creating...' : 'Create course'}
+                            <Button type="submit" disabled={createCourse.isPending} className="min-w-36">
+                                {createCourse.isPending ? 'Creating...' : 'Create course'}
                             </Button>
                         </div>
                     </div>

@@ -1,20 +1,17 @@
-'use client';
-
+import { ThemeToggle } from '@/components/common/ThemeToggle';
 import { AppSidebar } from '@/components/dashboard/AppSidebar';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage } from '@/components/ui/base/breadcrumb';
 import { Separator } from '@/components/ui/base/separator';
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/base/sidebar';
 import { UNIV_NAME } from '@/config/common';
-import { useAuthRedirect } from '@/hooks/useAuthRedirect';
-import { Outlet } from 'react-router';
+import { useAppStore } from '@/stores/appStore';
+import { Navigate, Outlet } from 'react-router';
 
 export default function DashboardLayout() {
-    const { isLoading, isAuthenticated } = useAuthRedirect({
-        requireAuth: true,
-    });
+    const user = useAppStore((state) => state.user);
 
-    if (isLoading || !isAuthenticated) {
-        return null;
+    if (!user) {
+        return <Navigate to="/login" replace />;
     }
 
     return (
@@ -34,6 +31,9 @@ export default function DashboardLayout() {
                                 </BreadcrumbItem>
                             </BreadcrumbList>
                         </Breadcrumb>
+                    </div>
+                    <div className="ml-auto px-4">
+                        <ThemeToggle />
                     </div>
                 </header>
                 <div className="flex flex-1 flex-col gap-4 p-4 pt-0">

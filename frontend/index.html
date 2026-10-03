@@ -4,7 +4,22 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="description" content="University enrollment management dashboard" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <title>University Enrollment</title>
+        <script>
+            (function () {
+                var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                var theme = 'system';
+                try {
+                    var stored = JSON.parse(localStorage.getItem('theme') || 'null');
+                    theme = (stored && stored.state && stored.state.theme) || 'system';
+                } catch (error) {
+                    console.error('Unable to read saved theme', error);
+                }
+                var isDark = theme === 'dark' || (theme === 'system' && prefersDark);
+                document.documentElement.classList.toggle('dark', isDark);
+            })();
+        </script>
     </head>
     <body>
         <div id="root"></div>
