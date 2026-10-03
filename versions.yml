@@ -1,0 +1,7 @@
+api:
+  - version: 0.0.1
+    notes: Initial release
+
+frontend:
+  - version: 0.0.1
+    notes: Initial release

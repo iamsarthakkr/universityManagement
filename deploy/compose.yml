@@ -1,0 +1,31 @@
+name: university-management
+
+services:
+  server:
+    image: ghcr.io/iamsarthakkr/university-management-api:${API_IMAGE_TAG:-latest}
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: ${DB_URL:?DB_URL is required}
+      DB_USERNAME: ${DB_USERNAME:?DB_USERNAME is required}
+      DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:?ADMIN_USERNAME is required}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?ADMIN_PASSWORD is required}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:?ADMIN_EMAIL is required}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-1800000}
+    ports:
+      - "127.0.0.1:${API_HOST_PORT:-8080}:8080"
+    networks:
+      - default
+      - database
+
+  frontend:
+    image: ghcr.io/iamsarthakkr/university-management-frontend:${FRONTEND_IMAGE_TAG:-latest}
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${FRONTEND_HOST_PORT:-3000}:80"
+
+networks:
+  database:
+    external: true
