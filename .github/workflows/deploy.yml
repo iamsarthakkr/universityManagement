@@ -10,25 +10,82 @@ on:
       - main
 
   workflow_dispatch:
+    inputs:
+      sha:
+        description: Commit on main to deploy (defaults to the latest commit on main). It must have a successful CI run.
+        required: false
+        type: string
 
 concurrency:
   group: deploy-production
   cancel-in-progress: false
 
-env:
-  COMMIT_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
-
 jobs:
+  verify:
+    name: Verify manual deploy target
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      sha: ${{ steps.target.outputs.sha }}
+    steps:
+      - name: Require dispatch from main
+        if: github.ref != 'refs/heads/main'
+        run: |
+          echo "::error::Run Deploy from the main branch, not ${GITHUB_REF}."
+          exit 1
+
+      - name: Checkout main with history
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Resolve commit and require a successful CI run
+        id: target
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REQUESTED_SHA: ${{ inputs.sha }}
+        run: |
+          if ! sha=$(git rev-parse --verify --quiet "${REQUESTED_SHA:-$GITHUB_SHA}^{commit}"); then
+            echo "::error::Unknown commit '${REQUESTED_SHA:-$GITHUB_SHA}'."
+            exit 1
+          fi
+
+          if ! git merge-base --is-ancestor "$sha" origin/main; then
+            echo "::error::Commit $sha is not on main."
+            exit 1
+          fi
+
+          successful_runs=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow ci.yml --commit "$sha" \
+            --branch main --event push --status success --json databaseId --jq 'length')
+          if [[ "$successful_runs" == "0" ]]; then
+            echo "::error::Commit $sha has no successful CI run on main. Deploy a commit that CI verified."
+            exit 1
+          fi
+
+          echo "Deploying verified commit $sha"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+
   images:
     name: Build & publish ${{ matrix.name }} image
+    needs: verify
     if: >-
-      github.event_name == 'workflow_dispatch'
-      || (github.event.workflow_run.conclusion == 'success'
-        && github.event.workflow_run.event == 'push')
+      !cancelled()
+      && ((github.event_name == 'workflow_run'
+          && github.event.workflow_run.conclusion == 'success'
+          && github.event.workflow_run.event == 'push')
+        || (github.event_name == 'workflow_dispatch' && needs.verify.result == 'success'))
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       contents: read
       packages: write
+    env:
+      COMMIT_SHA: ${{ github.event.workflow_run.head_sha || needs.verify.outputs.sha }}
     strategy:
       matrix:
         include:
@@ -37,7 +94,7 @@ jobs:
           - name: frontend
             context: frontend
     steps:
-      - name: Checkout tested commit
+      - name: Checkout verified commit
         uses: actions/checkout@v4
         with:
           ref: ${{ env.COMMIT_SHA }}
@@ -65,10 +122,13 @@ jobs:
 
   deploy:
     name: Deploy to VPS
-    needs: images
+    needs: [verify, images]
+    if: "!cancelled() && needs.images.result == 'success'"
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     environment: production
     env:
+      COMMIT_SHA: ${{ github.event.workflow_run.head_sha || needs.verify.outputs.sha }}
       VPS_HOST: ${{ secrets.VPS_HOST }}
       VPS_USER: ${{ secrets.VPS_USER }}
       VPS_APP_DIR: ${{ vars.VPS_APP_DIR }}
@@ -88,9 +148,19 @@ jobs:
           printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
           printf '%s\n' "$VPS_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          cat > ~/.ssh/config <<'SSH_CONFIG'
+          Host *
+            IdentityFile ~/.ssh/deploy_key
+            BatchMode yes
+            ConnectTimeout 15
+            ServerAliveInterval 15
+            ServerAliveCountMax 4
+          SSH_CONFIG
 
       - name: Upload deploy files
-        run: scp -p -i ~/.ssh/deploy_key deploy/compose.yml deploy/deploy.sh "$VPS_USER@$VPS_HOST:$VPS_APP_DIR/"
+        run: scp -p deploy/compose.yml deploy/deploy.sh "$VPS_USER@$VPS_HOST:$VPS_APP_DIR/"
 
       - name: Run deploy script
-        run: ssh -i ~/.ssh/deploy_key "$VPS_USER@$VPS_HOST" "$VPS_APP_DIR/deploy.sh"
+        run: |
+          # shellcheck disable=SC2029
+          ssh "$VPS_USER@$VPS_HOST" "$(printf '%q' "$VPS_APP_DIR/deploy.sh")"

@@ -50,13 +50,16 @@ missing. Flyway applies migrations on startup. Health: `/actuator/health`.
 | Workflow | Runs on | Does |
 | --- | --- | --- |
 | [`ci.yml`](.github/workflows/ci.yml) (CI) | every PR and push to `main`, except changes only to docs and dev-only files | backend tests (`./mvnw -B verify`) and a backend image build (no push) if `server/**` changed; frontend lint, tests with coverage thresholds, build and image build (no push) if `frontend/**` changed; `compose.yml` validated against `.env.example` and `deploy.sh` shellchecked if `deploy/**` changed |
-| [`deploy.yml`](.github/workflows/deploy.yml) (Deploy) | CI succeeding on a push to `main`, or a manual run | builds and pushes both images to GHCR (`latest` + the commit sha), then copies `deploy/compose.yml` and `deploy/deploy.sh` to the VPS over SSH and runs `deploy.sh` |
+| [`deploy.yml`](.github/workflows/deploy.yml) (Deploy) | CI succeeding on a push to `main`, or a manual run of a CI-verified commit on `main` | builds and pushes both images to GHCR (`latest` + the commit sha), then copies `deploy/compose.yml` and `deploy/deploy.sh` to the VPS over SSH and runs `deploy.sh` |
 
-- Failed CI runs and pull requests never deploy.
-- Deploy builds from the exact commit CI tested. Unchanged images rebuild from the layer cache with the same digest,
+- Failed CI runs and pull requests never deploy. Manual runs go through the same gate: the `verify` job refuses to
+  continue unless the workflow was started from `main`, the commit is on `main`, and CI succeeded for that exact
+  commit.
+- Deploy builds from the exact commit CI verified. Unchanged images rebuild from the layer cache with the same digest,
   so their containers aren't restarted.
-- `deploy.sh` pulls the images, restarts what changed, prunes old images and fails unless the API health endpoint
-  and the frontend respond.
+- `deploy.sh` pulls the images, restarts what changed, and fails unless the API health endpoint and the frontend
+  respond. Every health request times out after 5 seconds and each service gets 120 seconds in total, after which the
+  script prints the service's logs and fails. The deploy job itself is capped at 15 minutes.
 - Deploys are queued, never run in parallel, and never cancelled midway.
 - Pushes that only touch Markdown, `LICENSE`, `.gitignore` files, `compose.dev.yml`, the dev profile or
   `deploy/Caddyfile.example` don't run CI and therefore don't deploy (`paths-ignore` in `ci.yml`).
@@ -87,7 +90,11 @@ missing. Flyway applies migrations on startup. Health: `/actuator/health`.
 
 ## Deploying manually and rolling back
 
-Run the **Deploy** workflow from the Actions tab, or on the VPS:
+Run the **Deploy** workflow from the Actions tab on the `main` branch. Leave `sha` empty to deploy the latest commit
+on `main`, or enter an earlier commit to redeploy it; either way the commit must be on `main` and have a successful CI
+run. A docs-only commit has no CI run, so pass the sha of the last commit CI verified.
+
+To restart the current images without rebuilding, run the script on the VPS:
 
 ```bash
 /srv/apps/university-management/deploy.sh
@@ -97,11 +104,18 @@ To roll back, set `API_IMAGE_TAG` and `FRONTEND_IMAGE_TAG` in the VPS `.env` to 
 tags both images with the commit it was built from) and run `deploy.sh`. Set them back to `latest` to resume normal
 deploys.
 
+## Image cleanup
+
+Both images carry the label `tech.imsarthakkr.app=university-management`. After a successful deploy, `deploy.sh`
+removes only dangling images with that label that are older than 7 days, so other apps' images on the shared VPS are
+never touched and the last week of this app's previous images stays available locally. A failed deploy cleans up
+nothing.
+
 ## Files in `deploy/`
 
 | File | Purpose | On the VPS |
 | --- | --- | --- |
 | `compose.yml` | the API and frontend services, ports, shared `database` network | uploaded by every deploy |
-| `deploy.sh` | pull, restart, prune, health-check | uploaded by every deploy |
+| `deploy.sh` | pull, restart, health-check, prune this app's old images | uploaded by every deploy |
 | `.env.example` | template for the VPS `.env` | you create `.env` from it once |
 | `Caddyfile.example` | this app's site block for the global Caddyfile | copied into the Caddyfile by hand |

@@ -14,6 +14,8 @@ RUN mvn clean package -DskipTests -B
 # ---------- Runtime ----------
 FROM eclipse-temurin:21-jre
 
+LABEL tech.imsarthakkr.app="university-management"
+
 WORKDIR /app
 
 RUN useradd --system --create-home spring
