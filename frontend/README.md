@@ -18,7 +18,6 @@ Single-page dashboard UI (Vite + React Router) for the Spring Boot University En
 ## Run
 
 ```bash
-cp .env.example .env   # set VITE_API_BASE_URL if the API isn't on localhost:8080
 npm install
 npm run dev            # http://localhost:3000
 npm run build          # type-check + static build into dist/
@@ -27,20 +26,40 @@ npm test               # run tests in watch mode (npm run test:run for a single 
 npm run test:coverage  # run tests with coverage report in coverage/
 ```
 
-The dev server is pinned to port 3000 because the backend CORS config only allows that origin.
+The app calls the API on its own origin under `/api` (e.g. `/api/departments`). `npm run dev` and `npm run preview`
+proxy `/api/*` to the backend at `http://localhost:8080`, stripping the `/api` prefix, so start the backend first —
+either from your IDE, or with MySQL in Docker from the repo root:
+
+```bash
+./scripts/docker-up.sh dev    # MySQL on localhost:3307 + backend on localhost:8080
+```
+
+The frontend isn't part of the dev Docker stack; it runs with `npm run dev` for hot reload. Its Docker image is only
+used in production (`docker-compose-prod.yml`).
 
 ## Deploying
 
-`npm run build` outputs static files in `dist/`. Because routing is client-side, the web server must fall back to
-`index.html` for unknown paths, otherwise refreshing a deep link like `/dashboard/admin` returns 404. For nginx:
+The `Dockerfile` builds the app and serves the static files with nginx (`nginx.conf`). nginx falls back to
+`index.html` for client-side routes, so deep links like `/dashboard/admin` work on refresh. It knows nothing about the
+backend: `/api/*` returns 404 from this container.
 
-```nginx
-location / {
-    try_files $uri /index.html;
+Routing is done by the reverse proxy in front of both containers (Caddy on the VPS), which serves the app and the API
+on one origin — `/api/*` goes to the backend with the prefix stripped, everything else to the frontend:
+
+```caddy
+your-domain.com {
+    handle_path /api/* {
+        reverse_proxy 127.0.0.1:8080
+    }
+
+    handle {
+        reverse_proxy 127.0.0.1:3000
+    }
 }
 ```
 
-`VITE_API_BASE_URL` is inlined at build time, so set it before running `npm run build`, not at container start.
+Because the browser only ever sees one origin, the backend needs no CORS entry for production, and no API URL is
+baked into the build — the same image works in every environment.
 
 ## Suggested backend integration later
 

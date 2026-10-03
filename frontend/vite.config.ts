@@ -3,6 +3,13 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
 import tailwindcss from '@tailwindcss/vite';
 
+const apiProxy = {
+    '/api': {
+        target: 'http://localhost:8080',
+        rewrite: (path: string) => path.replace(/^\/api/, ''),
+    },
+};
+
 export default defineConfig({
     plugins: [react(), tailwindcss()],
     resolve: {
@@ -13,6 +20,11 @@ export default defineConfig({
     server: {
         port: 3000,
         strictPort: true,
+        proxy: apiProxy,
+    },
+    preview: {
+        port: 3000,
+        proxy: apiProxy,
     },
     test: {
         environment: 'jsdom',

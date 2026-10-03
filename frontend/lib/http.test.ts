@@ -92,6 +92,17 @@ describe('http response handling', () => {
     });
 });
 
+describe('http request target', () => {
+    it('sends requests to the same-origin /api prefix', async () => {
+        const fetchMock = vi.fn(async () => new Response(null, { status: 204 }));
+        vi.stubGlobal('fetch', fetchMock);
+
+        await http.get('/departments?active=true');
+
+        expect(fetchMock).toHaveBeenCalledWith('/api/departments?active=true', expect.anything());
+    });
+});
+
 describe('http request headers', () => {
     it('sends Content-Type only when there is a body', async () => {
         const { requests } = mockFetch({ 'GET /items': jsonOk([]), 'POST /items': jsonOk({}) });

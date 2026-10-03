@@ -1,5 +1,7 @@
 import { vi } from 'vitest';
 
+import { API_BASE_URL } from '@/lib/http';
+
 type MockResponse = {
     status?: number;
     body?: unknown;
@@ -26,19 +28,24 @@ export function mockFetch(routes: Record<string, RouteHandler>) {
     const requests: RecordedRequest[] = [];
 
     const fetchMock = vi.fn(async (input: RequestInfo | URL, init: RequestInit = {}) => {
-        const url = new URL(input.toString());
+        const url = new URL(input.toString(), window.location.origin);
+        if (!url.pathname.startsWith(`${API_BASE_URL}/`)) {
+            throw new Error(`Request to ${url.pathname} does not go through ${API_BASE_URL}`);
+        }
+
         const method = init.method ?? 'GET';
+        const path = url.pathname.slice(API_BASE_URL.length);
         const request: RecordedRequest = {
             method,
-            path: url.pathname,
+            path,
             headers: new Headers(init.headers),
             body: typeof init.body === 'string' ? JSON.parse(init.body) : undefined,
         };
         requests.push(request);
 
-        const handler = routes[`${method} ${url.pathname}`];
+        const handler = routes[`${method} ${path}`];
         if (!handler) {
-            throw new TypeError(`Failed to fetch: no mock for ${method} ${url.pathname}`);
+            throw new TypeError(`Failed to fetch: no mock for ${method} ${path}`);
         }
 
         const { status = 200, body } = typeof handler === 'function' ? handler(request) : handler;
