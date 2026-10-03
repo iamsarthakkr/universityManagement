@@ -159,7 +159,10 @@ jobs:
   release:
     name: Release ${{ matrix.app }} ${{ matrix.version }}
     needs: plan
-    if: needs.plan.outputs.releases != '[]'
+    if: >-
+      !cancelled()
+      && needs.plan.result == 'success'
+      && needs.plan.outputs.releases != '[]'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -215,8 +218,10 @@ jobs:
     needs: [plan, release]
     if: >-
       !cancelled()
+      && needs.plan.result == 'success'
       && needs.plan.outputs.deploy == 'true'
-      && (needs.release.result == 'success' || needs.release.result == 'skipped')
+      && (needs.release.result == 'success'
+        || (needs.release.result == 'skipped' && needs.plan.outputs.releases == '[]'))
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment: production
