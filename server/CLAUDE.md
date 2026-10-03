@@ -31,6 +31,8 @@ Spring Boot 4.x (Java 21), Spring Security (JWT, stateless), Spring Data JPA, My
 
 The `dev` profile (`application-dev.yml`) is committed and works out of the box against the dev MySQL from the repo root's `compose.dev.yml` (`localhost:3306/universityManagementDev`, `university/university`); every value is an env placeholder with a dev default (`DB_URL`, `JWT_SECRET`, `ADMIN_USERNAME`, ...), and the dev admin is `admin/admin123`. Never put real secrets in it. The `prod` profile (`application-prod.yml`) reads everything from environment variables, supplied by `deploy/compose.yml` from the VPS `.env`. Activate a profile with `-Dspring-boot.run.profiles=...` or `SPRING_PROFILES_ACTIVE`.
 
+`info.app.version` is `@project.version@`, filled in from `pom.xml` at build time and reported by `/actuator/info` (verified by `AppInfoTests`). The `pom.xml` version must equal the newest `api` entry in the repo root's `versions.yml` — CI enforces it; bump both together when releasing.
+
 Required properties (all overridden in dev profile):
 - `spring.datasource.url/username/password`
 - `app.jwt.secret` — must be ≥256 bits
