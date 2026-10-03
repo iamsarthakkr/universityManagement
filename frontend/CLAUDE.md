@@ -5,7 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
-npm run dev      # Start Vite dev server (port 3000 - backend CORS only allows this origin)
+npm run dev      # Start Vite dev server on port 3000; proxies /api/* to the backend on localhost:8080
 npm run build    # tsc type-check + Vite build into dist/
 npm run preview  # Serve the production build
 npm run lint     # ESLint
@@ -35,7 +35,7 @@ Vitest + jsdom + Testing Library, configured in the `test` block of `vite.config
 ### API layer
 
 All backend calls go through `lib/http.ts` (`http.get/post/put/patch/delete`), which:
-- Reads `import.meta.env.VITE_API_BASE_URL` (defaults to `http://localhost:8080`; inlined at build time)
+- Calls the API on the same origin under `API_BASE_URL = '/api'`. In dev/preview, Vite proxies `/api/*` to `http://localhost:8080` (prefix stripped); in production the reverse proxy in front of the containers (Caddy on the VPS) routes `/api/*` to the backend with the prefix stripped. The frontend image's nginx only serves static files and returns 404 for `/api/*` — never make it proxy to the backend. There is no build-time API URL — never reintroduce one. `mockFetch` requires the `/api` prefix and matches routes on the backend path (`'GET /departments'`).
 - Attaches the JWT (via `lib/session.ts`, the only code that touches the `accessToken` key) as `Authorization: Bearer`, unless the call passes `{ skipAuth: true }` (used by `/auth/login`)
 - Returns a typed `RemoteRes<T>` (`{ isSuccess, body, message, errors, timestamp, status }`; `status` 0 = no response). Never throws.
 - Calls the handler registered with `setUnauthorizedHandler` when a request that carried a token gets a 401

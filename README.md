@@ -286,7 +286,7 @@ The next stage of the project focuses on production readiness:
 - GitHub Actions CI
 - automated Docker image publishing
 - VPS deployment
-- Nginx reverse proxy
+- Caddy reverse proxy (`/api/*` to the backend, everything else to the frontend)
 - HTTPS
 - automated deployment pipeline
 
