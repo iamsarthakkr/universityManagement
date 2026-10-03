@@ -215,7 +215,10 @@ Concurrency-sensitive enrollment operations also have dedicated test coverage.
 
 ```text
 universityManagement/
-├── frontend/
+├── .github/workflows/            # ci.yml (tests) and deploy.yml (images + VPS deploy)
+├── deploy/                        # production compose + deploy script (see DEPLOY.md)
+├── compose.dev.yml         # local MySQL for development
+├── frontend/                      # Vite + React SPA
 └── server/
     ├── src/main/java/
     ├── src/main/resources/
@@ -239,32 +242,44 @@ registration/
 security/
 ```
 
-## Running the Backend
+## Running Locally
 
 ### Requirements
 
 - Java 21
-- MySQL
-- Docker (required for MySQL testcontainers)
-- Git
+- Node.js 22 (see `frontend/.nvmrc`)
+- Docker (local MySQL and the backend's Testcontainers tests)
 
-Clone the repository:
+### Start the stack
 
 ```bash
 git clone https://github.com/iamsarthakkr/universityManagement.git
-cd universityManagement/server
+cd universityManagement
+
+docker compose -f compose.dev.yml up -d --wait     # MySQL on localhost:3306
+
+cd server
+./mvnw spring-boot:run -Dspring-boot.run.profiles=dev     # API on localhost:8080
+
+cd ../frontend
+npm install
+npm run dev                                                # app on localhost:3000
 ```
 
-Run the application:
+The `dev` profile (`server/src/main/resources/application-dev.yml`) is committed and works out of the box against the
+dev MySQL container; every value can be overridden with environment variables (`DB_URL`, `JWT_SECRET`, ...). Flyway
+creates the schema on first start, and a dev admin is created with `admin` / `admin123`.
+
+The frontend calls the API under `/api` on its own origin; the Vite dev server proxies `/api/*` to `localhost:8080`.
+
+Only MySQL runs in Docker during development. The application images are built and checked by CI on every pull
+request.
+
+### Tests
 
 ```bash
-./mvnw spring-boot:run
-```
-
-Run tests:
-
-```bash
-./mvnw clean verify
+cd server && ./mvnw verify          # backend (Testcontainers, needs Docker)
+cd frontend && npm run test:coverage  # frontend (Vitest)
 ```
 
 ## Database Migrations
@@ -277,18 +292,9 @@ server/src/main/resources/db/migration/
 
 Schema evolution is version-controlled and applied automatically during application startup.
 
-## Infrastructure
+## Deployment
 
-The next stage of the project focuses on production readiness:
-
-- Docker
-- Docker Compose
-- GitHub Actions CI
-- automated Docker image publishing
-- VPS deployment
-- Caddy reverse proxy (`/api/*` to the backend, everything else to the frontend)
-- HTTPS
-- automated deployment pipeline
+Production deployment (VPS, Caddy, shared MySQL, CI/CD, rollback) is documented in [DEPLOY.md](DEPLOY.md).
 
 ## Repository
 

@@ -27,39 +27,16 @@ npm run test:coverage  # run tests with coverage report in coverage/
 ```
 
 The app calls the API on its own origin under `/api` (e.g. `/api/departments`). `npm run dev` and `npm run preview`
-proxy `/api/*` to the backend at `http://localhost:8080`, stripping the `/api` prefix, so start the backend first —
-either from your IDE, or with MySQL in Docker from the repo root:
+proxy `/api/*` to the backend at `http://localhost:8080`, stripping the `/api` prefix, so start the backend first
+(see "Running Locally" in the root README: dev MySQL via `compose.dev.yml`, then the backend with the `dev`
+profile from your IDE or `./mvnw`).
 
-```bash
-./scripts/docker-up.sh dev    # MySQL on localhost:3307 + backend on localhost:8080
-```
-
-The frontend isn't part of the dev Docker stack; it runs with `npm run dev` for hot reload. Its Docker image is only
-used in production (`docker-compose-prod.yml`).
+Use Node 22 (`.nvmrc`). The frontend's Docker image is only used in production (`deploy/compose.yml`).
 
 ## Deploying
 
-The `Dockerfile` builds the app and serves the static files with nginx (`nginx.conf`). nginx falls back to
-`index.html` for client-side routes, so deep links like `/dashboard/admin` work on refresh. It knows nothing about the
-backend: `/api/*` returns 404 from this container.
-
-Routing is done by the reverse proxy in front of both containers (Caddy on the VPS), which serves the app and the API
-on one origin — `/api/*` goes to the backend with the prefix stripped, everything else to the frontend:
-
-```caddy
-your-domain.com {
-    handle_path /api/* {
-        reverse_proxy 127.0.0.1:8080
-    }
-
-    handle {
-        reverse_proxy 127.0.0.1:3000
-    }
-}
-```
-
-Because the browser only ever sees one origin, the backend needs no CORS entry for production, and no API URL is
-baked into the build — the same image works in every environment.
+The production image (`Dockerfile` + `nginx.conf`) and how it's deployed are described in the root
+[DEPLOY.md](../DEPLOY.md).
 
 ## Suggested backend integration later
 

@@ -27,7 +27,9 @@ Spring Boot 4.x (Java 21), Spring Security (JWT, stateless), Spring Data JPA, My
 
 ## Configuration
 
-`application.yml` contains the shared base config. The `dev` profile (`application-dev.yml`) connects to a local MySQL DB at `localhost:3306/universityManagementDev` with credentials `test/test`, and the `prod` profile (`application-prod.yml`) reads its sensitive values from environment variables. Set `SPRING_PROFILES_ACTIVE=dev` or `SPRING_PROFILES_ACTIVE=prod` (or pass `-Dspring-boot.run.profiles=...`) to activate a profile.
+`application.yml` contains the shared base config, including `server.forward-headers-strategy: framework` — in production the API runs behind Caddy over plain HTTP, and Spring must honour `X-Forwarded-Proto/Host` so same-origin browser requests aren't rejected as cross-origin by CORS (covered by `ReverseProxyCorsTests`).
+
+The `dev` profile (`application-dev.yml`) is committed and works out of the box against the dev MySQL from the repo root's `compose.dev.yml` (`localhost:3306/universityManagementDev`, `university/university`); every value is an env placeholder with a dev default (`DB_URL`, `JWT_SECRET`, `ADMIN_USERNAME`, ...), and the dev admin is `admin/admin123`. Never put real secrets in it. The `prod` profile (`application-prod.yml`) reads everything from environment variables, supplied by `deploy/compose.yml` from the VPS `.env`. Activate a profile with `-Dspring-boot.run.profiles=...` or `SPRING_PROFILES_ACTIVE`.
 
 Required properties (all overridden in dev profile):
 - `spring.datasource.url/username/password`
@@ -82,6 +84,6 @@ common/        — rest (Res, ApiResponse, ErrorCode, SuccessCode), exceptions, 
 **Migration to Flyway is in progress.** Schema is now defined via versioned migrations in `src/main/resources/db/migration/` (e.g. `V1__initial_schema.sql`), replacing the old `src/main/resources/sql/*.sql` scripts (`schema.sql`, `admin.sql`, `reset.sql`), which have been deleted. `flyway-core` and `flyway-mysql` are on the classpath (`pom.xml`), so Flyway auto-runs migrations on startup by default in every profile unless explicitly disabled.
 
 - `prod` profile: `spring.flyway.enabled=true`, `locations=classpath:db/migration`, `ddl-auto=validate` — Flyway owns the schema, Hibernate only validates entity mappings against it.
-- `dev` profile: no Flyway override (so it inherits the default enabled behavior and runs the same migrations against `localhost:3306/universityManagementDev`), `ddl-auto=validate`, `sql.init.mode=never` — dev no longer uses `ddl-auto=update`; schema changes must go through a new migration file.
+- `dev` profile: no Flyway override (so it inherits the default enabled behavior and runs the same migrations against the dev MySQL at `localhost:3306/universityManagementDev`), `ddl-auto=validate` — schema changes must go through a new migration file.
 
 JPA uses `PhysicalNamingStrategyStandardImpl` so column/table names match exactly what you write in the entity (no automatic camelCase → snake_case conversion). When adding/changing entities, add a new `V{n}__description.sql` migration under `db/migration` rather than relying on Hibernate to generate the schema.
