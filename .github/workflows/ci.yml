@@ -55,6 +55,16 @@ jobs:
               - "deploy/**"
               - ".github/workflows/ci.yml"
 
+  versions:
+    name: Versions file
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate versions.yml and build file versions
+        run: .github/scripts/versions.sh validate
+
   backend:
     name: Backend tests
     needs: changes
