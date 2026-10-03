@@ -21,3 +21,6 @@ frontend/build/
 
 # Logs
 *.log
+
+# Deploy target on your machine (see deploy/vps.env.example)
+deploy/vps.env
