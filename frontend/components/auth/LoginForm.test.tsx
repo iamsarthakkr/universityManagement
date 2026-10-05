@@ -26,7 +26,7 @@ describe('LoginForm', () => {
     });
 
     it('logs the user in on success', async () => {
-        const user = { id: '1', username: 'sam', email: 'sam@uni.edu', role: 'STUDENT' as const };
+        const user = { id: 1, username: 'sam', role: 'STUDENT' as const };
         mockFetch({ 'POST /auth/login': jsonOk({ accessToken: 'token', user }) });
         renderWithProviders(<LoginForm />);
 
