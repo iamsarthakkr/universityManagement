@@ -9,7 +9,7 @@ function urls(entries: SidebarNavEntry[]) {
 }
 
 describe('getSidebarNav', () => {
-    it('gives admins registrations, the catalogue and course creation', () => {
+    it('gives admins registrations, semesters, the catalogue and course creation', () => {
         expect(urls(getSidebarNav('ADMIN'))).toEqual([
             '/dashboard/admin',
             '/dashboard/admin/student-registrations/pending',
@@ -18,6 +18,8 @@ describe('getSidebarNav', () => {
             '/dashboard/admin/instructor-registrations/pending',
             '/dashboard/admin/instructor-registrations/approved',
             '/dashboard/admin/instructor-registrations/rejected',
+            '/dashboard/admin/semesters',
+            '/dashboard/admin/semesters/new',
             '/dashboard/courses',
             '/dashboard/courses/new',
         ]);

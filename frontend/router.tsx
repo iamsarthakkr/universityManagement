@@ -52,6 +52,14 @@ export const routes: RouteObject[] = [
                                 path: 'instructor-registrations/:status',
                                 lazy: lazyPage(() => import('@/pages/dashboard/admin/instructor-registrations/page')),
                             },
+                            {
+                                path: 'semesters',
+                                lazy: lazyPage(() => import('@/pages/dashboard/admin/semesters/page')),
+                            },
+                            {
+                                path: 'semesters/new',
+                                lazy: lazyPage(() => import('@/pages/dashboard/admin/semesters/new/page')),
+                            },
                         ],
                     },
                     {

@@ -23,6 +23,7 @@ function loggedInAs(role: Role) {
         'GET /admin/instructor-registrations/APPROVED': jsonOk([]),
         'GET /admin/instructor-registrations/REJECTED': jsonOk([]),
         'GET /courses/catalogue': jsonOk([]),
+        'GET /semesters': jsonOk([]),
     });
 }
 
