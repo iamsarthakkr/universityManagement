@@ -45,7 +45,7 @@ export function NavUser({ user, onLogout }: Props) {
                             </Avatar>
                             <div className="grid flex-1 text-left text-sm leading-tight">
                                 <span className="truncate font-medium">{user.username}</span>
-                                <span className="truncate text-xs">{user.email}</span>
+                                <span className="truncate text-xs capitalize">{user.role.toLowerCase()}</span>
                             </div>
                             <ChevronsUpDownIcon className="ml-auto size-4" />
                         </SidebarMenuButton>
@@ -63,10 +63,8 @@ export function NavUser({ user, onLogout }: Props) {
                                     <AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
                                 </Avatar>
                                 <div className="grid flex-1 text-left text-sm leading-tight">
-                                    <span className="truncate font-medium">
-                                        {user.username} ({user.role.toLocaleLowerCase()})
-                                    </span>
-                                    <span className="truncate text-xs">{user.email}</span>
+                                    <span className="truncate font-medium">{user.username}</span>
+                                    <span className="truncate text-xs capitalize">{user.role.toLowerCase()}</span>
                                 </div>
                             </div>
                         </DropdownMenuLabel>

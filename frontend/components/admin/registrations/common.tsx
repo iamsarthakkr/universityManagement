@@ -5,17 +5,15 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/base/dropdownMenu';
-import { cn } from '@/lib/cn';
+import { StatusBadge, StatusTone } from '@/components/ui/StatusBadge';
 import { Callback1 } from '@/types/common';
 import { RegistrationStatus } from '@/types/registration';
 import { MoreHorizontalIcon } from 'lucide-react';
 
-const statusStyles: Record<RegistrationStatus, string> = {
-    PENDING:
-        'bg-yellow-50 text-yellow-700 ring-yellow-600/20 dark:bg-yellow-400/10 dark:text-yellow-300 dark:ring-yellow-400/20',
-    APPROVED:
-        'bg-green-50 text-green-700 ring-green-600/20 dark:bg-green-400/10 dark:text-green-300 dark:ring-green-400/20',
-    REJECTED: 'bg-red-50 text-red-700 ring-red-600/20 dark:bg-red-400/10 dark:text-red-300 dark:ring-red-400/20',
+const STATUS_TONE: Record<RegistrationStatus, StatusTone> = {
+    PENDING: 'warning',
+    APPROVED: 'success',
+    REJECTED: 'danger',
 };
 
 type ActionsProps = {
@@ -54,14 +52,5 @@ type StatusProps = {
 };
 
 export const Status = ({ status }: StatusProps) => {
-    return (
-        <span
-            className={cn(
-                'inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset',
-                statusStyles[status],
-            )}
-        >
-            {status}
-        </span>
-    );
+    return <StatusBadge tone={STATUS_TONE[status]}>{status}</StatusBadge>;
 };

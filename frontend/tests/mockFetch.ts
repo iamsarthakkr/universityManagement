@@ -12,6 +12,8 @@ type RouteHandler = MockResponse | ((request: RecordedRequest) => MockResponse);
 export type RecordedRequest = {
     method: string;
     path: string;
+    // Query string without the leading `?`; routes match on `path` only.
+    query: string;
     headers: Headers;
     body: unknown;
 };
@@ -38,6 +40,7 @@ export function mockFetch(routes: Record<string, RouteHandler>) {
         const request: RecordedRequest = {
             method,
             path,
+            query: url.search.slice(1),
             headers: new Headers(init.headers),
             body: typeof init.body === 'string' ? JSON.parse(init.body) : undefined,
         };

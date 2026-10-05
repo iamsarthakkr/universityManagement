@@ -11,7 +11,7 @@ import { renderApp } from './render';
 const DEPARTMENTS = [{ id: 1, name: 'Computer Science', code: 'CS' }];
 
 function loggedInAs(role: Role) {
-    const user: AuthUser = { id: '1', username: 'sam', email: 'sam@uni.edu', role };
+    const user: AuthUser = { id: 1, username: 'sam', role };
     setToken('valid');
     return mockFetch({
         'GET /departments': jsonOk(DEPARTMENTS),
@@ -23,6 +23,7 @@ function loggedInAs(role: Role) {
         'GET /admin/instructor-registrations/APPROVED': jsonOk([]),
         'GET /admin/instructor-registrations/REJECTED': jsonOk([]),
         'GET /courses/catalogue': jsonOk([]),
+        'GET /semesters': jsonOk([]),
     });
 }
 
