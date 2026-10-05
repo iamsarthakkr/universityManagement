@@ -16,7 +16,7 @@ import { useAppStore } from '@/stores/appStore';
 import { CourseRequest } from '@/types/course';
 import { Department } from '@/types/department';
 
-import { CourseFormLayout, CourseFormSection } from './CourseFormLayout';
+import { FormLayout, FormSection } from '@/components/common/FormLayout';
 
 type CourseFormData = Omit<CourseRequest, 'departmentId' | 'code'>;
 
@@ -78,10 +78,10 @@ export function CreateCourseForm() {
     return (
         <>
             <PageHeader title="Create new course" description="Add a new course to the university catalog." />
-            <CourseFormLayout>
+            <FormLayout>
                 <form onSubmit={handleSubmit}>
                     <div className="flex flex-col gap-8">
-                        <CourseFormSection label="Identity" description="How this course is identified in the catalog.">
+                        <FormSection label="Identity" description="How this course is identified in the catalog.">
                             <FieldGroup>
                                 <div className="grid gap-4 sm:grid-cols-2">
                                     <Field>
@@ -140,9 +140,9 @@ export function CreateCourseForm() {
                                     />
                                 </Field>
                             </FieldGroup>
-                        </CourseFormSection>
+                        </FormSection>
 
-                        <CourseFormSection label="Credits" description="Set the academic weight of this course.">
+                        <FormSection label="Credits" description="Set the academic weight of this course.">
                             <FieldGroup>
                                 <Field>
                                     <FieldLabel htmlFor="credits">Credits (1–10)</FieldLabel>
@@ -159,7 +159,7 @@ export function CreateCourseForm() {
                                     />
                                 </Field>
                             </FieldGroup>
-                        </CourseFormSection>
+                        </FormSection>
 
                         <div className="flex justify-end">
                             <Button type="submit" disabled={createCourse.isPending} className="min-w-36">
@@ -168,7 +168,7 @@ export function CreateCourseForm() {
                         </div>
                     </div>
                 </form>
-            </CourseFormLayout>
+            </FormLayout>
         </>
     );
 }

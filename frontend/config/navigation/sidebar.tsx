@@ -1,4 +1,4 @@
-import { BookOpenIcon, LayoutDashboardIcon, ShieldCheckIcon, UsersIcon } from 'lucide-react';
+import { BookOpenIcon, CalendarRangeIcon, LayoutDashboardIcon, ShieldCheckIcon, UsersIcon } from 'lucide-react';
 
 import { DASHBOARD_HOME } from '@/config/navigation/dashboardHome';
 import { Role } from '@/types/auth';
@@ -26,6 +26,15 @@ const SIDEBAR_NAV: SidebarNavEntry[] = [
             { title: 'Pending', url: '/dashboard/admin/instructor-registrations/pending' },
             { title: 'Approved', url: '/dashboard/admin/instructor-registrations/approved' },
             { title: 'Rejected', url: '/dashboard/admin/instructor-registrations/rejected' },
+        ],
+    },
+    {
+        title: 'Semesters',
+        icon: CalendarRangeIcon,
+        roles: ['ADMIN'],
+        items: [
+            { title: 'All Semesters', url: '/dashboard/admin/semesters' },
+            { title: 'Create Semester', url: '/dashboard/admin/semesters/new' },
         ],
     },
     {
