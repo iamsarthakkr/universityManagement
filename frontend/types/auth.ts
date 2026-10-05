@@ -11,8 +11,7 @@ export type LoginResponse = {
 };
 
 export type AuthUser = {
-    id: string;
+    id: number;
     username: string;
-    email: string;
     role: Role;
 };

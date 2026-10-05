@@ -7,7 +7,7 @@ import { TooltipProvider } from '@/components/ui/base/tooltip';
 import packageJson from '../../package.json';
 import { NavUser } from './NavUser';
 
-const USER = { id: '1', username: 'john.doe', email: 'john@uni.edu', role: 'ADMIN' as const };
+const USER = { id: 1, username: 'john.doe', role: 'ADMIN' as const };
 
 function renderNavUser() {
     render(

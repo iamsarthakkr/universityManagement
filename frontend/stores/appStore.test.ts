@@ -9,7 +9,7 @@ import { AuthUser } from '@/types/auth';
 import { useAppStore } from './appStore';
 
 const DEPARTMENTS = [{ id: 1, name: 'Computer Science', code: 'CS' }];
-const USER: AuthUser = { id: '1', username: 'sam', email: 'sam@uni.edu', role: 'ADMIN' };
+const USER: AuthUser = { id: 1, username: 'sam', role: 'ADMIN' };
 
 const actions = () => useAppStore.getState().actions;
 
