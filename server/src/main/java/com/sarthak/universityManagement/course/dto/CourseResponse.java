@@ -5,8 +5,8 @@ import lombok.Builder;
 
 @Builder
 public record CourseResponse(
-    Integer courseId,
-    Integer departmentId,
+    Integer id,
+    DepartmentResponse department,
     String code,
     String title,
     String description,

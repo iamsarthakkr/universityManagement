@@ -1,6 +1,7 @@
 package com.sarthak.universityManagement.instructor;
 
 
+import com.sarthak.universityManagement.department.DepartmentMapper;
 import com.sarthak.universityManagement.instructor.dto.CreateInstructorCommand;
 import com.sarthak.universityManagement.instructor.dto.InstructorResponse;
 
@@ -20,7 +21,7 @@ public class InstructorMapper {
             .id(instructorEntity.getId())
             .firstName(instructorEntity.getFirstName())
             .lastName(instructorEntity.getLastName())
-            .departmentId(instructorEntity.getDepartment().getId())
+            .department(DepartmentMapper.toResponse(instructorEntity.getDepartment()))
             .build();
     }
 }

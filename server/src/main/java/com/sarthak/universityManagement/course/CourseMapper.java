@@ -24,8 +24,8 @@ public class CourseMapper {
     public static CourseResponse toResponse(CourseEntity courseEntity) {
         return CourseResponse
             .builder()
-            .courseId(courseEntity.getId())
-            .departmentId(courseEntity.getDepartment().getId())
+            .id(courseEntity.getId())
+            .department(DepartmentMapper.toResponse(courseEntity.getDepartment()))
             .code(courseEntity.getCode())
             .title(courseEntity.getTitle())
             .description(courseEntity.getDescription())

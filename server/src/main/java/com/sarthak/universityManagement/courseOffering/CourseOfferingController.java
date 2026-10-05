@@ -6,7 +6,6 @@ import com.sarthak.universityManagement.common.rest.SuccessCode;
 import com.sarthak.universityManagement.courseOffering.dto.CourseOfferingResponse;
 import com.sarthak.universityManagement.courseOffering.dto.CreateCourseOfferingRequest;
 import com.sarthak.universityManagement.enrollment.EnrollmentService;
-import com.sarthak.universityManagement.enrollment.dto.EnrollmentDetailResponse;
 import com.sarthak.universityManagement.enrollment.dto.EnrollmentResponse;
 import com.sarthak.universityManagement.enrollment.types.EnrollmentStatus;
 import com.sarthak.universityManagement.user.CurrentUserService;
@@ -57,7 +56,7 @@ public class CourseOfferingController {
     }
 
     @GetMapping("/{offeringId}/enrollments")
-    public ResponseEntity<ApiResponse<List<EnrollmentDetailResponse>>> getEnrollmentsForOffering(
+    public ResponseEntity<ApiResponse<List<EnrollmentResponse>>> getEnrollmentsForOffering(
         @PathVariable Integer offeringId,
         @RequestParam(required = false) EnrollmentStatus enrollmentStatus
     ) {

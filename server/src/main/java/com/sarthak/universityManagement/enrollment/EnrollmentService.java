@@ -4,7 +4,6 @@ import com.sarthak.universityManagement.common.exceptions.BadRequestException;
 import com.sarthak.universityManagement.common.exceptions.ResourceNotFoundException;
 import com.sarthak.universityManagement.courseOffering.CourseOfferingEntity;
 import com.sarthak.universityManagement.courseOffering.CourseOfferingService;
-import com.sarthak.universityManagement.enrollment.dto.EnrollmentDetailResponse;
 import com.sarthak.universityManagement.enrollment.dto.EnrollmentResponse;
 import com.sarthak.universityManagement.enrollment.types.EnrollmentStatus;
 import com.sarthak.universityManagement.security.annotation.AdminOrCourseOfferingInstructor;
@@ -57,7 +56,7 @@ public class EnrollmentService {
             .status(EnrollmentStatus.PENDING)
             .build();
 
-        return EnrollmentMapper.toResponse(enrollmentRepo.save(toSave));
+        return EnrollmentMapper.toResponse(enrollmentRepo.save(toSave), LocalDate.now(clock));
     }
 
     @AdminOrEnrollmentInstructor
@@ -71,7 +70,7 @@ public class EnrollmentService {
         courseOffering.enroll();
         enrollment.setStatus(EnrollmentStatus.ENROLLED);
 
-        return EnrollmentMapper.toResponse(enrollment);
+        return EnrollmentMapper.toResponse(enrollment, LocalDate.now(clock));
     }
 
     @AdminOrEnrollmentInstructor
@@ -82,7 +81,7 @@ public class EnrollmentService {
         }
         enrollment.setStatus(EnrollmentStatus.REJECTED);
 
-        return EnrollmentMapper.toResponse(enrollment);
+        return EnrollmentMapper.toResponse(enrollment, LocalDate.now(clock));
     }
 
     @EnrollmentStudent
@@ -93,7 +92,7 @@ public class EnrollmentService {
         }
         enrollment.setStatus(EnrollmentStatus.CANCELLED);
 
-        return EnrollmentMapper.toResponse(enrollment);
+        return EnrollmentMapper.toResponse(enrollment, LocalDate.now(clock));
     }
 
     @EnrollmentStudent
@@ -106,31 +105,31 @@ public class EnrollmentService {
         courseOffering.releaseEnrolled();
         enrollment.setStatus(EnrollmentStatus.DROPPED);
 
-        return EnrollmentMapper.toResponse(enrollment);
+        return EnrollmentMapper.toResponse(enrollment, LocalDate.now(clock));
     }
 
     @CurrentStudent
-    public List<EnrollmentDetailResponse> getEnrollmentsForStudent(Integer studentId) {
+    public List<EnrollmentResponse> getEnrollmentsForStudent(Integer studentId) {
         return enrollmentRepo
             .findByStudentId(studentId)
             .stream()
-            .map(EnrollmentMapper::toDetailedResponse)
+            .map(e -> EnrollmentMapper.toResponse(e, LocalDate.now(clock)))
             .toList();
     }
 
     @AdminOrCourseOfferingInstructor
-    public List<EnrollmentDetailResponse> getEnrollmentsForCourseOffering(Integer courseOfferingId, @Nullable EnrollmentStatus status) {
+    public List<EnrollmentResponse> getEnrollmentsForCourseOffering(Integer courseOfferingId, @Nullable EnrollmentStatus status) {
         return enrollmentRepo
             .findAllForCourseOfferingWithDetails(courseOfferingId, status)
             .stream()
-            .map(EnrollmentMapper::toDetailedResponse)
+            .map(e -> EnrollmentMapper.toResponse(e, LocalDate.now(clock)))
             .toList();
     }
 
     @CanAccessEnrollment
     public EnrollmentResponse getEnrollment(Integer enrollmentId) {
         var enrollment = getEnrollmentOrThrow(enrollmentId);
-        return EnrollmentMapper.toResponse(enrollment);
+        return EnrollmentMapper.toResponse(enrollment, LocalDate.now(clock));
     }
 
     /* ---------------------------------------------------------------------------------------------------------------*/

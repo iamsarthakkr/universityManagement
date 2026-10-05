@@ -6,7 +6,6 @@ import com.sarthak.universityManagement.common.rest.SuccessCode;
 import com.sarthak.universityManagement.semester.dto.CreateSemesterRequest;
 import com.sarthak.universityManagement.semester.dto.SemesterResponse;
 import com.sarthak.universityManagement.semester.dto.SemesterTransitionRequest;
-import com.sarthak.universityManagement.semester.types.SemesterStatus;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

@@ -2,7 +2,6 @@ package com.sarthak.universityManagement.enrollment;
 
 import com.sarthak.universityManagement.common.rest.ApiResponse;
 import com.sarthak.universityManagement.common.rest.Res;
-import com.sarthak.universityManagement.enrollment.dto.EnrollmentDetailResponse;
 import com.sarthak.universityManagement.enrollment.dto.EnrollmentResponse;
 import com.sarthak.universityManagement.user.CurrentUserService;
 import org.springframework.http.ResponseEntity;
@@ -29,7 +28,7 @@ public class EnrollmentController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<ApiResponse<List<EnrollmentDetailResponse>>> getStudentEnrollments() {
+    public ResponseEntity<ApiResponse<List<EnrollmentResponse>>> getStudentEnrollments() {
         var studentId = currentUserService.getCurrentStudent().getId();
 
         return Res.success(enrollmentService.getEnrollmentsForStudent(studentId));

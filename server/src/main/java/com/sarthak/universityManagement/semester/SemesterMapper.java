@@ -2,6 +2,9 @@ package com.sarthak.universityManagement.semester;
 
 import com.sarthak.universityManagement.semester.dto.CreateSemesterRequest;
 import com.sarthak.universityManagement.semester.dto.SemesterResponse;
+import com.sarthak.universityManagement.semester.validators.AllowedSemesterTransitions;
+
+import java.time.LocalDate;
 
 public final class SemesterMapper {
     public static SemesterEntity toEntity(CreateSemesterRequest semesterRequest) {
@@ -15,7 +18,7 @@ public final class SemesterMapper {
             .build();
     }
 
-    public static SemesterResponse toResponse(SemesterEntity semesterEntity) {
+    public static SemesterResponse toResponse(SemesterEntity semesterEntity, LocalDate today) {
         return SemesterResponse.builder()
             .id(semesterEntity.getId())
             .term(semesterEntity.getTerm())
@@ -25,6 +28,8 @@ public final class SemesterMapper {
             .registrationEndDate(semesterEntity.getRegistrationEndDate())
             .startDate(semesterEntity.getStartDate())
             .endDate(semesterEntity.getEndDate())
+            .isRegistrationOpen(semesterEntity.isRegistrationOpen(today))
+            .allowedTransitions(AllowedSemesterTransitions.allowedTransitions.get(semesterEntity.getStatus()))
             .build();
     }
 }

@@ -6,6 +6,7 @@ import lombok.Builder;
 
 import java.time.LocalDate;
 import java.time.Year;
+import java.util.List;
 
 @Builder
 public record SemesterResponse(
@@ -16,5 +17,7 @@ public record SemesterResponse(
     LocalDate registrationStartDate,
     LocalDate registrationEndDate,
     LocalDate startDate,
-    LocalDate endDate
+    LocalDate endDate,
+    boolean isRegistrationOpen,
+    List<SemesterStatus> allowedTransitions
 ) {}

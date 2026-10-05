@@ -63,7 +63,7 @@ public class CourseServiceIntegrationTests extends IntegrationTests {
             assertEquals(req.title(), resp.title());
             assertEquals(req.credits(), resp.credits());
 
-            assertNotNull(courseRepo.findById(resp.courseId()));
+            assertNotNull(courseRepo.findById(resp.id()));
         }
 
         @Test

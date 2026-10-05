@@ -81,8 +81,8 @@ public class EnrollmentServiceIntegrationTests extends IntegrationTests {
             assertNotNull(resp);
 
             assertEquals(EnrollmentStatus.PENDING, resp.enrollmentStatus());
-            assertEquals(student.getId(), resp.studentId());
-            assertEquals(offering.getId(), resp.courseOfferingId());
+            assertEquals(student.getId(), resp.student().id());
+            assertEquals(offering.getId(), resp.courseOffering().id());
 
             var updatedOffering = courseOfferingService.getCourseOfferingEntity(offering.getId());
             assertEquals(0, updatedOffering.getEnrolled());
@@ -125,8 +125,8 @@ public class EnrollmentServiceIntegrationTests extends IntegrationTests {
 
             assertNotNull(resp);
             assertEquals(EnrollmentStatus.PENDING, resp.enrollmentStatus());
-            assertEquals(student.getId(), resp.studentId());
-            assertEquals(offering.getId(), resp.courseOfferingId());
+            assertEquals(student.getId(), resp.student().id());
+            assertEquals(offering.getId(), resp.courseOffering().id());
 
         }
 

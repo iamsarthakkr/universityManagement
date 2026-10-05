@@ -11,6 +11,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -18,10 +20,15 @@ import java.util.List;
 public class SemesterService {
 
     private final SemesterRepo semesterRepo;
+    private final Clock clock;
 
     @Autowired
-    public SemesterService(SemesterRepo semesterRepo) {
+    public SemesterService(
+        SemesterRepo semesterRepo,
+        Clock clock
+    ) {
         this.semesterRepo = semesterRepo;
+        this.clock = clock;
     }
 
     @PreAuthorize(AuthorizationExpressions.ADMIN)
@@ -29,7 +36,7 @@ public class SemesterService {
         var entity = SemesterMapper.toEntity(semesterRequest);
         entity.setStatus(SemesterStatus.PLANNED);
 
-        return SemesterMapper.toResponse(semesterRepo.save(entity));
+        return SemesterMapper.toResponse(semesterRepo.save(entity), LocalDate.now(clock));
     }
 
     @Transactional(readOnly = true)
@@ -37,13 +44,13 @@ public class SemesterService {
         return semesterRepo
             .findAll()
             .stream()
-            .map(SemesterMapper::toResponse)
+            .map(s -> SemesterMapper.toResponse(s, LocalDate.now(clock)))
             .toList();
     }
 
     @Transactional(readOnly = true)
     public SemesterResponse getSemester(Integer semesterId) {
-        return SemesterMapper.toResponse(getSemesterOrThrow(semesterId));
+        return SemesterMapper.toResponse(getSemesterOrThrow(semesterId),  LocalDate.now(clock));
     }
 
     @Transactional(readOnly = true)

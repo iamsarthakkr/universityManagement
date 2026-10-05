@@ -24,10 +24,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Clock;
+import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -45,6 +44,8 @@ public class CourseOfferingIntegrationTests extends IntegrationTests {
     private DepartmentSeeder departmentSeeder;
     @Autowired
     private CourseOfferingSeeder courseOfferingSeeder;
+    @Autowired
+    private Clock clock;
 
     private DepartmentEntity department;
     private SemesterEntity semester;
@@ -78,9 +79,9 @@ public class CourseOfferingIntegrationTests extends IntegrationTests {
             assertNotNull(ret);
             assertEquals("A", ret.section());
             assertEquals(100, ret.capacity());
-            assertEquals(course.getId(), ret.courseId());
-            assertEquals(semester.getId(), ret.semesterId());
-            assertEquals(instructor.getId(), ret.instructorId());
+            assertEquals(course.getId(), ret.course().id());
+            assertEquals(semester.getId(), ret.semester().id());
+            assertEquals(instructor.getId(), ret.instructor().id());
         }
 
         @Test
@@ -197,7 +198,7 @@ public class CourseOfferingIntegrationTests extends IntegrationTests {
 
             var ret = courseOfferingService.getOffering(offering.getId());
             assertNotNull(ret);
-            assertEquals(CourseOfferingMapper.toResponse(offering), ret);
+            assertEquals(CourseOfferingMapper.toResponse(offering, LocalDate.now(clock)), ret);
 
         }
 
