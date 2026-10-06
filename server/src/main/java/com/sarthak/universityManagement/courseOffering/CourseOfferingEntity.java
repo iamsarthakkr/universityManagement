@@ -26,7 +26,7 @@ import lombok.Setter;
 @Table(
     name = "course_offering",
     uniqueConstraints = {
-        @UniqueConstraint(name = "unique_course_offering", columnNames = {"id", "semesterId", "section"})
+        @UniqueConstraint(name = "unique_course_offering", columnNames = {"courseId", "semesterId", "section"})
     },
     check = {
         @CheckConstraint(name = "chk_course_offering_capacity", constraint = "capacity > 0"),
