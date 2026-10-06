@@ -23,7 +23,7 @@ public final class CourseOfferingMapper {
             .id(entity.getId())
             .course(CourseMapper.toResponse(entity.getCourse()))
             .instructor(InstructorMapper.toResponse(entity.getInstructor()))
-            .semester(SemesterMapper.toResponse(entity.getSemester(), today))
+            .semester(SemesterMapper.toSummary(entity.getSemester(), today))
             .capacity(entity.getCapacity())
             .enrolled(entity.getEnrolled())
             .section(entity.getSection())

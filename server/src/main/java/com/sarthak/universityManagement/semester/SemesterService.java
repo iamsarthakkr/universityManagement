@@ -5,7 +5,10 @@ import com.sarthak.universityManagement.common.exceptions.BadRequestException;
 import com.sarthak.universityManagement.common.exceptions.ResourceNotFoundException;
 import com.sarthak.universityManagement.semester.dto.CreateSemesterRequest;
 import com.sarthak.universityManagement.semester.dto.SemesterResponse;
+import com.sarthak.universityManagement.semester.types.SemesterAction;
 import com.sarthak.universityManagement.semester.types.SemesterStatus;
+import com.sarthak.universityManagement.semester.validators.SemesterValidator;
+import com.sarthak.universityManagement.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -21,36 +24,17 @@ public class SemesterService {
 
     private final SemesterRepo semesterRepo;
     private final Clock clock;
+    private final CurrentUserService currentUserService;
 
     @Autowired
     public SemesterService(
         SemesterRepo semesterRepo,
-        Clock clock
+        Clock clock,
+        CurrentUserService currentUserService
     ) {
         this.semesterRepo = semesterRepo;
         this.clock = clock;
-    }
-
-    @PreAuthorize(AuthorizationExpressions.ADMIN)
-    public SemesterResponse createSemester(CreateSemesterRequest semesterRequest) {
-        var entity = SemesterMapper.toEntity(semesterRequest);
-        entity.setStatus(SemesterStatus.PLANNED);
-
-        return SemesterMapper.toResponse(semesterRepo.save(entity), LocalDate.now(clock));
-    }
-
-    @Transactional(readOnly = true)
-    public List<SemesterResponse> getSemesters() {
-        return semesterRepo
-            .findAll()
-            .stream()
-            .map(s -> SemesterMapper.toResponse(s, LocalDate.now(clock)))
-            .toList();
-    }
-
-    @Transactional(readOnly = true)
-    public SemesterResponse getSemester(Integer semesterId) {
-        return SemesterMapper.toResponse(getSemesterOrThrow(semesterId),  LocalDate.now(clock));
+        this.currentUserService = currentUserService;
     }
 
     @Transactional(readOnly = true)
@@ -59,19 +43,48 @@ public class SemesterService {
     }
 
     @PreAuthorize(AuthorizationExpressions.ADMIN)
-    public void transition(Integer semesterId, SemesterStatus newStatus) {
-        var semester = getSemesterOrThrow(semesterId);
+    public SemesterResponse createSemester(CreateSemesterRequest semesterRequest) {
+        if(semesterRepo.existsByTermAndYear(semesterRequest.term(), semesterRequest.year())) {
+            throw new BadRequestException("Semester already exists for "
+                + semesterRequest.term() + " "  + semesterRequest.year());
+        }
+        SemesterValidator.validateSemesterDates(semesterRequest);
+        var entity = SemesterMapper.toEntity(semesterRequest);
+        entity.setStatus(SemesterStatus.PLANNED);
 
-        if(!semester.canTransitionTo(newStatus)) {
+        return getSemesterResponse(semesterRepo.save(entity));
+    }
+
+    @Transactional(readOnly = true)
+    public List<SemesterResponse> getSemesters() {
+        return semesterRepo
+            .findAll()
+            .stream()
+            .map(this::getSemesterResponse)
+            .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public SemesterResponse getSemester(Integer semesterId) {
+        return getSemesterResponse(getSemesterOrThrow(semesterId));
+    }
+
+    @PreAuthorize(AuthorizationExpressions.ADMIN)
+    public void transition(Integer semesterId, SemesterAction semesterAction) {
+        var semester = getSemesterOrThrow(semesterId);
+        var actorRole = currentUserService.getCurrentUserRole();
+
+        var targetStatus = semesterAction.getTargetStatus();
+        if(!SemesterActionPolicy.canPerform(semester, actorRole, semesterAction)) {
             throw new BadRequestException(
                 "Invalid semester transition: "
                     + semester.getStatus()
                     + " -> "
-                    + newStatus
+                    + targetStatus
             );
         }
 
-        semester.setStatus(newStatus);
+        semester.setStatus(targetStatus);
     }
 
     private SemesterEntity getSemesterOrThrow(Integer semesterId) {
@@ -80,4 +93,10 @@ public class SemesterService {
             .orElseThrow(() -> new ResourceNotFoundException("Semester not found with id " + semesterId));
     }
 
+    private SemesterResponse getSemesterResponse(SemesterEntity semester) {
+        var actorRole = currentUserService.getCurrentUserRole();
+        var actions = SemesterActionPolicy.allowedActions(semester, actorRole);
+
+        return SemesterMapper.toResponse(semester, LocalDate.now(clock), actions);
+    }
 }

@@ -9,4 +9,5 @@ import java.util.Optional;
 @Repository
 public interface SemesterRepo extends JpaRepository<SemesterEntity, Integer> {
     Optional<SemesterEntity> findByTermAndYear(SemesterTerm term, Integer year);
+    boolean existsByTermAndYear(SemesterTerm term, Integer year);
 }

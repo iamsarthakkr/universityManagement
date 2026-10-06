@@ -49,4 +49,13 @@ public class CurrentUserService {
         UserPrincipal userPrincipal = (UserPrincipal) auth.getPrincipal();
         return Objects.requireNonNull(userPrincipal, "User principal is null").getUserId();
     }
+
+    public Role getCurrentUserRole() {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            throw new AuthenticationException("User is not authenticated") { };
+        }
+        UserPrincipal userPrincipal = (UserPrincipal) auth.getPrincipal();
+        return Objects.requireNonNull(Objects.requireNonNull(userPrincipal, "User principal is null")).getRole();
+    }
 }

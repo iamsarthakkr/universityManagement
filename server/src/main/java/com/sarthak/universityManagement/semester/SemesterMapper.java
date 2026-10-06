@@ -2,9 +2,11 @@ package com.sarthak.universityManagement.semester;
 
 import com.sarthak.universityManagement.semester.dto.CreateSemesterRequest;
 import com.sarthak.universityManagement.semester.dto.SemesterResponse;
-import com.sarthak.universityManagement.semester.validators.AllowedSemesterTransitions;
+import com.sarthak.universityManagement.semester.dto.SemesterSummaryResponse;
+import com.sarthak.universityManagement.semester.types.SemesterAction;
 
 import java.time.LocalDate;
+import java.util.List;
 
 public final class SemesterMapper {
     public static SemesterEntity toEntity(CreateSemesterRequest semesterRequest) {
@@ -18,7 +20,7 @@ public final class SemesterMapper {
             .build();
     }
 
-    public static SemesterResponse toResponse(SemesterEntity semesterEntity, LocalDate today) {
+    public static SemesterResponse toResponse(SemesterEntity semesterEntity, LocalDate today, List<SemesterAction> allowedActions) {
         return SemesterResponse.builder()
             .id(semesterEntity.getId())
             .term(semesterEntity.getTerm())
@@ -29,7 +31,17 @@ public final class SemesterMapper {
             .startDate(semesterEntity.getStartDate())
             .endDate(semesterEntity.getEndDate())
             .isRegistrationOpen(semesterEntity.isRegistrationOpen(today))
-            .allowedTransitions(AllowedSemesterTransitions.allowedTransitions.get(semesterEntity.getStatus()))
+            .allowedActions(allowedActions)
+            .build();
+    }
+
+    public static SemesterSummaryResponse toSummary(SemesterEntity semesterEntity, LocalDate today) {
+        return SemesterSummaryResponse.builder()
+            .id(semesterEntity.getId())
+            .status(semesterEntity.getStatus())
+            .term(semesterEntity.getTerm())
+            .year(semesterEntity.getYear())
+            .isRegistrationOpen(semesterEntity.isRegistrationOpen(today))
             .build();
     }
 }

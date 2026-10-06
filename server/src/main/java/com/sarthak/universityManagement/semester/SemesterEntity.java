@@ -3,7 +3,6 @@ package com.sarthak.universityManagement.semester;
 import com.sarthak.universityManagement.common.entity.BaseEntity;
 import com.sarthak.universityManagement.semester.types.SemesterStatus;
 import com.sarthak.universityManagement.semester.types.SemesterTerm;
-import com.sarthak.universityManagement.semester.validators.AllowedSemesterTransitions;
 import jakarta.persistence.CheckConstraint;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -22,7 +21,8 @@ import lombok.NonNull;
 import lombok.Setter;
 
 import java.time.LocalDate;
-import java.time.Year;
+
+import static com.sarthak.universityManagement.semester.SemesterActionPolicy.AllowedSemesterTransitions;
 
 @Entity
 @Table(
@@ -79,7 +79,7 @@ public class SemesterEntity extends BaseEntity {
     public boolean canTransitionTo(
         @NonNull SemesterStatus newStatus
     ) {
-        var allowed = AllowedSemesterTransitions.allowedTransitions.get(status);
+        var allowed = AllowedSemesterTransitions.get(status);
         return allowed.contains(newStatus);
     }
 }

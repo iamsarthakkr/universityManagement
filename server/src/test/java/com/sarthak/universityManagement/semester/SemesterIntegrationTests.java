@@ -3,6 +3,7 @@ package com.sarthak.universityManagement.semester;
 import com.sarthak.universityManagement.common.exceptions.BadRequestException;
 import com.sarthak.universityManagement.common.exceptions.ResourceNotFoundException;
 import com.sarthak.universityManagement.config.IntegrationTests;
+import com.sarthak.universityManagement.semester.types.SemesterAction;
 import com.sarthak.universityManagement.semester.types.SemesterStatus;
 import com.sarthak.universityManagement.semester.types.SemesterTerm;
 import com.sarthak.universityManagement.testUtils.fixtures.SemesterFixtures;
@@ -48,9 +49,11 @@ public class SemesterIntegrationTests extends IntegrationTests {
     }
 
     @Nested
+    @WithAdmin
     class FetchTests {
 
         @Test
+        @WithAdmin
         void shouldFetchSemester() {
             var sem = semesterSeeder.saveDefaultSemester(SemesterTerm.SUMMER, 2026);
 
@@ -62,6 +65,7 @@ public class SemesterIntegrationTests extends IntegrationTests {
         }
 
         @Test
+        @WithAdmin
         void shouldFetchAllSemester() {
             semesterSeeder.saveDefaultSemester(SemesterTerm.SUMMER, 2026);
             semesterSeeder.saveDefaultSemester(SemesterTerm.WINTER, 2026);
@@ -75,6 +79,7 @@ public class SemesterIntegrationTests extends IntegrationTests {
         }
 
         @Test
+        @WithAdmin
         void shouldThrowWhenSemesterNotFound() {
             assertThrows(ResourceNotFoundException.class, () -> semesterService.getSemester(-1));
         }
@@ -93,8 +98,9 @@ public class SemesterIntegrationTests extends IntegrationTests {
         @WithAdmin
         void shouldAllowSemesterTransition(SemesterStatus from, SemesterStatus to) {
             var sem = semesterSeeder.saveSemester(SemesterFixtures.semester().status(from).build());
+            var action = SemesterAction.valueOf(to);
 
-            semesterService.transition(sem.getId(), to);
+            semesterService.transition(sem.getId(), action);
             var updated = semesterService.getSemester(sem.getId());
 
             assertEquals(to, updated.status());
@@ -118,8 +124,9 @@ public class SemesterIntegrationTests extends IntegrationTests {
         @WithAdmin
         void shouldDenySemesterTransition(SemesterStatus from, SemesterStatus to) {
             var sem = semesterSeeder.saveSemester(SemesterFixtures.semester().status(from).build());
+            var action = SemesterAction.valueOf(to);
 
-            assertThrows(BadRequestException.class,  () -> semesterService.transition(sem.getId(), to));
+            assertThrows(BadRequestException.class,  () -> semesterService.transition(sem.getId(), action));
             var updated = semesterService.getSemester(sem.getId());
 
             assertEquals(from, updated.status()); // should preserve original status

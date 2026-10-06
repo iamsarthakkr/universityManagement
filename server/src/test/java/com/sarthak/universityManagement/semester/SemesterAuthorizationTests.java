@@ -1,6 +1,7 @@
 package com.sarthak.universityManagement.semester;
 
 import com.sarthak.universityManagement.config.IntegrationTests;
+import com.sarthak.universityManagement.semester.types.SemesterAction;
 import com.sarthak.universityManagement.semester.types.SemesterStatus;
 import com.sarthak.universityManagement.semester.types.SemesterTerm;
 import com.sarthak.universityManagement.testUtils.fixtures.SemesterFixtures;
@@ -62,7 +63,7 @@ public class SemesterAuthorizationTests extends IntegrationTests {
         @Test
         @WithAdmin
         void adminShouldAllow() {
-            semesterService.transition(id, SemesterStatus.ACTIVE);
+            semesterService.transition(id, SemesterAction.ACTIVATE);
 
             var updated = semesterService.getSemester(id);
             assertEquals(SemesterStatus.ACTIVE, updated.status());
@@ -71,12 +72,12 @@ public class SemesterAuthorizationTests extends IntegrationTests {
         @Test
         @WithStudent
         void studentShouldDeny() {
-            assertThrows(AuthorizationDeniedException.class, () -> semesterService.transition(id, SemesterStatus.ACTIVE));
+            assertThrows(AuthorizationDeniedException.class, () -> semesterService.transition(id, SemesterAction.ACTIVATE));
         }
 
         @Test
         void unauthorizedShouldDeny() {
-            assertThrows(AuthenticationCredentialsNotFoundException.class, () -> semesterService.transition(id, SemesterStatus.ACTIVE));
+            assertThrows(AuthenticationCredentialsNotFoundException.class, () -> semesterService.transition(id, SemesterAction.ACTIVATE));
         }
     }
 }

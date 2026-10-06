@@ -1,5 +1,6 @@
 package com.sarthak.universityManagement.semester.dto;
 
+import com.sarthak.universityManagement.semester.types.SemesterAction;
 import com.sarthak.universityManagement.semester.types.SemesterStatus;
 import com.sarthak.universityManagement.semester.types.SemesterTerm;
 import lombok.Builder;
@@ -19,5 +20,5 @@ public record SemesterResponse(
     LocalDate startDate,
     LocalDate endDate,
     boolean isRegistrationOpen,
-    List<SemesterStatus> allowedTransitions
+    List<SemesterAction> allowedActions
 ) {}
