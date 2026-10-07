@@ -2,6 +2,7 @@ package com.sarthak.universityManagement.semester;
 
 import com.sarthak.universityManagement.auth.AuthorizationExpressions;
 import com.sarthak.universityManagement.common.exceptions.BadRequestException;
+import com.sarthak.universityManagement.common.exceptions.ConflictException;
 import com.sarthak.universityManagement.common.exceptions.ResourceNotFoundException;
 import com.sarthak.universityManagement.semester.dto.CreateSemesterRequest;
 import com.sarthak.universityManagement.semester.dto.SemesterResponse;
@@ -45,7 +46,7 @@ public class SemesterService {
     @PreAuthorize(AuthorizationExpressions.ADMIN)
     public SemesterResponse createSemester(CreateSemesterRequest semesterRequest) {
         if(semesterRepo.existsByTermAndYear(semesterRequest.term(), semesterRequest.year())) {
-            throw new BadRequestException("Semester already exists for "
+            throw new ConflictException("Semester already exists for "
                 + semesterRequest.term() + " "  + semesterRequest.year());
         }
         SemesterValidator.validateSemesterDates(semesterRequest);
@@ -58,7 +59,7 @@ public class SemesterService {
     @Transactional(readOnly = true)
     public List<SemesterResponse> getSemesters() {
         return semesterRepo
-            .findAll()
+            .findAllByYearAscTermDesc()
             .stream()
             .map(this::getSemesterResponse)
             .toList();
@@ -70,7 +71,7 @@ public class SemesterService {
     }
 
     @PreAuthorize(AuthorizationExpressions.ADMIN)
-    public void transition(Integer semesterId, SemesterAction semesterAction) {
+    public SemesterResponse transition(Integer semesterId, SemesterAction semesterAction) {
         var semester = getSemesterOrThrow(semesterId);
         var actorRole = currentUserService.getCurrentUserRole();
 
@@ -85,6 +86,7 @@ public class SemesterService {
         }
 
         semester.setStatus(targetStatus);
+        return getSemesterResponse(semester);
     }
 
     private SemesterEntity getSemesterOrThrow(Integer semesterId) {

@@ -21,8 +21,9 @@ import lombok.NonNull;
 import lombok.Setter;
 
 import java.time.LocalDate;
-
-import static com.sarthak.universityManagement.semester.SemesterActionPolicy.AllowedSemesterTransitions;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Entity
 @Table(
@@ -82,4 +83,20 @@ public class SemesterEntity extends BaseEntity {
         var allowed = AllowedSemesterTransitions.get(status);
         return allowed.contains(newStatus);
     }
+
+    public static final Map<SemesterStatus, List<SemesterStatus>> AllowedSemesterTransitions;
+
+    static {
+        AllowedSemesterTransitions = new HashMap<>();
+
+        AllowedSemesterTransitions.putIfAbsent(SemesterStatus.PLANNED,
+            List.of(SemesterStatus.ACTIVE, SemesterStatus.CANCELLED));
+
+        AllowedSemesterTransitions.putIfAbsent(SemesterStatus.ACTIVE,
+            List.of(SemesterStatus.COMPLETED, SemesterStatus.CANCELLED));
+
+        AllowedSemesterTransitions.putIfAbsent(SemesterStatus.COMPLETED, List.of());
+        AllowedSemesterTransitions.putIfAbsent(SemesterStatus.CANCELLED, List.of());
+    }
+
 }

@@ -46,12 +46,11 @@ public class SemesterController {
     }
 
     @PatchMapping("/{semesterId}/status")
-    public ResponseEntity<ApiResponse<Void>> transitionSemester(
+    public ResponseEntity<ApiResponse<SemesterResponse>> transitionSemester(
         @PathVariable Integer semesterId,
         @Valid @RequestBody SemesterTransitionRequest semesterTransitionRequest
     ) {
-        semesterService.transition(semesterId, semesterTransitionRequest.semesterAction());
-        return Res.success();
+        return Res.success(semesterService.transition(semesterId, semesterTransitionRequest.semesterAction()));
     }
 
 }
