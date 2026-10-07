@@ -1,6 +1,7 @@
 package com.sarthak.universityManagement.semester;
 
 import com.sarthak.universityManagement.common.entity.BaseEntity;
+import com.sarthak.universityManagement.semester.types.SemesterAction;
 import com.sarthak.universityManagement.semester.types.SemesterStatus;
 import com.sarthak.universityManagement.semester.types.SemesterTerm;
 import jakarta.persistence.CheckConstraint;
@@ -84,19 +85,11 @@ public class SemesterEntity extends BaseEntity {
         return allowed.contains(newStatus);
     }
 
-    public static final Map<SemesterStatus, List<SemesterStatus>> AllowedSemesterTransitions;
-
-    static {
-        AllowedSemesterTransitions = new HashMap<>();
-
-        AllowedSemesterTransitions.putIfAbsent(SemesterStatus.PLANNED,
-            List.of(SemesterStatus.ACTIVE, SemesterStatus.CANCELLED));
-
-        AllowedSemesterTransitions.putIfAbsent(SemesterStatus.ACTIVE,
-            List.of(SemesterStatus.COMPLETED, SemesterStatus.CANCELLED));
-
-        AllowedSemesterTransitions.putIfAbsent(SemesterStatus.COMPLETED, List.of());
-        AllowedSemesterTransitions.putIfAbsent(SemesterStatus.CANCELLED, List.of());
-    }
+    public static final Map<SemesterStatus, List<SemesterStatus>> AllowedSemesterTransitions = Map.of(
+        SemesterStatus.PLANNED, List.of(SemesterStatus.ACTIVE, SemesterStatus.CANCELLED),
+        SemesterStatus.ACTIVE, List.of(SemesterStatus.COMPLETED, SemesterStatus.CANCELLED),
+        SemesterStatus.COMPLETED, List.of(),
+        SemesterStatus.CANCELLED, List.of()
+    );
 
 }
