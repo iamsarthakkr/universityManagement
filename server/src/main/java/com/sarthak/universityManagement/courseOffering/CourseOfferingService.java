@@ -3,13 +3,17 @@ package com.sarthak.universityManagement.courseOffering;
 import com.sarthak.universityManagement.auth.AuthorizationExpressions;
 import com.sarthak.universityManagement.common.exceptions.ConflictException;
 import com.sarthak.universityManagement.common.exceptions.ResourceNotFoundException;
+import com.sarthak.universityManagement.common.types.Role;
 import com.sarthak.universityManagement.course.CourseService;
 import com.sarthak.universityManagement.courseOffering.dto.CourseOfferingResponse;
 import com.sarthak.universityManagement.courseOffering.dto.CreateCourseOfferingRequest;
 import com.sarthak.universityManagement.instructor.InstructorService;
 import com.sarthak.universityManagement.instructor.validators.InstructorValidator;
+import com.sarthak.universityManagement.security.annotation.AdminOrCourseOfferingInstructor;
 import com.sarthak.universityManagement.semester.SemesterService;
 import com.sarthak.universityManagement.semester.validators.SemesterValidator;
+import com.sarthak.universityManagement.user.CurrentUserService;
+import jakarta.annotation.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -26,6 +30,7 @@ public class CourseOfferingService {
     private final CourseService courseService;
     private final InstructorService instructorService;
     private final SemesterService semesterService;
+    private final CurrentUserService currentUserService;
     private final Clock clock;
 
     @Autowired
@@ -34,12 +39,14 @@ public class CourseOfferingService {
         CourseService courseService,
         InstructorService instructorService,
         SemesterService semesterService,
+        CurrentUserService currentUserService,
         Clock clock
     ) {
         this.courseOfferingRepo = courseOfferingRepo;
         this.courseService = courseService;
         this.instructorService = instructorService;
         this.semesterService = semesterService;
+        this.currentUserService = currentUserService;
         this.clock = clock;
     }
 
@@ -68,7 +75,7 @@ public class CourseOfferingService {
     }
 
     @Transactional(readOnly = true)
-    public CourseOfferingResponse getOffering(Integer offeringId) {
+    public CourseOfferingResponse getCourseOfferingById(Integer offeringId) {
         var entity = courseOfferingRepo
             .findById(offeringId)
             .orElseThrow(() -> new ResourceNotFoundException("Offering not found with id " + offeringId));
@@ -89,9 +96,13 @@ public class CourseOfferingService {
     }
 
     @Transactional(readOnly = true)
-    public List<CourseOfferingResponse> getOfferingsBySemester(Integer semesterId) {
+    @PreAuthorize(AuthorizationExpressions.ANY_AUTHENTICATED)
+    public List<CourseOfferingResponse> getCourseOfferings(@Nullable Integer semesterId) {
+        var role = currentUserService.getCurrentUserRole();
+        var instructorUserId = Role.INSTRUCTOR.equals(role) ? currentUserService.getCurrentUserId() : null;
+
         return courseOfferingRepo
-            .findAllBySemesterIdOrderByCourse_Department_NameAscCourse_Code_AscSectionAscIdAsc(semesterId)
+            .findManagedOfferings(semesterId, instructorUserId)
             .stream()
             .map(c -> CourseOfferingMapper.toResponse(c, LocalDate.now(clock)))
             .toList();

@@ -5,6 +5,7 @@ import lombok.NonNull;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -27,6 +28,19 @@ public interface CourseOfferingRepo extends JpaRepository<CourseOfferingEntity, 
 
     boolean existsByIdAndInstructor_User_Id(Integer id, Integer instructorUserId);
 
-    @EntityGraph(attributePaths = {"course.department", "instructor.department", "semester"})
-    List<CourseOfferingEntity> findAllBySemesterIdOrderByCourse_Department_NameAscCourse_Code_AscSectionAscIdAsc(Integer semesterId);
+    @EntityGraph(attributePaths = {
+        "course.department",
+        "instructor.department",
+        "semester"
+    })
+    @Query("""
+        SELECT co
+        FROM CourseOfferingEntity co
+        WHERE (:semesterId IS NULL OR co.semester.id = :semesterId)
+            AND (:instructorUserId IS NULL OR co.instructor.user.id = :instructorUserId)
+        ORDER BY co.semester.year ASC, co.semester.term ASC,
+                co.course.department.name ASC, co.course.code ASC,
+                co.section ASC, co.id ASC
+    """)
+    List<CourseOfferingEntity> findManagedOfferings(Integer semesterId, Integer instructorUserId);
 }

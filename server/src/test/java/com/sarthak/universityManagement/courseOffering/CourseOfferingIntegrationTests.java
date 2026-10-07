@@ -26,7 +26,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.lang.module.Configuration;
 import java.time.Clock;
 import java.time.LocalDate;
 
@@ -198,7 +197,7 @@ public class CourseOfferingIntegrationTests extends IntegrationTests {
         void shouldReturnCorrectResponse() {
             var offering = courseOfferingSeeder.saveDefault(course, semester, "A");
 
-            var ret = courseOfferingService.getOffering(offering.getId());
+            var ret = courseOfferingService.getCourseOfferingById(offering.getId());
             assertNotNull(ret);
             assertEquals(CourseOfferingMapper.toResponse(offering, LocalDate.now(clock)), ret);
 
@@ -206,10 +205,11 @@ public class CourseOfferingIntegrationTests extends IntegrationTests {
 
         @Test
         void shouldReturnEmptyForNonExistentCourseOffering() {
-            assertThrows(ResourceNotFoundException.class, () -> courseOfferingService.getOffering(-1));
+            assertThrows(ResourceNotFoundException.class, () -> courseOfferingService.getCourseOfferingById(-1));
         }
 
         @Test
+        @WithAdmin
         void shouldReturnCorrectOfferingsForSemester() {
             var sem2 =  semesterSeeder.saveDefaultSemester(SemesterTerm.SUMMER, 2027);
 
@@ -234,7 +234,7 @@ public class CourseOfferingIntegrationTests extends IntegrationTests {
                 "A"
             );
 
-            var ret = courseOfferingService.getOfferingsBySemester(semester.getId());
+            var ret = courseOfferingService.getCourseOfferings(semester.getId());
             assertNotNull(ret);
             assertEquals(2, ret.size());
             var ids = ret.stream().map(CourseOfferingResponse::id).toList();
@@ -244,10 +244,11 @@ public class CourseOfferingIntegrationTests extends IntegrationTests {
         }
 
         @Test
+        @WithAdmin
         void shouldReturnEmptyListForNonExistentCourseOfferings() {
             var sem = semesterSeeder.saveDefaultSemester(SemesterTerm.SUMMER, 2027);
 
-            var ret = courseOfferingService.getOfferingsBySemester(sem.getId());
+            var ret = courseOfferingService.getCourseOfferings(sem.getId());
             assertNotNull(ret);
             assertEquals(0, ret.size());
         }

@@ -33,6 +33,12 @@ public class CourseService {
     }
 
     @Transactional(readOnly = true)
+    public CourseResponse getCourseById(Integer id) {
+        var entity = getCourseEntity(id);
+        return CourseMapper.toResponse(entity);
+    }
+
+    @Transactional(readOnly = true)
     public CourseEntity getCourseEntity(Integer courseId) {
         return  courseRepo
             .findById(courseId)

@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,13 +28,19 @@ public class CourseController {
         this.courseService = courseService;
     }
 
+    @PostMapping
+    public ResponseEntity<ApiResponse<CourseResponse>> createNewCourse(@Valid @RequestBody CourseRequest courseRequest) {
+        return Res.success(SuccessCode.CREATED, courseService.createCourse(courseRequest));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<CourseResponse>> getCourseById(@PathVariable Integer id) {
+        return Res.success(courseService.getCourseById(id));
+    }
+
     @GetMapping("/catalogue")
     public ResponseEntity<ApiResponse<List<CourseCatalogueResponse>>> getCoursesCatalogue() {
         return Res.success(courseService.getCoursesCatalogue());
     }
 
-    @PostMapping
-    public ResponseEntity<ApiResponse<CourseResponse>> createNewCourse(@Valid @RequestBody CourseRequest courseRequest) {
-        return Res.success(SuccessCode.CREATED, courseService.createCourse(courseRequest));
-    }
 }
