@@ -58,14 +58,7 @@ public class CourseOfferingController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<CourseOfferingResponse>>> getOfferings(
-        @RequestParam("semesterId") Integer semesterId
-    ) {
-        return Res.success(courseOfferingService.getCourseOfferings(semesterId));
-    }
-
-    @GetMapping("/me")
-    public ResponseEntity<ApiResponse<List<CourseOfferingResponse>>> getOfferingsForInstructor(
-        @RequestParam(required = false) Integer semesterId
+        @RequestParam(name = "semesterId", required = false) Integer semesterId
     ) {
         return Res.success(courseOfferingService.getCourseOfferings(semesterId));
     }

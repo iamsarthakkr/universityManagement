@@ -4,6 +4,7 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Builder;
 
 @Builder
@@ -18,7 +19,7 @@ public record CreateCourseOfferingRequest(
     Integer semesterId,
 
     @NotBlank(message = "section required")
-    @Max(value = 10, message = "section must be between 1 and 10 characters long")
+    @Size(max = 10, message = "section must be between 1 and 10 characters long")
     String section,
 
     @NotNull(message = "capacity required")
