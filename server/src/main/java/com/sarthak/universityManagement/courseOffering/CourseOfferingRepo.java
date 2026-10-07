@@ -27,5 +27,6 @@ public interface CourseOfferingRepo extends JpaRepository<CourseOfferingEntity, 
 
     boolean existsByIdAndInstructor_User_Id(Integer id, Integer instructorUserId);
 
-    List<CourseOfferingEntity> findAllBySemesterId(Integer semesterId);
+    @EntityGraph(attributePaths = {"course.department", "instructor.department", "semester"})
+    List<CourseOfferingEntity> findAllBySemesterIdOrderByCourse_Department_NameAscCourse_Code_AscSectionAscIdAsc(Integer semesterId);
 }

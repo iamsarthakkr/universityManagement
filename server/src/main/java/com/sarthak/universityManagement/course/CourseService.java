@@ -1,6 +1,7 @@
 package com.sarthak.universityManagement.course;
 
 import com.sarthak.universityManagement.auth.AuthorizationExpressions;
+import com.sarthak.universityManagement.common.exceptions.ConflictException;
 import com.sarthak.universityManagement.common.exceptions.ResourceNotFoundException;
 import com.sarthak.universityManagement.course.dto.CourseCatalogueResponse;
 import com.sarthak.universityManagement.course.dto.CourseRequest;
@@ -27,7 +28,7 @@ public class CourseService {
 
     @Transactional(readOnly = true)
     public List<CourseCatalogueResponse> getCoursesCatalogue() {
-        var courses = courseRepo.findAllByOrderByDepartmentNameAsc();
+        var courses = courseRepo.findAllByOrderByDepartmentNameAscCodeAsc();
         return CourseMapper.toCatalogue(courses);
     }
 
@@ -40,6 +41,9 @@ public class CourseService {
 
     @PreAuthorize(AuthorizationExpressions.ADMIN)
     public CourseResponse createCourse(CourseRequest courseRequest) {
+        if(courseRepo.existsByCode(courseRequest.code())) {
+            throw new ConflictException("Course with code " + courseRequest.code() + " already exists!");
+        }
         var departmentId = courseRequest.departmentId();
 
         var department = departmentService.getDepartmentById(departmentId);

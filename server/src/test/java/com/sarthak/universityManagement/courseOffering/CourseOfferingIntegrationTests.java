@@ -1,6 +1,7 @@
 package com.sarthak.universityManagement.courseOffering;
 
 import com.sarthak.universityManagement.common.exceptions.BadRequestException;
+import com.sarthak.universityManagement.common.exceptions.ConflictException;
 import com.sarthak.universityManagement.common.exceptions.ResourceNotFoundException;
 import com.sarthak.universityManagement.config.IntegrationTests;
 import com.sarthak.universityManagement.course.CourseEntity;
@@ -25,6 +26,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.lang.module.Configuration;
 import java.time.Clock;
 import java.time.LocalDate;
 
@@ -184,7 +186,7 @@ public class CourseOfferingIntegrationTests extends IntegrationTests {
                 .instructorId(instructor2.getId())
                 .build();
 
-            assertThrows(BadRequestException.class, () -> courseOfferingService.createOffering(courseOfferingReq2));
+            assertThrows(ConflictException.class, () -> courseOfferingService.createOffering(courseOfferingReq2));
         }
 
    }

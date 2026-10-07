@@ -7,6 +7,7 @@ import com.sarthak.universityManagement.department.DepartmentMapper;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -34,7 +35,7 @@ public class CourseMapper {
     }
 
     public static List<CourseCatalogueResponse> toCatalogue(List<CourseEntity> courses) {
-        Map<Integer, List<CourseEntity>> coursesMap = new HashMap<>();
+        Map<Integer, List<CourseEntity>> coursesMap = new LinkedHashMap<>();
         Map<Integer, String> departmentNameMap = new HashMap<>();
         courses.forEach(course -> {
             var department = course.getDepartment();
@@ -47,7 +48,12 @@ public class CourseMapper {
 
         List<CourseCatalogueResponse> ret = new ArrayList<>();
         coursesMap.forEach((key, courseList) ->
-            ret.add(new CourseCatalogueResponse(key, departmentNameMap.get(key),  courseList.stream().map(CourseMapper::toResponse).toList()))
+            ret.add(
+                new CourseCatalogueResponse(
+                    key,
+                    departmentNameMap.get(key),
+                    courseList.stream().map(CourseMapper::toResponse).toList())
+            )
         );
         return ret;
     }

@@ -1,7 +1,7 @@
 package com.sarthak.universityManagement.courseOffering;
 
 import com.sarthak.universityManagement.auth.AuthorizationExpressions;
-import com.sarthak.universityManagement.common.exceptions.BadRequestException;
+import com.sarthak.universityManagement.common.exceptions.ConflictException;
 import com.sarthak.universityManagement.common.exceptions.ResourceNotFoundException;
 import com.sarthak.universityManagement.course.CourseService;
 import com.sarthak.universityManagement.courseOffering.dto.CourseOfferingResponse;
@@ -57,7 +57,7 @@ public class CourseOfferingService {
         SemesterValidator.validateSemesterAllowsOfferings(semester);
         InstructorValidator.validateInstructorForCourse(course, instructor);
         if(courseOfferingRepo.existsByCourseIdAndSemesterIdAndSection(courseId, semesterId, section)) {
-            throw new BadRequestException("course offering already exists");
+            throw new ConflictException("course offering already exists");
         }
 
         var entity = CourseOfferingMapper.toEntity(courseOfferingRequest);
@@ -91,7 +91,7 @@ public class CourseOfferingService {
     @Transactional(readOnly = true)
     public List<CourseOfferingResponse> getOfferingsBySemester(Integer semesterId) {
         return courseOfferingRepo
-            .findAllBySemesterId(semesterId)
+            .findAllBySemesterIdOrderByCourse_Department_NameAscCourse_Code_AscSectionAscIdAsc(semesterId)
             .stream()
             .map(c -> CourseOfferingMapper.toResponse(c, LocalDate.now(clock)))
             .toList();
