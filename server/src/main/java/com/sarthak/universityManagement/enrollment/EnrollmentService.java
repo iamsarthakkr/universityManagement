@@ -85,51 +85,22 @@ public class EnrollmentService {
 
     @AdminOrEnrollmentInstructor
     public EnrollmentResponse approveEnrollment(Integer enrollmentId) {
-        var enrollment = getEnrollmentForUpdateOrThrow(enrollmentId);
-        if(!enrollment.canTransitionTo(EnrollmentStatus.ENROLLED)) {
-            throw new BadRequestException("Enrollment with id " + enrollmentId + " cannot be approved");
-        }
-
-        var courseOffering = courseOfferingService.getCourseOfferingForEnrollment(enrollment.getCourseOffering().getId());
-        courseOffering.enroll();
-        enrollment.setStatus(EnrollmentStatus.ENROLLED);
-
-        return EnrollmentMapper.toResponse(enrollment, LocalDate.now(clock));
+        return getEnrollmentResponse(updateEnrollment(enrollmentId, EnrollmentStatus.ENROLLED));
     }
 
     @AdminOrEnrollmentInstructor
     public EnrollmentResponse rejectEnrollment(Integer enrollmentId) {
-        var enrollment = getEnrollmentForUpdateOrThrow(enrollmentId);
-        if(!enrollment.canTransitionTo(EnrollmentStatus.REJECTED)) {
-            throw new BadRequestException("Enrollment with id " + enrollmentId + " cannot be rejected");
-        }
-        enrollment.setStatus(EnrollmentStatus.REJECTED);
-
-        return EnrollmentMapper.toResponse(enrollment, LocalDate.now(clock));
+        return getEnrollmentResponse(updateEnrollment(enrollmentId, EnrollmentStatus.REJECTED));
     }
 
     @EnrollmentStudent
     public EnrollmentResponse cancelEnrollment(Integer enrollmentId) {
-        var enrollment = getEnrollmentForUpdateOrThrow(enrollmentId);
-        if(!enrollment.canTransitionTo(EnrollmentStatus.CANCELLED)) {
-            throw new BadRequestException("Enrollment with id " + enrollmentId + " cannot be cancelled");
-        }
-        enrollment.setStatus(EnrollmentStatus.CANCELLED);
-
-        return EnrollmentMapper.toResponse(enrollment, LocalDate.now(clock));
+        return getEnrollmentResponse(updateEnrollment(enrollmentId, EnrollmentStatus.CANCELLED));
     }
 
     @EnrollmentStudent
     public EnrollmentResponse dropEnrollment(Integer enrollmentId) {
-        var enrollment = getEnrollmentForUpdateOrThrow(enrollmentId);
-        if(!enrollment.canTransitionTo(EnrollmentStatus.DROPPED)) {
-            throw new BadRequestException("Enrollment with id " + enrollmentId + " cannot be dropped");
-        }
-        var courseOffering = courseOfferingService.getCourseOfferingForEnrollment(enrollment.getCourseOffering().getId());
-        courseOffering.releaseEnrolled();
-        enrollment.setStatus(EnrollmentStatus.DROPPED);
-
-        return EnrollmentMapper.toResponse(enrollment, LocalDate.now(clock));
+        return getEnrollmentResponse(updateEnrollment(enrollmentId, EnrollmentStatus.DROPPED));
     }
 
     /* ---------------------------------------------------------------------------------------------------------------*/
@@ -154,6 +125,27 @@ public class EnrollmentService {
         return enrollmentRepo
             .findForUpdateById(enrollmentId)
             .orElseThrow(() -> new ResourceNotFoundException("Enrollment with id " + enrollmentId + " not found"));
+    }
+
+    private EnrollmentEntity updateEnrollment(Integer enrollmentId, EnrollmentStatus targetStatus) {
+        var enrollment = getEnrollmentForUpdateOrThrow(enrollmentId);
+        if(!enrollment.canTransitionTo(targetStatus)) {
+            throw new BadRequestException("Enrollment with id " + enrollmentId + " cannot be " + targetStatus);
+        }
+        var courseOffering = courseOfferingService.getCourseOfferingForEnrollment(enrollment.getCourseOffering().getId());
+        if(EnrollmentStatus.ENROLLED.equals(targetStatus)) {
+            courseOffering.enroll();
+        }
+        if(EnrollmentStatus.DROPPED.equals(targetStatus)) {
+            courseOffering.releaseEnrolled();
+        }
+        enrollment.setStatus(EnrollmentStatus.DROPPED);
+
+        return enrollmentRepo.saveAndFlush(enrollment);
+    }
+
+    private EnrollmentResponse getEnrollmentResponse(EnrollmentEntity enrollment) {
+        return EnrollmentMapper.toResponse(enrollment, LocalDate.now(clock));
     }
 
 }

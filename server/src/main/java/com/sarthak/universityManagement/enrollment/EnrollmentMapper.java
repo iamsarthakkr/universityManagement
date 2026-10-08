@@ -14,8 +14,8 @@ public final class EnrollmentMapper {
             .enrollmentStatus(enrollmentEntity.getStatus())
             .student(StudentMapper.toResponse(enrollmentEntity.getStudent()))
             .courseOffering(CourseOfferingMapper.toResponse(enrollmentEntity.getCourseOffering(), today))
-            .createdAt(enrollmentEntity.getCreatedAt().atZone(ZoneId.systemDefault()).toLocalDate())
-            .updatedAt(enrollmentEntity.getUpdatedAt().atZone(ZoneId.systemDefault()).toLocalDate())
+            .createdAt(enrollmentEntity.getCreatedAt())
+            .updatedAt(enrollmentEntity.getUpdatedAt())
             .build();
     }
 }
