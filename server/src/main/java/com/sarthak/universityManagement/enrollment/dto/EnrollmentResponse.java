@@ -5,10 +5,14 @@ import com.sarthak.universityManagement.enrollment.types.EnrollmentStatus;
 import com.sarthak.universityManagement.student.dto.StudentResponse;
 import lombok.Builder;
 
+import java.time.LocalDate;
+
 @Builder
 public record EnrollmentResponse(
     Integer id,
     EnrollmentStatus enrollmentStatus,
     StudentResponse student,
-    CourseOfferingResponse courseOffering
+    CourseOfferingResponse courseOffering,
+    LocalDate createdAt,
+    LocalDate updatedAt
 ) {}

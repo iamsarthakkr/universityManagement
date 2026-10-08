@@ -43,6 +43,30 @@ public class EnrollmentService {
         this.clock = clock;
     }
 
+    @CanAccessEnrollment
+    public EnrollmentResponse getEnrollment(Integer enrollmentId) {
+        var enrollment = getEnrollmentOrThrow(enrollmentId);
+        return EnrollmentMapper.toResponse(enrollment, LocalDate.now(clock));
+    }
+
+    @CurrentStudent
+    public List<EnrollmentResponse> getEnrollmentsForStudent(Integer studentId, @Nullable Integer semesterId, @Nullable EnrollmentStatus enrollmentStatus) {
+        return enrollmentRepo
+            .findByStudentId(studentId, semesterId, enrollmentStatus)
+            .stream()
+            .map(e -> EnrollmentMapper.toResponse(e, LocalDate.now(clock)))
+            .toList();
+    }
+
+    @AdminOrCourseOfferingInstructor
+    public List<EnrollmentResponse> getEnrollmentsForCourseOffering(Integer courseOfferingId, @Nullable EnrollmentStatus status) {
+        return enrollmentRepo
+            .findAllForCourseOfferingWithDetails(courseOfferingId, status)
+            .stream()
+            .map(e -> EnrollmentMapper.toResponse(e, LocalDate.now(clock)))
+            .toList();
+    }
+
     @CurrentStudent
     public EnrollmentResponse createEnrollment(Integer studentId, Integer courseOfferingId) {
         var student = studentService.getStudentEntity(studentId);
@@ -105,30 +129,6 @@ public class EnrollmentService {
         courseOffering.releaseEnrolled();
         enrollment.setStatus(EnrollmentStatus.DROPPED);
 
-        return EnrollmentMapper.toResponse(enrollment, LocalDate.now(clock));
-    }
-
-    @CurrentStudent
-    public List<EnrollmentResponse> getEnrollmentsForStudent(Integer studentId) {
-        return enrollmentRepo
-            .findByStudentId(studentId)
-            .stream()
-            .map(e -> EnrollmentMapper.toResponse(e, LocalDate.now(clock)))
-            .toList();
-    }
-
-    @AdminOrCourseOfferingInstructor
-    public List<EnrollmentResponse> getEnrollmentsForCourseOffering(Integer courseOfferingId, @Nullable EnrollmentStatus status) {
-        return enrollmentRepo
-            .findAllForCourseOfferingWithDetails(courseOfferingId, status)
-            .stream()
-            .map(e -> EnrollmentMapper.toResponse(e, LocalDate.now(clock)))
-            .toList();
-    }
-
-    @CanAccessEnrollment
-    public EnrollmentResponse getEnrollment(Integer enrollmentId) {
-        var enrollment = getEnrollmentOrThrow(enrollmentId);
         return EnrollmentMapper.toResponse(enrollment, LocalDate.now(clock));
     }
 

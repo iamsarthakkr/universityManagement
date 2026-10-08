@@ -282,14 +282,14 @@ public class EnrollmentAuthorizationTest extends IntegrationTests {
         @Test
         void shouldAllowStudentOfEnrollment() {
             TestAuthentication.asStudent(student1);
-            var resp = enrollmentService.getEnrollmentsForStudent(student1.getId());
+            var resp = enrollmentService.getEnrollmentsForStudent(student1.getId(), null, null);
             assertNotNull(resp);
         }
 
         @Test
         void shouldDenyStudentNotOfEnrollment() {
             TestAuthentication.asStudent(student2);
-            assertThrows(AuthorizationDeniedException.class, () -> enrollmentService.getEnrollmentsForStudent(student1.getId()));
+            assertThrows(AuthorizationDeniedException.class, () -> enrollmentService.getEnrollmentsForStudent(student1.getId(), null, null));
         }
 
     }
