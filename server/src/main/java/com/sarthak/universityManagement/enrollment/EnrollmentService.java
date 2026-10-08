@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Locale;
 
 @Service
 @Transactional
@@ -130,7 +131,7 @@ public class EnrollmentService {
     private EnrollmentEntity updateEnrollment(Integer enrollmentId, EnrollmentStatus targetStatus) {
         var enrollment = getEnrollmentForUpdateOrThrow(enrollmentId);
         if(!enrollment.canTransitionTo(targetStatus)) {
-            throw new BadRequestException("Enrollment with id " + enrollmentId + " cannot be " + targetStatus);
+            throw new BadRequestException("Enrollment with id " + enrollmentId + " cannot be " + targetStatus.toString().toLowerCase(Locale.ROOT));
         }
         var courseOffering = courseOfferingService.getCourseOfferingForEnrollment(enrollment.getCourseOffering().getId());
         if(EnrollmentStatus.ENROLLED.equals(targetStatus)) {
@@ -139,7 +140,7 @@ public class EnrollmentService {
         if(EnrollmentStatus.DROPPED.equals(targetStatus)) {
             courseOffering.releaseEnrolled();
         }
-        enrollment.setStatus(EnrollmentStatus.DROPPED);
+        enrollment.setStatus(targetStatus);
 
         return enrollmentRepo.saveAndFlush(enrollment);
     }

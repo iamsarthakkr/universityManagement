@@ -194,7 +194,7 @@ public class EnrollmentServiceIntegrationTests extends IntegrationTests {
             var enrollment = enrollmentScenario.enrollment();
             var ex = assertThrows(BadRequestException.class, () -> enrollmentService.approveEnrollment(enrollment.getId()));
             var msg = ex.getMessage();
-            assertTrue(msg.contains("Enrollment with id " + enrollment.getId() + " cannot be approved"));
+            assertTrue(msg.contains("Enrollment with id " + enrollment.getId() + " cannot be enrolled"));
 
             var savedEnrollment = enrollmentService.getEnrollment(enrollment.getId());
             var savedOffering = courseOfferingService.getCourseOfferingEntity(enrollmentScenario.courseOffering().getId());
