@@ -13,6 +13,7 @@ import com.sarthak.universityManagement.security.annotation.CurrentStudent;
 import com.sarthak.universityManagement.security.annotation.EnrollmentStudent;
 import com.sarthak.universityManagement.student.StudentEntity;
 import com.sarthak.universityManagement.student.StudentService;
+import com.sarthak.universityManagement.user.CurrentUserService;
 import jakarta.annotation.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -29,6 +30,7 @@ public class EnrollmentService {
     private final EnrollmentRepo enrollmentRepo;
     private final CourseOfferingService courseOfferingService;
     private final StudentService studentService;
+    private final CurrentUserService currentUserService;
     private final Clock clock;
 
     @Autowired
@@ -36,18 +38,19 @@ public class EnrollmentService {
         EnrollmentRepo enrollmentRepo,
         CourseOfferingService courseOfferingService,
         StudentService studentService,
+        CurrentUserService currentUserService,
         Clock clock
     ) {
         this.enrollmentRepo = enrollmentRepo;
         this.courseOfferingService = courseOfferingService;
         this.studentService = studentService;
+        this.currentUserService = currentUserService;
         this.clock = clock;
     }
 
     @CanAccessEnrollment
     public EnrollmentResponse getEnrollment(Integer enrollmentId) {
-        var enrollment = getEnrollmentOrThrow(enrollmentId);
-        return EnrollmentMapper.toResponse(enrollment, LocalDate.now(clock));
+        return getEnrollmentResponse(getEnrollmentOrThrow(enrollmentId));
     }
 
     @CurrentStudent
@@ -55,7 +58,7 @@ public class EnrollmentService {
         return enrollmentRepo
             .findByStudentId(studentId, semesterId, enrollmentStatus)
             .stream()
-            .map(e -> EnrollmentMapper.toResponse(e, LocalDate.now(clock)))
+            .map(this::getEnrollmentResponse)
             .toList();
     }
 
@@ -64,7 +67,7 @@ public class EnrollmentService {
         return enrollmentRepo
             .findAllForCourseOfferingWithDetails(courseOfferingId, status)
             .stream()
-            .map(e -> EnrollmentMapper.toResponse(e, LocalDate.now(clock)))
+            .map(this::getEnrollmentResponse)
             .toList();
     }
 
@@ -81,7 +84,7 @@ public class EnrollmentService {
             .status(EnrollmentStatus.PENDING)
             .build();
 
-        return EnrollmentMapper.toResponse(enrollmentRepo.save(toSave), LocalDate.now(clock));
+        return getEnrollmentResponse(enrollmentRepo.save(toSave));
     }
 
     @AdminOrEnrollmentInstructor
@@ -146,7 +149,9 @@ public class EnrollmentService {
     }
 
     private EnrollmentResponse getEnrollmentResponse(EnrollmentEntity enrollment) {
-        return EnrollmentMapper.toResponse(enrollment, LocalDate.now(clock));
+        var currentUserPrincipal = currentUserService.getCurrentUserPrincipal();
+        var actions = EnrollmentActionPolicy.allowedActions(enrollment, currentUserPrincipal);
+        return EnrollmentMapper.toResponse(enrollment, LocalDate.now(clock), actions);
     }
 
 }

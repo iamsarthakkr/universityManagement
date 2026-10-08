@@ -201,7 +201,6 @@ public class EnrollmentAuthorizationTest extends IntegrationTests {
             var enrollment1 = enrollmentScenario1.enrollment();
             var enrollment2 = enrollmentScenario2.enrollment();
 
-
             switch (action) {
                 case drop: {
                     TestAuthentication.asStudent(student2);

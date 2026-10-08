@@ -24,6 +24,14 @@ public class CurrentUserService {
     public UserEntity getCurrentUser() {
         return userService.getUserById(getCurrentUserId());
     }
+
+    public UserPrincipal getCurrentUserPrincipal() {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            throw new AuthenticationException("User is not authenticated") { };
+        }
+        return (UserPrincipal) auth.getPrincipal();
+    }
     
     public StudentEntity getCurrentStudent() {
         var user = getCurrentUser();
@@ -40,22 +48,14 @@ public class CurrentUserService {
         }
         return instructorService.getInstructorByUserId(getCurrentUserId());
     }
-    
+
     public Integer getCurrentUserId() {
-        var auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated()) {
-            throw new AuthenticationException("User is not authenticated") { };
-        }
-        UserPrincipal userPrincipal = (UserPrincipal) auth.getPrincipal();
+        UserPrincipal userPrincipal = getCurrentUserPrincipal();
         return Objects.requireNonNull(userPrincipal, "User principal is null").getUserId();
     }
 
     public Role getCurrentUserRole() {
-        var auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated()) {
-            throw new AuthenticationException("User is not authenticated") { };
-        }
-        UserPrincipal userPrincipal = (UserPrincipal) auth.getPrincipal();
+        UserPrincipal userPrincipal = getCurrentUserPrincipal();
         return Objects.requireNonNull(Objects.requireNonNull(userPrincipal, "User principal is null")).getRole();
     }
 }

@@ -22,6 +22,6 @@ public enum SemesterAction {
         return Arrays.stream(values())
             .filter(x -> x.targetStatus.equals(targetStatus))
             .findFirst()
-            .orElse(null);
+            .orElseThrow(() -> new IllegalArgumentException("Cannot get semester action for status " + targetStatus));
     }
 }

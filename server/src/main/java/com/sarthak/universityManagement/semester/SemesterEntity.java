@@ -85,6 +85,10 @@ public class SemesterEntity extends BaseEntity {
         return allowed.contains(newStatus);
     }
 
+    public boolean allowsEnrollment() {
+        return !(this.status == SemesterStatus.CANCELLED || status == SemesterStatus.COMPLETED);
+    }
+
     public static final Map<SemesterStatus, List<SemesterStatus>> AllowedSemesterTransitions = Map.of(
         SemesterStatus.PLANNED, List.of(SemesterStatus.ACTIVE, SemesterStatus.CANCELLED),
         SemesterStatus.ACTIVE, List.of(SemesterStatus.COMPLETED, SemesterStatus.CANCELLED),
