@@ -1,6 +1,7 @@
 package com.sarthak.universityManagement.enrollment;
 
 import com.sarthak.universityManagement.config.IntegrationTests;
+import com.sarthak.universityManagement.enrollment.types.EnrollmentAction;
 import com.sarthak.universityManagement.enrollment.types.EnrollmentStatus;
 import com.sarthak.universityManagement.student.StudentEntity;
 import com.sarthak.universityManagement.testUtils.scenerio.courseOffering.CourseOfferingScenarioSeeder;
@@ -133,11 +134,11 @@ public class EnrollmentAuthorizationTest extends IntegrationTests {
 
             switch (action) {
                 case approve: {
-                    enrollmentService.approveEnrollment(enrollment.getId());
+                    enrollmentService.performAction(enrollment.getId(), EnrollmentAction.APPROVE);
                     break;
                 }
                 case reject: {
-                    enrollmentService.rejectEnrollment(enrollment.getId());
+                    enrollmentService.performAction(enrollment.getId(), EnrollmentAction.REJECT);
                     break;
                 }
             }
@@ -155,11 +156,11 @@ public class EnrollmentAuthorizationTest extends IntegrationTests {
 
             switch (action) {
                 case approve: {
-                    enrollmentService.approveEnrollment(enrollment.getId());
+                    enrollmentService.performAction(enrollment.getId(), EnrollmentAction.APPROVE);
                     break;
                 }
                 case reject: {
-                    enrollmentService.rejectEnrollment(enrollment.getId());
+                    enrollmentService.performAction(enrollment.getId(),  EnrollmentAction.REJECT);
                     break;
                 }
             }
@@ -178,13 +179,13 @@ public class EnrollmentAuthorizationTest extends IntegrationTests {
             switch (action) {
                 case approve: {
                     assertThrows(AuthorizationDeniedException.class, () ->
-                        enrollmentService.approveEnrollment(enrollment.getId())
+                        enrollmentService.performAction(enrollment.getId(), EnrollmentAction.APPROVE)
                     );
                     break;
                 }
                 case reject: {
                     assertThrows(AuthorizationDeniedException.class, () ->
-                        enrollmentService.rejectEnrollment(enrollment.getId())
+                        enrollmentService.performAction(enrollment.getId(), EnrollmentAction.REJECT )
                     );
                     break;
                 }
@@ -204,12 +205,12 @@ public class EnrollmentAuthorizationTest extends IntegrationTests {
             switch (action) {
                 case drop: {
                     TestAuthentication.asStudent(student2);
-                    enrollmentService.dropEnrollment(enrollment2.getId());
+                    enrollmentService.performAction(enrollment2.getId(), EnrollmentAction.DROP);
                     break;
                 }
                 case cancel: {
                     TestAuthentication.asStudent(student1);
-                    enrollmentService.cancelEnrollment(enrollment1.getId());
+                    enrollmentService.performAction(enrollment1.getId(), EnrollmentAction.CANCEL);
                     break;
                 }
             }
@@ -228,13 +229,13 @@ public class EnrollmentAuthorizationTest extends IntegrationTests {
             switch (action) {
                 case drop: {
                     assertThrows(AuthorizationDeniedException.class, () ->
-                        enrollmentService.dropEnrollment(enrollment.getId())
+                        enrollmentService.performAction(enrollment.getId(), EnrollmentAction.DROP)
                     );
                     break;
                 }
                 case cancel: {
                     assertThrows(AuthorizationDeniedException.class, () ->
-                        enrollmentService.cancelEnrollment(enrollment.getId())
+                        enrollmentService.performAction(enrollment.getId(), EnrollmentAction.CANCEL)
                     );
                     break;
                 }

@@ -7,6 +7,7 @@ import com.sarthak.universityManagement.course.CourseRepo;
 import com.sarthak.universityManagement.courseOffering.CourseOfferingRepo;
 import com.sarthak.universityManagement.courseOffering.CourseOfferingService;
 import com.sarthak.universityManagement.department.DepartmentRepo;
+import com.sarthak.universityManagement.enrollment.types.EnrollmentAction;
 import com.sarthak.universityManagement.enrollment.types.EnrollmentStatus;
 import com.sarthak.universityManagement.instructor.InstructorRepo;
 import com.sarthak.universityManagement.semester.SemesterRepo;
@@ -111,7 +112,7 @@ public class EnrollmentConcurrencyTests extends MySqlTestContainer {
             start.await();
 
             try {
-                enrollmentService.approveEnrollment(enrollment1.id());
+                enrollmentService.performAction(enrollment1.id(), EnrollmentAction.APPROVE);
                 return null;
             } catch (Throwable throwable) {
                 return throwable;
@@ -127,7 +128,7 @@ public class EnrollmentConcurrencyTests extends MySqlTestContainer {
             start.await();
 
             try {
-                enrollmentService.approveEnrollment(enrollment2.id());
+                enrollmentService.performAction(enrollment2.id(), EnrollmentAction.APPROVE);
                 return null;
             } catch (Throwable throwable) {
                 return throwable;

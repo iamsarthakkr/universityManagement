@@ -88,13 +88,15 @@ public class EnrollmentService {
     @CanAccessEnrollment
     public EnrollmentResponse performAction(Integer enrollmentId, EnrollmentAction action) {
         var enrollment = getEnrollmentForUpdateOrThrow(enrollmentId);
+        // should be locked before performing validation as the validator checks the offering as well
+        var courseOffering = courseOfferingService.getCourseOfferingForEnrollment(enrollment.getCourseOffering().getId());
+
         var currentUser = currentUserService.getCurrentUserPrincipal();
         EnrollmentActionPolicy
             .validate(enrollment, action, currentUser)
             .ifPresent(denial -> { throw denial.toException(enrollmentId); });
 
         var targetStatus = action.getTargetStatus();
-        var courseOffering = courseOfferingService.getCourseOfferingForEnrollment(enrollment.getCourseOffering().getId());
         if(action.equals(EnrollmentAction.APPROVE)) {
             courseOffering.enroll();
         }
