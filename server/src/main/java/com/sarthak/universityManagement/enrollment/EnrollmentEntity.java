@@ -22,8 +22,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.List;
-import java.util.Map;
 
 @Entity
 @Table(
@@ -56,15 +54,15 @@ public class EnrollmentEntity extends BaseEntity {
     private EnrollmentStatus status;
 
     public boolean canTransitionTo(EnrollmentStatus newStatus) {
-        var actions = AllowedTransitions.get(this.status);
-        return actions.contains(newStatus);
+        return status.canTransitionTo(newStatus);
     }
 
-    private static final Map<EnrollmentStatus, List<EnrollmentStatus>> AllowedTransitions = Map.of(
-        EnrollmentStatus.PENDING, List.of(EnrollmentStatus.ENROLLED, EnrollmentStatus.CANCELLED, EnrollmentStatus.REJECTED),
-        EnrollmentStatus.ENROLLED, List.of(EnrollmentStatus.DROPPED),
-        EnrollmentStatus.CANCELLED, List.of(),
-        EnrollmentStatus.REJECTED, List.of(),
-        EnrollmentStatus.DROPPED, List.of()
-    );
+    public boolean isTaughtBy(Integer userId) {
+        return courseOffering.getInstructor().getUser().getId().equals(userId);
+    }
+
+    public boolean belongsToUser(Integer userId) {
+        return student.getUser().getId().equals(userId);
+    }
+
 }

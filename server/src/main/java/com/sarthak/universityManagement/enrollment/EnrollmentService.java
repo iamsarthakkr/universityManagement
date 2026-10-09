@@ -5,12 +5,11 @@ import com.sarthak.universityManagement.common.exceptions.ResourceNotFoundExcept
 import com.sarthak.universityManagement.courseOffering.CourseOfferingEntity;
 import com.sarthak.universityManagement.courseOffering.CourseOfferingService;
 import com.sarthak.universityManagement.enrollment.dto.EnrollmentResponse;
+import com.sarthak.universityManagement.enrollment.types.EnrollmentAction;
 import com.sarthak.universityManagement.enrollment.types.EnrollmentStatus;
 import com.sarthak.universityManagement.security.annotation.AdminOrCourseOfferingInstructor;
-import com.sarthak.universityManagement.security.annotation.AdminOrEnrollmentInstructor;
 import com.sarthak.universityManagement.security.annotation.CanAccessEnrollment;
 import com.sarthak.universityManagement.security.annotation.CurrentStudent;
-import com.sarthak.universityManagement.security.annotation.EnrollmentStudent;
 import com.sarthak.universityManagement.student.StudentEntity;
 import com.sarthak.universityManagement.student.StudentService;
 import com.sarthak.universityManagement.user.CurrentUserService;
@@ -22,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Locale;
 
 @Service
 @Transactional
@@ -87,24 +85,25 @@ public class EnrollmentService {
         return getEnrollmentResponse(enrollmentRepo.save(toSave));
     }
 
-    @AdminOrEnrollmentInstructor
-    public EnrollmentResponse approveEnrollment(Integer enrollmentId) {
-        return getEnrollmentResponse(updateEnrollment(enrollmentId, EnrollmentStatus.ENROLLED));
-    }
+    @CanAccessEnrollment
+    public EnrollmentResponse performAction(Integer enrollmentId, EnrollmentAction action) {
+        var enrollment = getEnrollmentForUpdateOrThrow(enrollmentId);
+        var currentUser = currentUserService.getCurrentUserPrincipal();
+        EnrollmentActionPolicy
+            .validate(enrollment, action, currentUser)
+            .ifPresent(denial -> { throw denial.toException(enrollmentId); });
 
-    @AdminOrEnrollmentInstructor
-    public EnrollmentResponse rejectEnrollment(Integer enrollmentId) {
-        return getEnrollmentResponse(updateEnrollment(enrollmentId, EnrollmentStatus.REJECTED));
-    }
+        var targetStatus = action.getTargetStatus();
+        var courseOffering = courseOfferingService.getCourseOfferingForEnrollment(enrollment.getCourseOffering().getId());
+        if(action.equals(EnrollmentAction.APPROVE)) {
+            courseOffering.enroll();
+        }
+        if(action.equals(EnrollmentAction.DROP)) {
+            courseOffering.releaseEnrolled();
+        }
+        enrollment.setStatus(targetStatus);
 
-    @EnrollmentStudent
-    public EnrollmentResponse cancelEnrollment(Integer enrollmentId) {
-        return getEnrollmentResponse(updateEnrollment(enrollmentId, EnrollmentStatus.CANCELLED));
-    }
-
-    @EnrollmentStudent
-    public EnrollmentResponse dropEnrollment(Integer enrollmentId) {
-        return getEnrollmentResponse(updateEnrollment(enrollmentId, EnrollmentStatus.DROPPED));
+        return getEnrollmentResponse(enrollmentRepo.saveAndFlush(enrollment));
     }
 
     /* ---------------------------------------------------------------------------------------------------------------*/
@@ -129,23 +128,6 @@ public class EnrollmentService {
         return enrollmentRepo
             .findForUpdateById(enrollmentId)
             .orElseThrow(() -> new ResourceNotFoundException("Enrollment with id " + enrollmentId + " not found"));
-    }
-
-    private EnrollmentEntity updateEnrollment(Integer enrollmentId, EnrollmentStatus targetStatus) {
-        var enrollment = getEnrollmentForUpdateOrThrow(enrollmentId);
-        if(!enrollment.canTransitionTo(targetStatus)) {
-            throw new BadRequestException("Enrollment with id " + enrollmentId + " cannot be " + targetStatus.toString().toLowerCase(Locale.ROOT));
-        }
-        var courseOffering = courseOfferingService.getCourseOfferingForEnrollment(enrollment.getCourseOffering().getId());
-        if(EnrollmentStatus.ENROLLED.equals(targetStatus)) {
-            courseOffering.enroll();
-        }
-        if(EnrollmentStatus.DROPPED.equals(targetStatus)) {
-            courseOffering.releaseEnrolled();
-        }
-        enrollment.setStatus(targetStatus);
-
-        return enrollmentRepo.saveAndFlush(enrollment);
     }
 
     private EnrollmentResponse getEnrollmentResponse(EnrollmentEntity enrollment) {

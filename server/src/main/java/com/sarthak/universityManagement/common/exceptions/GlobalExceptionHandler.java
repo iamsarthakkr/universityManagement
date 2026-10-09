@@ -12,6 +12,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -37,17 +38,17 @@ public class GlobalExceptionHandler {
         LOG.error(ex.getMessage(), ex);
         return Res.error(ErrorCode.BAD_REQUEST, ex.getMessage());
     }
+
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<ApiErrorResponse<Void>> handleForbidden(ForbiddenException ex) {
+        LOG.error(ex.getMessage(), ex);
+        return Res.error(ErrorCode.FORBIDDEN, ex.getMessage());
+    }
     
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ApiErrorResponse<Void>> handleDataIntegrity(DataIntegrityViolationException ex) {
         LOG.error(ex.getMessage(), ex);
         return Res.error(ErrorCode.CONFLICT, "Request violates a database constraint");
-    }
-    
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiErrorResponse<Void>> handleGenericException(Exception ex) {
-        LOG.error(ex.getMessage(), ex);
-        return Res.errorMessage("Something went wrong");
     }
     
     @ExceptionHandler(AuthenticationException.class)
@@ -76,4 +77,20 @@ public class GlobalExceptionHandler {
         LOG.error(ex.getMessage(), ex);
         return Res.error(ErrorCode.VALIDATION_FAILED, "Invalid request", errors);
     }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ApiErrorResponse<Void>> handleValidationException(MethodArgumentTypeMismatchException ex) {
+        LOG.error(ex.getMessage(), ex);
+        return Res.error(
+            ErrorCode.BAD_REQUEST,
+            "Invalid value '" + ex.getValue() + "' for parameter '" + ex.getName() + "'"
+        );
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiErrorResponse<Void>> handleGenericException(Exception ex) {
+        LOG.error(ex.getMessage(), ex);
+        return Res.errorMessage("Something went wrong");
+    }
+
 }

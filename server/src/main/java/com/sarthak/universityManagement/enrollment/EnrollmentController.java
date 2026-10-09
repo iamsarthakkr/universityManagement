@@ -3,6 +3,7 @@ package com.sarthak.universityManagement.enrollment;
 import com.sarthak.universityManagement.common.rest.ApiResponse;
 import com.sarthak.universityManagement.common.rest.Res;
 import com.sarthak.universityManagement.enrollment.dto.EnrollmentResponse;
+import com.sarthak.universityManagement.enrollment.types.EnrollmentAction;
 import com.sarthak.universityManagement.enrollment.types.EnrollmentStatus;
 import com.sarthak.universityManagement.user.CurrentUserService;
 import org.springframework.http.ResponseEntity;
@@ -40,29 +41,19 @@ public class EnrollmentController {
     public ResponseEntity<ApiResponse<List<EnrollmentResponse>>> getStudentEnrollments(
         @RequestParam(required = false) Integer semesterId,
         @RequestParam(required = false)EnrollmentStatus enrollmentStatus
-        ) {
+    ) {
         var studentId = currentUserService.getCurrentStudent().getId();
 
         return Res.success(enrollmentService.getEnrollmentsForStudent(studentId,  semesterId, enrollmentStatus));
     }
 
-    @PostMapping("/{enrollmentId}/approve")
-    public ResponseEntity<ApiResponse<EnrollmentResponse>> approveEnrollment(@PathVariable("enrollmentId") Integer enrollmentId) {
-        return Res.success(enrollmentService.approveEnrollment(enrollmentId));
+    @PostMapping("/{enrollmentId}/{action}")
+    public ResponseEntity<ApiResponse<EnrollmentResponse>> performAction(
+        @PathVariable Integer enrollmentId,
+        @PathVariable EnrollmentAction action
+    ) {
+        return Res.success(enrollmentService.performAction(enrollmentId, action));
+
     }
 
-    @PostMapping("/{enrollmentId}/reject")
-    public ResponseEntity<ApiResponse<EnrollmentResponse>> rejectEnrollment(@PathVariable("enrollmentId") Integer enrollmentId) {
-        return Res.success(enrollmentService.rejectEnrollment(enrollmentId));
-    }
-
-    @PostMapping("/{enrollmentId}/drop")
-    public ResponseEntity<ApiResponse<EnrollmentResponse>> dropEnrollment(@PathVariable("enrollmentId") Integer enrollmentId) {
-        return Res.success(enrollmentService.dropEnrollment(enrollmentId));
-    }
-
-    @PostMapping("/{enrollmentId}/cancel")
-    public ResponseEntity<ApiResponse<EnrollmentResponse>> cancelEnrollment(@PathVariable("enrollmentId") Integer enrollmentId) {
-        return Res.success(enrollmentService.cancelEnrollment(enrollmentId));
-    }
 }
