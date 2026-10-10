@@ -1,4 +1,4 @@
-package com.sarthak.universityManagement.testUtils.scenerio.department;
+package com.sarthak.universityManagement.testUtils.scenario.department;
 
 import com.sarthak.universityManagement.department.DepartmentEntity;
 

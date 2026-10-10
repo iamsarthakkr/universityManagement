@@ -1,9 +1,9 @@
-package com.sarthak.universityManagement.testUtils.scenerio.enrollment;
+package com.sarthak.universityManagement.testUtils.scenario.enrollment;
 
 import com.sarthak.universityManagement.enrollment.types.EnrollmentStatus;
 import com.sarthak.universityManagement.testUtils.fixtures.EnrollmentFixtures;
-import com.sarthak.universityManagement.testUtils.scenerio.courseOffering.CourseOfferingScenarioSeeder;
-import com.sarthak.universityManagement.testUtils.scenerio.student.StudentScenarioSeeder;
+import com.sarthak.universityManagement.testUtils.scenario.courseOffering.CourseOfferingScenarioSeeder;
+import com.sarthak.universityManagement.testUtils.scenario.student.StudentScenarioSeeder;
 import com.sarthak.universityManagement.testUtils.seeders.EnrollmentSeeder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.test.context.TestComponent;

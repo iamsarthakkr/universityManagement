@@ -1,4 +1,4 @@
-package com.sarthak.universityManagement.testUtils.scenerio.student;
+package com.sarthak.universityManagement.testUtils.scenario.student;
 
 import com.sarthak.universityManagement.department.DepartmentEntity;
 import com.sarthak.universityManagement.student.StudentEntity;

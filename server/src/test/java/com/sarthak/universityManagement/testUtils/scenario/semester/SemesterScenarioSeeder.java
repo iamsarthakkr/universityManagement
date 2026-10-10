@@ -1,4 +1,4 @@
-package com.sarthak.universityManagement.testUtils.scenerio.semester;
+package com.sarthak.universityManagement.testUtils.scenario.semester;
 
 import com.sarthak.universityManagement.semester.SemesterRepo;
 import com.sarthak.universityManagement.semester.types.SemesterStatus;

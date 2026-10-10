@@ -1,10 +1,10 @@
-package com.sarthak.universityManagement.testUtils.scenerio.courseOffering;
+package com.sarthak.universityManagement.testUtils.scenario.courseOffering;
 
 import com.sarthak.universityManagement.courseOffering.CourseOfferingEntity;
-import com.sarthak.universityManagement.testUtils.scenerio.course.CourseScenarioSeeder;
-import com.sarthak.universityManagement.testUtils.scenerio.department.DepartmentScenarioSeeder;
-import com.sarthak.universityManagement.testUtils.scenerio.instructor.InstructorScenarioSeeder;
-import com.sarthak.universityManagement.testUtils.scenerio.semester.SemesterScenarioSeeder;
+import com.sarthak.universityManagement.testUtils.scenario.course.CourseScenarioSeeder;
+import com.sarthak.universityManagement.testUtils.scenario.department.DepartmentScenarioSeeder;
+import com.sarthak.universityManagement.testUtils.scenario.instructor.InstructorScenarioSeeder;
+import com.sarthak.universityManagement.testUtils.scenario.semester.SemesterScenarioSeeder;
 import com.sarthak.universityManagement.testUtils.seeders.CourseOfferingSeeder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.test.context.TestComponent;

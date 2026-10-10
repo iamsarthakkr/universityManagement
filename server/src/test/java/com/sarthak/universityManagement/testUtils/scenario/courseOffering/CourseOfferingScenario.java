@@ -1,4 +1,4 @@
-package com.sarthak.universityManagement.testUtils.scenerio.courseOffering;
+package com.sarthak.universityManagement.testUtils.scenario.courseOffering;
 
 import com.sarthak.universityManagement.course.CourseEntity;
 import com.sarthak.universityManagement.courseOffering.CourseOfferingEntity;

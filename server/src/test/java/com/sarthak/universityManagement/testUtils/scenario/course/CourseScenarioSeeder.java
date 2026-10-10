@@ -1,6 +1,6 @@
-package com.sarthak.universityManagement.testUtils.scenerio.course;
+package com.sarthak.universityManagement.testUtils.scenario.course;
 
-import com.sarthak.universityManagement.testUtils.scenerio.department.DepartmentScenarioSeeder;
+import com.sarthak.universityManagement.testUtils.scenario.department.DepartmentScenarioSeeder;
 import com.sarthak.universityManagement.testUtils.seeders.CourseSeeder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.test.context.TestComponent;
