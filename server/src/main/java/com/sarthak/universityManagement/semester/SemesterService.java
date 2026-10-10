@@ -72,7 +72,7 @@ public class SemesterService {
 
     @PreAuthorize(AuthorizationExpressions.ADMIN)
     public SemesterResponse transition(Integer semesterId, SemesterAction semesterAction) {
-        var semester = getSemesterOrThrow(semesterId);
+        var semester = getSemesterForUpdateOrThrow(semesterId);
         var actorRole = currentUserService.getCurrentUserRole();
 
         var targetStatus = semesterAction.getTargetStatus();
@@ -94,6 +94,12 @@ public class SemesterService {
     private SemesterEntity getSemesterOrThrow(Integer semesterId) {
         return semesterRepo
             .findById(semesterId)
+            .orElseThrow(() -> new ResourceNotFoundException("Semester not found with id " + semesterId));
+    }
+
+    private SemesterEntity getSemesterForUpdateOrThrow(Integer semesterId) {
+        return semesterRepo
+            .findForUpdateById(semesterId)
             .orElseThrow(() -> new ResourceNotFoundException("Semester not found with id " + semesterId));
     }
 
