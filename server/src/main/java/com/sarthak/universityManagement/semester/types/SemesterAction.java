@@ -1,7 +1,5 @@
 package com.sarthak.universityManagement.semester.types;
 
-import java.util.Arrays;
-
 public enum SemesterAction {
     ACTIVATE(SemesterStatus.ACTIVE),
     COMPLETE(SemesterStatus.COMPLETED),
