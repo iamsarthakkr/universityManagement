@@ -76,7 +76,7 @@ public class SemesterService {
         var actorRole = currentUserService.getCurrentUserRole();
 
         var targetStatus = semesterAction.getTargetStatus();
-        if(!SemesterActionPolicy.canPerform(semester, actorRole, semesterAction)) {
+        if(!SemesterActionPolicy.canPerform(semester, semesterAction, actorRole)) {
             throw new BadRequestException(
                 "Invalid semester transition: "
                     + semester.getStatus()
@@ -88,6 +88,8 @@ public class SemesterService {
         semester.setStatus(targetStatus);
         return getSemesterResponse(semester);
     }
+
+    /* ------------------------------------------------------ helpers ------------------------------------------------ */
 
     private SemesterEntity getSemesterOrThrow(Integer semesterId) {
         return semesterRepo

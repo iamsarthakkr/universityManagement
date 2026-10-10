@@ -33,6 +33,16 @@ public class TestAuthentication {
         authenticate(principal);
     }
 
+    public static void asRole(Role role) {
+        var principal = UserPrincipal
+            .builder()
+            .username("test-" + role.name().toLowerCase())
+            .userId(-1)
+            .role(role).enabled(true)
+            .build();
+        authenticate(principal);
+    }
+
     public static void clear() {
         SecurityContextHolder.clearContext();
     }

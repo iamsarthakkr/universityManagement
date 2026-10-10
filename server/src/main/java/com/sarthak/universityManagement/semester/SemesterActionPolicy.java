@@ -2,12 +2,9 @@ package com.sarthak.universityManagement.semester;
 
 import com.sarthak.universityManagement.common.types.Role;
 import com.sarthak.universityManagement.semester.types.SemesterAction;
-import com.sarthak.universityManagement.semester.types.SemesterStatus;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class SemesterActionPolicy {
     public static List<SemesterAction> allowedActions(
@@ -15,14 +12,14 @@ public class SemesterActionPolicy {
         Role actorRole
     ) {
         return Arrays.stream(SemesterAction.values())
-            .filter(action -> canPerform(semester, actorRole, action))
+            .filter(action -> canPerform(semester, action, actorRole))
             .toList();
     }
 
     public static boolean canPerform(
         SemesterEntity semester,
-        Role actorRole,
-        SemesterAction action
+        SemesterAction action,
+        Role actorRole
     ) {
         return Role.ADMIN.equals(actorRole)
             && semester.canTransitionTo(action.getTargetStatus());

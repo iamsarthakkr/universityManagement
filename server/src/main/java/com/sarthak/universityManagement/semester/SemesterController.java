@@ -5,12 +5,11 @@ import com.sarthak.universityManagement.common.rest.Res;
 import com.sarthak.universityManagement.common.rest.SuccessCode;
 import com.sarthak.universityManagement.semester.dto.CreateSemesterRequest;
 import com.sarthak.universityManagement.semester.dto.SemesterResponse;
-import com.sarthak.universityManagement.semester.dto.SemesterTransitionRequest;
+import com.sarthak.universityManagement.semester.types.SemesterAction;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -45,12 +44,12 @@ public class SemesterController {
         return Res.success(semesterService.getSemester(semesterId));
     }
 
-    @PatchMapping("/{semesterId}/status")
+    @PostMapping("/{semesterId}/{action}")
     public ResponseEntity<ApiResponse<SemesterResponse>> transitionSemester(
         @PathVariable Integer semesterId,
-        @Valid @RequestBody SemesterTransitionRequest semesterTransitionRequest
+        @PathVariable SemesterAction action
     ) {
-        return Res.success(semesterService.transition(semesterId, semesterTransitionRequest.semesterAction()));
+        return Res.success(semesterService.transition(semesterId, action));
     }
 
 }

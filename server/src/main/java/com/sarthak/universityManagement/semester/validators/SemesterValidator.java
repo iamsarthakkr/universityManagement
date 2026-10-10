@@ -9,10 +9,10 @@ public class SemesterValidator {
 
     public static void validateSemesterDates(CreateSemesterRequest semesterRequest) {
         if(!semesterRequest.registrationStartDate().isBefore(semesterRequest.registrationEndDate())) {
-            throw new BadRequestException("Registration start date cannot be after registration end date");
+            throw new BadRequestException("Registration start date must be before registration end date");
         }
         if(!semesterRequest.startDate().isBefore(semesterRequest.endDate())) {
-            throw new BadRequestException("Start date cannot be after end date");
+            throw new BadRequestException("Start date must be before end date");
         }
     }
 

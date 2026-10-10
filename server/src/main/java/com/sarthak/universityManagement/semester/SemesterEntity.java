@@ -1,7 +1,6 @@
 package com.sarthak.universityManagement.semester;
 
 import com.sarthak.universityManagement.common.entity.BaseEntity;
-import com.sarthak.universityManagement.semester.types.SemesterAction;
 import com.sarthak.universityManagement.semester.types.SemesterStatus;
 import com.sarthak.universityManagement.semester.types.SemesterTerm;
 import jakarta.persistence.CheckConstraint;
@@ -22,9 +21,6 @@ import lombok.NonNull;
 import lombok.Setter;
 
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 @Entity
 @Table(
@@ -71,8 +67,7 @@ public class SemesterEntity extends BaseEntity {
     private LocalDate endDate;
 
     public boolean isRegistrationOpen(LocalDate today) {
-        return (status != SemesterStatus.COMPLETED &&
-            status != SemesterStatus.CANCELLED &&
+        return (allowsEnrollment() &&
             !today.isBefore(registrationStartDate) &&
             !today.isAfter(registrationEndDate)
         );
@@ -81,19 +76,11 @@ public class SemesterEntity extends BaseEntity {
     public boolean canTransitionTo(
         @NonNull SemesterStatus newStatus
     ) {
-        var allowed = AllowedSemesterTransitions.get(status);
-        return allowed.contains(newStatus);
+        return status.canTransitionTo(newStatus);
     }
 
     public boolean allowsEnrollment() {
         return !(this.status == SemesterStatus.CANCELLED || status == SemesterStatus.COMPLETED);
     }
-
-    public static final Map<SemesterStatus, List<SemesterStatus>> AllowedSemesterTransitions = Map.of(
-        SemesterStatus.PLANNED, List.of(SemesterStatus.ACTIVE, SemesterStatus.CANCELLED),
-        SemesterStatus.ACTIVE, List.of(SemesterStatus.COMPLETED, SemesterStatus.CANCELLED),
-        SemesterStatus.COMPLETED, List.of(),
-        SemesterStatus.CANCELLED, List.of()
-    );
 
 }
