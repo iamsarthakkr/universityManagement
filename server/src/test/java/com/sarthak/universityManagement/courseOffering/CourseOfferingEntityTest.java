@@ -1,89 +1,90 @@
 package com.sarthak.universityManagement.courseOffering;
 
-import com.sarthak.universityManagement.common.exceptions.BadRequestException;
+import com.sarthak.universityManagement.common.exceptions.ConflictException;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class CourseOfferingEntityTest {
+
+    private static CourseOfferingEntity offering(int capacity, int enrolled) {
+        return CourseOfferingEntity.builder()
+            .capacity(capacity)
+            .enrolled(enrolled)
+            .build();
+    }
+
+    @Test
+    void shouldStartWithNoSeatsTakenWhenBuilt() {
+        var offering = CourseOfferingEntity.builder().capacity(10).build();
+
+        assertEquals(0, offering.getEnrolled());
+        assertTrue(offering.canEnroll());
+    }
+
     @Nested
     class Capacity {
-        @ParameterizedTest
+        @ParameterizedTest(name = "{1}/{0} -> {2}")
         @CsvSource({
+            "10, 0, true",
             "10, 1, true",
             "10, 9, true",
             "10, 10, false"
         })
-        void shouldDetermineEnrollmentStatus(int capacity, int enrolled, boolean status) {
-            var offering = CourseOfferingEntity.builder()
-                .capacity(capacity)
-                .enrolled(enrolled)
-                .build();
-
-            assertEquals(status, offering.canEnroll());
+        void shouldDetermineWhetherSeatsRemain(int capacity, int enrolled, boolean expected) {
+            assertEquals(expected, offering(capacity, enrolled).canEnroll());
         }
     }
 
     @Nested
-    class Enrollment {
-        @ParameterizedTest
+    class Seats {
+        @ParameterizedTest(name = "{1}/{0}")
         @CsvSource({
             "10, 0",
             "10, 9"
         })
-        void shouldCorrectlyEnrollWhenSeatsAvailable(int capacity, int enrolled) {
-            var offering = CourseOfferingEntity.builder()
-                .capacity(capacity)
-                .enrolled(enrolled)
-                .build();
+        void shouldTakeSeatWhenAvailable(int capacity, int enrolled) {
+            var offering = offering(capacity, enrolled);
 
             offering.enroll();
+
             assertEquals(enrolled + 1, offering.getEnrolled());
         }
 
-        @ParameterizedTest
+        @ParameterizedTest(name = "{1}/{0}")
         @CsvSource({
             "10, 10",
+            "1, 1"
         })
-        void shouldThrowWhenSeatsUnavailable(int capacity, int enrolled) {
-            var offering = CourseOfferingEntity.builder()
-                .capacity(capacity)
-                .enrolled(enrolled)
-                .build();
+        void shouldConflictWhenFull(int capacity, int enrolled) {
+            var offering = offering(capacity, enrolled);
 
-            assertThrows(BadRequestException.class, offering::enroll);
+            assertThrows(ConflictException.class, offering::enroll);
             assertEquals(enrolled, offering.getEnrolled());
         }
 
-        @ParameterizedTest
+        @ParameterizedTest(name = "{1}/{0}")
         @CsvSource({
             "10, 1",
             "10, 10"
         })
-        void shouldCorrectlyReleaseSeat(int capacity, int enrolled) {
-            var offering = CourseOfferingEntity.builder()
-                .capacity(capacity)
-                .enrolled(enrolled)
-                .build();
+        void shouldReleaseSeat(int capacity, int enrolled) {
+            var offering = offering(capacity, enrolled);
 
             offering.releaseEnrolled();
+
             assertEquals(enrolled - 1, offering.getEnrolled());
         }
 
-        @ParameterizedTest
-        @CsvSource({
-            "10, 0",
-        })
-        void shouldThrowWhenNoSeatTaken(int capacity, int enrolled) {
-            var offering = CourseOfferingEntity.builder()
-                .capacity(capacity)
-                .enrolled(enrolled)
-                .build();
+        @Test
+        void shouldConflictWhenReleasingWithNoSeatsTaken() {
+            var offering = offering(10, 0);
 
-            assertThrows(BadRequestException.class, offering::releaseEnrolled);
-            assertEquals(enrolled, offering.getEnrolled());
+            assertThrows(ConflictException.class, offering::releaseEnrolled);
+            assertEquals(0, offering.getEnrolled());
         }
     }
 }

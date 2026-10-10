@@ -8,11 +8,9 @@ import com.sarthak.universityManagement.security.UserPrincipal;
 import com.sarthak.universityManagement.student.StudentEntity;
 import com.sarthak.universityManagement.student.StudentService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-
-import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -27,10 +25,10 @@ public class CurrentUserService {
 
     public UserPrincipal getCurrentUserPrincipal() {
         var auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated()) {
-            throw new AuthenticationException("User is not authenticated") { };
+        if(auth != null && auth.isAuthenticated() && auth.getPrincipal() instanceof UserPrincipal principal) {
+            return principal;
         }
-        return (UserPrincipal) auth.getPrincipal();
+        throw new AuthenticationCredentialsNotFoundException("User is not authenticated");
     }
     
     public StudentEntity getCurrentStudent() {
@@ -50,12 +48,10 @@ public class CurrentUserService {
     }
 
     public Integer getCurrentUserId() {
-        UserPrincipal userPrincipal = getCurrentUserPrincipal();
-        return Objects.requireNonNull(userPrincipal, "User principal is null").getUserId();
+        return getCurrentUserPrincipal().getUserId();
     }
 
     public Role getCurrentUserRole() {
-        UserPrincipal userPrincipal = getCurrentUserPrincipal();
-        return Objects.requireNonNull(Objects.requireNonNull(userPrincipal, "User principal is null")).getRole();
+        return getCurrentUserPrincipal().getRole();
     }
 }

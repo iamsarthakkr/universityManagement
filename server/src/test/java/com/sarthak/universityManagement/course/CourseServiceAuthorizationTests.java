@@ -2,16 +2,21 @@ package com.sarthak.universityManagement.course;
 
 import com.sarthak.universityManagement.common.types.Role;
 import com.sarthak.universityManagement.config.IntegrationTests;
-import com.sarthak.universityManagement.testUtils.TestSecurityUtils;
 import com.sarthak.universityManagement.testUtils.fixtures.CourseFixtures;
-import com.sarthak.universityManagement.testUtils.fixtures.UserFixtures;
+import com.sarthak.universityManagement.testUtils.security.TestAuthentication;
+import com.sarthak.universityManagement.testUtils.seeders.CourseSeeder;
 import com.sarthak.universityManagement.testUtils.seeders.DepartmentSeeder;
-import com.sarthak.universityManagement.testUtils.seeders.UserSeeder;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
+
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -20,58 +25,77 @@ public class CourseServiceAuthorizationTests extends IntegrationTests {
     @Autowired
     private CourseService courseService;
     @Autowired
-    private UserSeeder userSeeder;
+    private CourseRepo courseRepo;
+    @Autowired
+    private CourseSeeder courseSeeder;
     @Autowired
     private DepartmentSeeder departmentSeeder;
 
+    enum TestActor { ADMIN, INSTRUCTOR, STUDENT, ANONYMOUS }
+    enum Outcome { ALLOWED, ACCESS_DENIED, UNAUTHENTICATED }
+
+    private void authenticateAs(TestActor actor) {
+        switch (actor) {
+            case ADMIN -> TestAuthentication.asRole(Role.ADMIN);
+            case INSTRUCTOR -> TestAuthentication.asRole(Role.INSTRUCTOR);
+            case STUDENT -> TestAuthentication.asRole(Role.STUDENT);
+            case ANONYMOUS -> TestAuthentication.clear();
+        }
+    }
+
+    private static Class<? extends Exception> expectedException(Outcome outcome) {
+        return switch (outcome) {
+            case ACCESS_DENIED -> AuthorizationDeniedException.class;
+            case UNAUTHENTICATED -> AuthenticationCredentialsNotFoundException.class;
+            case ALLOWED -> throw new IllegalArgumentException("ALLOWED has no exception");
+        };
+    }
 
     @AfterEach
-    void cleanup() {
-        TestSecurityUtils.clearAuthentication();
+    void tearDown() {
+        TestAuthentication.clear();
     }
 
-    private void setupUser(Role role) {
-        var user = userSeeder.saveUser(
-                UserFixtures.user().username("seeded-user").email("seeded@abc").role(role).build()
-        );
-        TestSecurityUtils.authenticateAs(user);
+    @Nested
+    class CreationAuthorization {
+
+        static Stream<Arguments> cases() {
+            return Stream.of(
+                Arguments.of(TestActor.ADMIN, Outcome.ALLOWED),
+                Arguments.of(TestActor.INSTRUCTOR, Outcome.ACCESS_DENIED),
+                Arguments.of(TestActor.STUDENT, Outcome.ACCESS_DENIED),
+                Arguments.of(TestActor.ANONYMOUS, Outcome.UNAUTHENTICATED)
+            );
+        }
+
+        @ParameterizedTest(name = "{0} -> {1}")
+        @MethodSource("cases")
+        void shouldAuthorizeCreation(TestActor actor, Outcome outcome) {
+            var department = departmentSeeder.saveDefault("cs-1");
+            var request = CourseFixtures.courseRequest(department.getId()).build();
+            authenticateAs(actor);
+
+            if(outcome == Outcome.ALLOWED) {
+                assertNotNull(courseService.createCourse(request).id());
+            } else {
+                assertThrows(expectedException(outcome), () -> courseService.createCourse(request));
+                assertEquals(0, courseRepo.count());
+            }
+        }
     }
 
-    @Test
-    void createCourse_whenAdmin_shouldAllow() {
-        setupUser(Role.ADMIN);
-        var department = departmentSeeder.saveDefault("cs-1");
+    @Nested
+    class ReadAuthorization {
 
-        var req = CourseFixtures.courseRequest(department.getId()).build();
+        // The course list and course details carry no @PreAuthorize: route security decides who reaches them
+        @ParameterizedTest
+        @EnumSource(TestActor.class)
+        void shouldAllowEveryoneToReadCourses(TestActor actor) {
+            var course = courseSeeder.saveDefault(departmentSeeder.saveDefault("cs-1"));
+            authenticateAs(actor);
 
-        assertDoesNotThrow(() -> courseService.createCourse(req));
-    }
-
-    @Test
-    void createCourse_whenStudent_shouldDeny() {
-        setupUser(Role.STUDENT);
-        var department = departmentSeeder.saveDefault("cs-1");
-
-        var req = CourseFixtures.courseRequest(department.getId()).build();
-
-        assertThrows(AuthorizationDeniedException.class, () -> courseService.createCourse(req));
-    }
-
-    @Test
-    void createCourse_whenInstructor_shouldDeny() {
-        setupUser(Role.INSTRUCTOR);
-        var department = departmentSeeder.saveDefault("cs-1");
-
-        var req = CourseFixtures.courseRequest(department.getId()).build();
-
-        assertThrows(AuthorizationDeniedException.class, () -> courseService.createCourse(req));
-    }
-
-    @Test
-    void createCourse_whenAnonymous_shouldDeny() {
-        var department = departmentSeeder.saveDefault("cs-1");
-        var req = CourseFixtures.courseRequest(department.getId()).build();
-
-        assertThrows(AuthenticationCredentialsNotFoundException.class, () -> courseService.createCourse(req));
+            assertEquals(course.getId(), courseService.getCourseById(course.getId()).id());
+            assertEquals(1, courseService.getCourses().size());
+        }
     }
 }

@@ -3,7 +3,6 @@ package com.sarthak.universityManagement.course;
 import com.sarthak.universityManagement.auth.AuthorizationExpressions;
 import com.sarthak.universityManagement.common.exceptions.ConflictException;
 import com.sarthak.universityManagement.common.exceptions.ResourceNotFoundException;
-import com.sarthak.universityManagement.course.dto.CourseCatalogueResponse;
 import com.sarthak.universityManagement.course.dto.CourseRequest;
 import com.sarthak.universityManagement.course.dto.CourseResponse;
 import com.sarthak.universityManagement.department.DepartmentService;
@@ -27,9 +26,12 @@ public class CourseService {
     }
 
     @Transactional(readOnly = true)
-    public List<CourseCatalogueResponse> getCoursesCatalogue() {
-        var courses = courseRepo.findAllByOrderByDepartmentNameAscCodeAsc();
-        return CourseMapper.toCatalogue(courses);
+    public List<CourseResponse> getCourses() {
+        return courseRepo
+            .findAllByOrderByDepartmentNameAscCodeAsc()
+            .stream()
+            .map(CourseMapper::toResponse)
+            .toList();
     }
 
     @Transactional(readOnly = true)

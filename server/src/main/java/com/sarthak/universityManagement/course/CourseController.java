@@ -3,7 +3,6 @@ package com.sarthak.universityManagement.course;
 import com.sarthak.universityManagement.common.rest.ApiResponse;
 import com.sarthak.universityManagement.common.rest.Res;
 import com.sarthak.universityManagement.common.rest.SuccessCode;
-import com.sarthak.universityManagement.course.dto.CourseCatalogueResponse;
 import com.sarthak.universityManagement.course.dto.CourseRequest;
 import com.sarthak.universityManagement.course.dto.CourseResponse;
 import jakarta.validation.Valid;
@@ -38,9 +37,9 @@ public class CourseController {
         return Res.success(courseService.getCourseById(id));
     }
 
-    @GetMapping("/catalogue")
-    public ResponseEntity<ApiResponse<List<CourseCatalogueResponse>>> getCoursesCatalogue() {
-        return Res.success(courseService.getCoursesCatalogue());
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<CourseResponse>>> getCourses() {
+        return Res.success(courseService.getCourses());
     }
 
 }
