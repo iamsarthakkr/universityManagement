@@ -17,10 +17,4 @@ public enum EnrollmentAction {
         return targetStatus;
     }
 
-    public static EnrollmentAction valueOf(EnrollmentStatus targetStatus) {
-        return Arrays.stream(EnrollmentAction.values())
-            .filter(a -> a.targetStatus.equals(targetStatus))
-            .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("Cannot get enrollment action for status " + targetStatus));
-    }
 }
