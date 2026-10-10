@@ -8,7 +8,6 @@ import com.sarthak.universityManagement.testUtils.TestDataSetup;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.AuthenticationException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -39,7 +38,8 @@ public class AuthServiceIntegrationTests extends IntegrationTests {
     @Test
     void shouldRejectInvalidUsername() {
         LoginRequest request = new LoginRequest("noSuchUser", "anyPassword");
-       assertThrows(AuthenticationException.class,
+        // Same exception as a wrong password, so login can't reveal which usernames exist
+        assertThrows(BadCredentialsException.class,
             () -> authService.login(request));
     }
     
