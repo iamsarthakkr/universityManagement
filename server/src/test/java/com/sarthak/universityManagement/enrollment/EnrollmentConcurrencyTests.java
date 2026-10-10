@@ -150,7 +150,6 @@ public class EnrollmentConcurrencyTests extends MySqlTestContainer {
 
         executor.shutdown();
 
-
         TestAuthentication.asInstructor(instructor);
 
         var approvedCount = 0;

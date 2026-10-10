@@ -1,5 +1,6 @@
 package com.sarthak.universityManagement.enrollment;
 
+import com.sarthak.universityManagement.common.exceptions.ForbiddenException;
 import com.sarthak.universityManagement.config.IntegrationTests;
 import com.sarthak.universityManagement.enrollment.types.EnrollmentAction;
 import com.sarthak.universityManagement.enrollment.types.EnrollmentStatus;
@@ -10,17 +11,19 @@ import com.sarthak.universityManagement.testUtils.scenerio.enrollment.Enrollment
 import com.sarthak.universityManagement.testUtils.scenerio.student.StudentScenario;
 import com.sarthak.universityManagement.testUtils.scenerio.student.StudentScenarioSeeder;
 import com.sarthak.universityManagement.testUtils.security.TestAuthentication;
-import com.sarthak.universityManagement.testUtils.security.WithAdmin;
+import org.aspectj.lang.annotation.After;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 
 import java.time.Clock;
 import java.time.LocalDate;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -36,6 +39,24 @@ public class EnrollmentAuthorizationTest extends IntegrationTests {
     private EnrollmentScenarioSeeder enrollmentScenarioSeeder;
     @Autowired
     private Clock clock;
+
+    enum TestActor { ADMIN, OFFERING_INSTRUCTOR, OTHER_INSTRUCTOR, OWNING_STUDENT, OTHER_STUDENT }
+    enum Outcome { ALLOWED, NOT_ALLOWED, ACCESS_DENIED }
+
+    private void authenticateAs(TestActor actor, EnrollmentScenario target, EnrollmentScenario other) {
+        switch (actor) {
+            case ADMIN -> TestAuthentication.asAdmin();
+            case OFFERING_INSTRUCTOR -> TestAuthentication.asInstructor(target.instructor());
+            case OTHER_INSTRUCTOR -> TestAuthentication.asInstructor(other.instructor());
+            case OWNING_STUDENT -> TestAuthentication.asStudent(target.student());
+            case OTHER_STUDENT -> TestAuthentication.asStudent(other.student());
+        }
+    }
+
+    @AfterEach
+    void tearDown() {
+        TestAuthentication.clear();
+    }
 
     @Nested
     class CreationAuthorization {
@@ -74,7 +95,6 @@ public class EnrollmentAuthorizationTest extends IntegrationTests {
             var res =  enrollmentService.createEnrollment(student.getId(), offering.getId());
             assertNotNull(res);
 
-            TestAuthentication.clear();
         }
 
         @Test
@@ -93,162 +113,136 @@ public class EnrollmentAuthorizationTest extends IntegrationTests {
     }
 
     @Nested
-    class EnrollmentTransition {
-        private EnrollmentScenario enrollmentScenario1,  enrollmentScenario2;
+    class ActionAuthorization {
+        record ActionScenario(
+            TestActor actor,
+            EnrollmentAction action,
+            Outcome outcome
+        ) {}
 
-        private enum AdminAction {
-            approve,
-            reject,
-        }
-        private enum InstructorAction  {
-            approve,
-            reject
-        }
-        private enum StudentAction {
-            cancel,
-            drop
+        static Stream<ActionScenario> actions() {
+            return Stream.of(
+                new ActionScenario(TestActor.ADMIN, EnrollmentAction.APPROVE, Outcome.ALLOWED),
+                new ActionScenario(TestActor.ADMIN, EnrollmentAction.REJECT, Outcome.ALLOWED),
+                new ActionScenario(TestActor.ADMIN, EnrollmentAction.DROP, Outcome.NOT_ALLOWED),
+                new ActionScenario(TestActor.ADMIN, EnrollmentAction.CANCEL, Outcome.NOT_ALLOWED),
+
+                new ActionScenario(TestActor.OFFERING_INSTRUCTOR, EnrollmentAction.APPROVE, Outcome.ALLOWED),
+                new ActionScenario(TestActor.OFFERING_INSTRUCTOR, EnrollmentAction.REJECT, Outcome.ALLOWED),
+                new ActionScenario(TestActor.OFFERING_INSTRUCTOR, EnrollmentAction.CANCEL, Outcome.NOT_ALLOWED),
+                new ActionScenario(TestActor.OFFERING_INSTRUCTOR, EnrollmentAction.DROP, Outcome.NOT_ALLOWED),
+
+                new ActionScenario(TestActor.OTHER_INSTRUCTOR, EnrollmentAction.APPROVE, Outcome.ACCESS_DENIED),
+                new ActionScenario(TestActor.OTHER_INSTRUCTOR, EnrollmentAction.REJECT, Outcome.ACCESS_DENIED),
+                new ActionScenario(TestActor.OTHER_INSTRUCTOR, EnrollmentAction.CANCEL, Outcome.ACCESS_DENIED),
+                new ActionScenario(TestActor.OTHER_INSTRUCTOR, EnrollmentAction.DROP, Outcome.ACCESS_DENIED),
+
+                new ActionScenario(TestActor.OWNING_STUDENT, EnrollmentAction.APPROVE, Outcome.NOT_ALLOWED),
+                new ActionScenario(TestActor.OWNING_STUDENT, EnrollmentAction.REJECT, Outcome.NOT_ALLOWED),
+                new ActionScenario(TestActor.OWNING_STUDENT, EnrollmentAction.CANCEL, Outcome.ALLOWED),
+                new ActionScenario(TestActor.OWNING_STUDENT, EnrollmentAction.DROP, Outcome.ALLOWED),
+
+                new ActionScenario(TestActor.OTHER_STUDENT, EnrollmentAction.APPROVE, Outcome.ACCESS_DENIED),
+                new ActionScenario(TestActor.OTHER_STUDENT, EnrollmentAction.REJECT, Outcome.ACCESS_DENIED),
+                new ActionScenario(TestActor.OTHER_STUDENT, EnrollmentAction.CANCEL, Outcome.ACCESS_DENIED),
+                new ActionScenario(TestActor.OTHER_STUDENT, EnrollmentAction.DROP, Outcome.ACCESS_DENIED)
+            );
         }
 
-        @BeforeEach
-        void setup() {
-            enrollmentScenario1 = enrollmentScenarioSeeder.builder()
-                .departmentNumber(1)
-                .offering(
-                    o -> o.instructorNumber(1).courseNumber(1)
-                ).build();
+        private EnrollmentStatus getValidStartingStatus(EnrollmentAction action) {
+            return switch (action) {
+                case APPROVE, REJECT ,CANCEL -> EnrollmentStatus.PENDING;
+                case DROP ->  EnrollmentStatus.ENROLLED;
+            };
+        }
 
-            enrollmentScenario2 = enrollmentScenarioSeeder.builder()
+        @ParameterizedTest(name = "{0}")
+        @MethodSource("actions")
+        void shouldEnforceActionAuthorization(ActionScenario scenario) {
+            var target = enrollmentScenarioSeeder
+                .builder()
+                .enrollmentStatus(getValidStartingStatus(scenario.action()))
+                .student(s -> s.studentNumber(1))
+                .offering(o -> o.capacity(10).enrolled(5).courseNumber(1).instructorNumber(1).semester(s -> s.registrationOpenOn(LocalDate.now(clock))))
+                .build();
+
+            var other = enrollmentScenarioSeeder
+                .builder()
                 .student(s -> s.studentNumber(2))
-                .departmentNumber(1)
-                .enrollmentStatus(EnrollmentStatus.ENROLLED)
-                .offering(
-                    o -> o.instructorNumber(2).courseNumber(2).capacity(10).enrolled(1)
-                ).build();
-        }
+                .offering(o -> o.courseNumber(2).instructorNumber(2))
+                .build();
 
-        @ParameterizedTest
-        @WithAdmin
-        @EnumSource(AdminAction.class)
-        void shouldAllowAdmin(AdminAction action) {
-            var enrollment = enrollmentScenario1.enrollment();
+            authenticateAs(scenario.actor(), target, other);
 
-            switch (action) {
-                case approve: {
-                    enrollmentService.performAction(enrollment.getId(), EnrollmentAction.APPROVE);
-                    break;
+            switch (scenario.outcome) {
+                case ALLOWED -> {
+                    var resp = enrollmentService.performAction(target.enrollment().getId(), scenario.action());
+                    assertNotNull(resp);
+                    assertEquals(scenario.action.getTargetStatus(), resp.enrollmentStatus());
                 }
-                case reject: {
-                    enrollmentService.performAction(enrollment.getId(), EnrollmentAction.REJECT);
-                    break;
+                case NOT_ALLOWED -> {
+                    assertThrows(ForbiddenException.class, () -> enrollmentService.performAction(target.enrollment().getId(), scenario.action()));
+                }
+                case ACCESS_DENIED -> {
+                    assertThrows(AuthorizationDeniedException.class, () -> enrollmentService.performAction(target.enrollment().getId(), scenario.action()));
                 }
             }
 
-            TestAuthentication.clear();
+        }
+    }
+
+    @Nested
+    class ReadAuthorization {
+
+        record ReadScenario(
+            TestActor actor,
+            Outcome outcome
+        ) {}
+
+        static Stream<ReadScenario> readScenarios() {
+            return Stream.of(
+                new ReadScenario(TestActor.ADMIN, Outcome.ALLOWED),
+                new ReadScenario(TestActor.OWNING_STUDENT, Outcome.ALLOWED),
+                new ReadScenario(TestActor.OFFERING_INSTRUCTOR, Outcome.ALLOWED),
+                new ReadScenario(TestActor.OTHER_INSTRUCTOR, Outcome.ACCESS_DENIED),
+                new ReadScenario(TestActor.OTHER_STUDENT, Outcome.ACCESS_DENIED)
+            );
         }
 
-        @ParameterizedTest
-        @EnumSource(InstructorAction.class)
-        void shouldAllowInstructorOfSameEnrollmentOffering(InstructorAction action) {
-            var instructor = enrollmentScenario1.instructor();
-            var enrollment = enrollmentScenario1.enrollment();
+        @ParameterizedTest(name = "{0}")
+        @MethodSource("readScenarios")
+        void shouldEnforceReadAuthorization(ReadScenario scenario) {
 
-            TestAuthentication.asInstructor(instructor);
+            var target = enrollmentScenarioSeeder
+                .builder()
+                .student(s -> s.studentNumber(1))
+                .offering(o -> o.capacity(10).enrolled(5).courseNumber(1).instructorNumber(1).semester(s -> s.registrationOpenOn(LocalDate.now(clock))))
+                .build();
 
-            switch (action) {
-                case approve: {
-                    enrollmentService.performAction(enrollment.getId(), EnrollmentAction.APPROVE);
-                    break;
+            var other = enrollmentScenarioSeeder
+                .builder()
+                .student(s -> s.studentNumber(2))
+                .offering(o -> o.courseNumber(2).instructorNumber(2))
+                .build();
+
+            authenticateAs(scenario.actor(), target, other);
+
+            switch (scenario.outcome) {
+                case ALLOWED -> {
+                    var resp = enrollmentService.getEnrollment(target.enrollment().getId());
+                    assertNotNull(resp);
+                    assertEquals(target.enrollment().getId(), resp.id());
                 }
-                case reject: {
-                    enrollmentService.performAction(enrollment.getId(),  EnrollmentAction.REJECT);
-                    break;
-                }
-            }
-
-            TestAuthentication.clear();
-        }
-
-        @ParameterizedTest
-        @EnumSource(InstructorAction.class)
-        void shouldDenyDifferentInstructor(InstructorAction action) {
-            var instructor = enrollmentScenario2.instructor();
-            var enrollment = enrollmentScenario1.enrollment();
-
-            TestAuthentication.asInstructor(instructor);
-
-            switch (action) {
-                case approve: {
-                    assertThrows(AuthorizationDeniedException.class, () ->
-                        enrollmentService.performAction(enrollment.getId(), EnrollmentAction.APPROVE)
-                    );
-                    break;
-                }
-                case reject: {
-                    assertThrows(AuthorizationDeniedException.class, () ->
-                        enrollmentService.performAction(enrollment.getId(), EnrollmentAction.REJECT )
-                    );
-                    break;
+                case ACCESS_DENIED -> {
+                    assertThrows(AuthorizationDeniedException.class, () -> enrollmentService.getEnrollment(target.enrollment().getId()));
                 }
             }
-
-            TestAuthentication.clear();
-        }
-
-        @ParameterizedTest
-        @EnumSource(StudentAction.class)
-        void shouldAllowStudentOfEnrollment(StudentAction action) {
-            var student1 = enrollmentScenario1.student();
-            var student2 = enrollmentScenario2.student();
-            var enrollment1 = enrollmentScenario1.enrollment();
-            var enrollment2 = enrollmentScenario2.enrollment();
-
-            switch (action) {
-                case drop: {
-                    TestAuthentication.asStudent(student2);
-                    enrollmentService.performAction(enrollment2.getId(), EnrollmentAction.DROP);
-                    break;
-                }
-                case cancel: {
-                    TestAuthentication.asStudent(student1);
-                    enrollmentService.performAction(enrollment1.getId(), EnrollmentAction.CANCEL);
-                    break;
-                }
-            }
-
-            TestAuthentication.clear();
-        }
-
-        @ParameterizedTest
-        @EnumSource(StudentAction.class)
-        void shouldDenyAnotherStudent(StudentAction action) {
-            var student = enrollmentScenario2.student();
-            var enrollment = enrollmentScenario1.enrollment();
-
-            TestAuthentication.asStudent(student);
-
-            switch (action) {
-                case drop: {
-                    assertThrows(AuthorizationDeniedException.class, () ->
-                        enrollmentService.performAction(enrollment.getId(), EnrollmentAction.DROP)
-                    );
-                    break;
-                }
-                case cancel: {
-                    assertThrows(AuthorizationDeniedException.class, () ->
-                        enrollmentService.performAction(enrollment.getId(), EnrollmentAction.CANCEL)
-                    );
-                    break;
-                }
-            }
-
-            TestAuthentication.clear();
         }
 
     }
 
     @Nested
     class Query {
-
         private StudentEntity student1, student2;
 
         @BeforeEach
@@ -276,7 +270,6 @@ public class EnrollmentAuthorizationTest extends IntegrationTests {
 
             TestAuthentication.asStudent(student1);
             enrollmentService.createEnrollment(student1.getId(), courseOfferingScenario.courseOffering().getId());
-            TestAuthentication.clear();
         }
 
         @Test

@@ -3,7 +3,12 @@ package com.sarthak.universityManagement.enrollment;
 import com.sarthak.universityManagement.enrollment.types.EnrollmentStatus;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -12,56 +17,53 @@ public class EnrollmentEntityTests {
     @Nested
     class Transition {
 
-        @ParameterizedTest
-        @CsvSource({
-            "PENDING, ENROLLED",
-            "PENDING, REJECTED",
-            "PENDING, CANCELLED",
+        record TransitionCase(
+            EnrollmentStatus from,
+            EnrollmentStatus to
+        ) {}
 
-            "ENROLLED, DROPPED",
-        })
-        void shouldAllowEnrollmentTransition(EnrollmentStatus from , EnrollmentStatus to) {
-            var enrollment = EnrollmentEntity.builder()
-                .status(from)
-                .build();
-
-            assertTrue(enrollment.canTransitionTo(to));
+        static Stream<TransitionCase> validTransitionCases() {
+            return Stream.of(
+                new TransitionCase(EnrollmentStatus.PENDING, EnrollmentStatus.ENROLLED),
+                new TransitionCase(EnrollmentStatus.PENDING, EnrollmentStatus.REJECTED),
+                new TransitionCase(EnrollmentStatus.PENDING, EnrollmentStatus.CANCELLED),
+                new TransitionCase(EnrollmentStatus.ENROLLED, EnrollmentStatus.DROPPED)
+            );
         }
 
-        @ParameterizedTest
-        @CsvSource({
-            "PENDING, PENDING",
-            "PENDING, DROPPED",
+        static Stream<TransitionCase> invalidTransitionCases() {
+            var valid = validTransitionCases().collect(Collectors.toSet());
 
-            "ENROLLED, PENDING",
-            "ENROLLED, ENROLLED",
-            "ENROLLED, CANCELLED",
-            "ENROLLED, REJECTED",
+            List<TransitionCase> invalidTransitions = new ArrayList<>();
+            for(var from: EnrollmentStatus.values()) {
+                for(var to: EnrollmentStatus.values()) {
+                    if(!valid.contains(new TransitionCase(from, to))) {
+                        invalidTransitions.add(new TransitionCase(from, to));
+                    }
+                }
+            }
 
-            "REJECTED, PENDING",
-            "REJECTED, ENROLLED",
-            "REJECTED, REJECTED",
-            "REJECTED, CANCELLED",
-            "REJECTED, DROPPED",
+            return invalidTransitions.stream();
+        }
 
-            "CANCELLED, PENDING",
-            "CANCELLED, ENROLLED",
-            "CANCELLED, REJECTED",
-            "CANCELLED, CANCELLED",
-            "CANCELLED, DROPPED",
-
-            "DROPPED, PENDING",
-            "DROPPED, ENROLLED",
-            "DROPPED, REJECTED",
-            "DROPPED, CANCELLED",
-            "DROPPED, DROPPED",
-        })
-        void shouldDenyEnrollmentTransition(EnrollmentStatus from , EnrollmentStatus to) {
+        @ParameterizedTest(name = "{0}")
+        @MethodSource("validTransitionCases")
+        void shouldAllowEnrollmentTransition(TransitionCase transitionCase) {
             var enrollment = EnrollmentEntity.builder()
-                .status(from)
+                .status(transitionCase.from())
                 .build();
 
-            assertFalse(enrollment.canTransitionTo(to));
+            assertTrue(enrollment.canTransitionTo(transitionCase.to()));
+        }
+
+        @ParameterizedTest(name = "{0}")
+        @MethodSource("invalidTransitionCases")
+        void shouldDenyEnrollmentTransition(TransitionCase invalidTransitionCase) {
+            var enrollment = EnrollmentEntity.builder()
+                .status(invalidTransitionCase.from)
+                .build();
+
+            assertFalse(enrollment.canTransitionTo(invalidTransitionCase.to()));
         }
     }
 }
