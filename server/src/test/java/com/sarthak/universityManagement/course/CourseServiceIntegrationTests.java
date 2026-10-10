@@ -5,7 +5,7 @@ import com.sarthak.universityManagement.common.exceptions.ResourceNotFoundExcept
 import com.sarthak.universityManagement.config.IntegrationTests;
 import com.sarthak.universityManagement.course.dto.CourseRequest;
 import com.sarthak.universityManagement.course.dto.CourseResponse;
-import com.sarthak.universityManagement.testUtils.TestSecurityUtils;
+import com.sarthak.universityManagement.testUtils.security.TestAuthentication;
 import com.sarthak.universityManagement.testUtils.fixtures.CourseFixtures;
 import com.sarthak.universityManagement.testUtils.fixtures.DepartmentFixtures;
 import com.sarthak.universityManagement.testUtils.fixtures.UserFixtures;
@@ -41,12 +41,12 @@ public class CourseServiceIntegrationTests extends IntegrationTests {
     @BeforeEach
     void setupAdmin() {
         var user = userSeeder.saveUser(UserFixtures.user().username("seed-user").email("seed@abc").build());
-        TestSecurityUtils.authenticateAs(user);
+        TestAuthentication.asUser(user);
     }
 
     @AfterEach
     void cleanup() {
-        TestSecurityUtils.clearAuthentication();
+        TestAuthentication.clear();
     }
 
     @Nested

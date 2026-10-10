@@ -4,10 +4,13 @@ import com.sarthak.universityManagement.auth.dto.LoginRequest;
 import com.sarthak.universityManagement.auth.dto.LoginResponse;
 import com.sarthak.universityManagement.common.types.Role;
 import com.sarthak.universityManagement.config.IntegrationTests;
-import com.sarthak.universityManagement.testUtils.TestDataSetup;
+import com.sarthak.universityManagement.testUtils.fixtures.UserFixtures;
+import com.sarthak.universityManagement.testUtils.seeders.UserSeeder;
+import com.sarthak.universityManagement.user.UserEntity;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -15,26 +18,31 @@ public class AuthServiceIntegrationTests extends IntegrationTests {
     @Autowired
     private AuthService authService;
     @Autowired
-    private TestDataSetup setup;
-    
+    private UserSeeder userSeeder;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    // Login compares against the stored hash, so the password must go through the app's encoder
+    private UserEntity saveUser(String username, String rawPassword) {
+        return userSeeder.saveUser(
+            UserFixtures.user()
+                .username(username)
+                .email(username + "@example.com")
+                .role(Role.STUDENT)
+                .password(passwordEncoder.encode(rawPassword))
+                .build()
+        );
+    }
+
     @Test
     void shouldAuthenticateValidUser() {
-        setup.savedUser(
-            "student1",
-            "student1@example.com",
-            Role.STUDENT,
-            "password"
-        );
-        LoginRequest request =
-            new LoginRequest(
-                "student1",
-                "password"
-            );
-        LoginResponse response =
-            authService.login(request);
+        saveUser("student1", "password");
+
+        LoginResponse response = authService.login(new LoginRequest("student1", "password"));
+
         assertNotNull(response);
     }
-    
+
     @Test
     void shouldRejectInvalidUsername() {
         LoginRequest request = new LoginRequest("noSuchUser", "anyPassword");
@@ -42,51 +50,36 @@ public class AuthServiceIntegrationTests extends IntegrationTests {
         assertThrows(BadCredentialsException.class,
             () -> authService.login(request));
     }
-    
+
     @Test
     void shouldRejectInvalidPassword() {
-        setup.savedUser(
-            "student2",
-            "student2@example.com",
-            Role.STUDENT,
-            "correct-password"
-        );
+        saveUser("student2", "correct-password");
+
         LoginRequest request = new LoginRequest("student2", "wrong-password");
         assertThrows(BadCredentialsException.class,
             () -> authService.login(request));
     }
-    
+
     @Test
     void shouldGenerateJwtToken() {
-        setup.savedUser(
-            "student3",
-            "student3@example.com",
-            Role.STUDENT,
-            "password123"
-        );
-        LoginRequest request = new LoginRequest("student3", "password123");
-        LoginResponse response = authService.login(request);
+        saveUser("student3", "password123");
+
+        LoginResponse response = authService.login(new LoginRequest("student3", "password123"));
+
         assertNotNull(response);
-        String token = response.accessToken();
-        assertNotNull(token);
+        assertNotNull(response.accessToken());
         assertNotNull(response.user());
     }
-    
+
     @Test
     void shouldReturnCorrectUserDetailsInResponse() {
-        var user = setup.savedUser(
-            "student4",
-            "student4@example.com",
-            Role.STUDENT,
-            "pwd"
-        );
-        LoginRequest request = new LoginRequest("student4", "pwd");
-        LoginResponse response = authService.login(request);
-        assertNotNull(response);
+        var user = saveUser("student4", "pwd");
+
+        LoginResponse response = authService.login(new LoginRequest("student4", "pwd"));
+
         assertNotNull(response.accessToken());
         assertEquals(user.getId(), response.user().id());
         assertEquals(user.getRole(), response.user().role());
         assertEquals(user.getUsername(), response.user().username());
     }
-    
 }

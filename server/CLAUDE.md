@@ -42,50 +42,101 @@ Required properties (all overridden in dev profile):
 
 ### Domain model
 
-Five core domain entities: `UserEntity`, `StudentEntity`, `InstructorEntity`, `CourseEntity`, plus registration workflow entities (`StudentRegistrationEntity`, `InstructorRegistrationEntity`). Roles are stored in `UserEntity` and used for authorization via Spring Security.
+- **People:** `UserEntity` (holds the `Role`: `ADMIN`, `INSTRUCTOR`, `STUDENT`), with `StudentEntity` / `InstructorEntity` linked to a user. Both belong to a `DepartmentEntity`.
+- **Registration workflow:** `StudentRegistrationEntity`, `InstructorRegistrationEntity`.
+- **Academics:** `CourseEntity` (belongs to a department) → `CourseOfferingEntity` (a course taught by an instructor in a `SemesterEntity`, with a `section`, `capacity` and `enrolled` count) → `EnrollmentEntity` (a student in an offering).
 
 ### Registration workflow
 
 New users go through a two-step registration process:
-1. Public POST to `/registration/student` or `/registration/instructor` creates a `RegistrationEntity` with status `PENDING`.
-2. Admin approves/rejects via `/admin/registration/student/{id}/approve` (etc.), which triggers creation of the actual `UserEntity` and associated `StudentEntity`/`InstructorEntity`.
+1. Public POST to `/registration/student` or `/registration/instructor` creates a registration with status `PENDING`.
+2. An admin approves or rejects it via `POST /admin/student-registrations/{id}/approve|reject` (and `/admin/instructor-registrations/...`). Approval creates the `UserEntity` and the matching `StudentEntity` / `InstructorEntity`.
 
 `StudentRegistrationService` and `InstructorRegistrationService` own this logic. `@PreAuthorize(AuthorizationExpressions.ADMIN)` guards all admin actions.
 
+### Status workflows (semester and enrollment)
+
+Semesters and enrollments are state machines, and both follow the same structure. Copy it for any new workflow.
+
+| Piece | Semester | Enrollment |
+|---|---|---|
+| Status, owns the transition table in `canTransitionTo` (exhaustive arrow `switch`) | `SemesterStatus`: `PLANNED → ACTIVE → COMPLETED`, `PLANNED/ACTIVE → CANCELLED` | `EnrollmentStatus`: `PENDING → ENROLLED/REJECTED/CANCELLED`, `ENROLLED → DROPPED` |
+| Action, maps to a target status | `SemesterAction`: `ACTIVATE`, `COMPLETE`, `CANCEL` | `EnrollmentAction`: `APPROVE`, `REJECT`, `CANCEL`, `DROP` |
+| Policy, decides who may do what | `SemesterActionPolicy` (admin only) | `EnrollmentActionPolicy` (see below) |
+| Endpoint | `POST /semesters/{id}/{action}` | `POST /enrollments/{id}/{action}` |
+| Path converter (case-insensitive, trims) | `StringToSemesterActionConverter` | `StringToEnrollmentActionConverter` |
+
+Rules that hold across both:
+
+- **Responses carry `allowedActions`** for the current viewer, computed by the same policy method that enforces the action. Enforcement and what the UI shows therefore cannot disagree. The frontend renders these and never duplicates transition rules.
+- **`EnrollmentActionPolicy` separates who from what.** `getActor` maps the viewer to `ADMIN`, `OFFERING_INSTRUCTOR`, `OWNING_STUDENT` or `NONE`; `PERMITTED_ACTIONS` lists what each actor may do; `businessRule` then checks the transition, a closed semester and a full offering, in that order. `validate` returns an `EnrollmentDenial`, which `toException` maps to 403 / 400 / 400 / 409.
+- **Actions lock rows.** Transitions load with `findForUpdateById` (`PESSIMISTIC_WRITE`). Enrollment actions lock the course offering *before* validating, because a locking query does not refresh an entity already in the persistence context. Loading it unlocked first would validate against stale seat counts. `EnrollmentConcurrencyTests` and `SemesterConcurrencyTests` cover this.
+
 ### Security
 
-Stateless JWT auth. `JwtAuthenticationFilter` validates tokens on every request. `SecurityConfig` defines route-level rules; method-level rules use `@PreAuthorize` with expressions from `AuthorizationExpressions`. `CurrentUserService` resolves the authenticated principal to a `UserEntity`.
+Stateless JWT auth. `JwtAuthenticationFilter` validates tokens on every request; an expired or invalid token, or one for a deleted user, gets 401. `SecurityConfig` defines route-level rules; everything not listed in `PublicEndpointConfig` (a `RequestMatcher` bean: login, registration, `GET /departments`, health/info) requires authentication.
 
-Public endpoints are declared via `PublicEndpointConfig` (a `RequestMatcher` bean), making them easy to extend without touching `SecurityConfig`.
+Method-level rules use `@PreAuthorize`, either with role expressions from `AuthorizationExpressions` (`ADMIN`, `ANY_AUTHENTICATED`, ...) or with meta-annotations in `security/annotation` that call `AuthorizationService`:
+
+- `@AdminOrCourseOfferingInstructor`: admin, or the instructor of `#courseOfferingId`
+- `@CanAccessEnrollment`: admin, the offering's instructor, or the enrolled student
+- `@CurrentStudent`: `#studentId` is the logged-in student
+
+The annotations answer "is this user involved with this resource at all?" using repo `exists` queries. The action policies answer "may they perform this specific action?". The relationship facts appear in both places on purpose, and `EnrollmentAuthorizationTest.AnnotationPolicyConsistency` keeps the two in agreement.
+
+`CurrentUserService` reads the current `UserPrincipal` from the security context (id and role need no extra query) and throws `AuthenticationCredentialsNotFoundException` when there is none, including for anonymous requests on public routes.
+
+### Error handling
+
+Throw the domain exceptions from `common/exceptions`: `ResourceNotFoundException` (404), `BadRequestException` (400), `ForbiddenException` (403), `ConflictException` (409). `GlobalExceptionHandler` turns them, and Spring's own exceptions (validation, type mismatch, unreadable body, unknown route, wrong method, auth failures), into `ApiErrorResponse` with a message the UI shows as-is. So write messages for end users. Client errors are logged at `WARN` without a stack trace; unexpected errors at `ERROR` with one.
 
 ### API response pattern
 
-All controllers return `ResponseEntity<ApiResponse<T>>` (success) or `ResponseEntity<ApiErrorResponse<T>>` (error) via the `Res` factory class. Use `Res.success(SuccessCode.CREATED, body)` / `Res.error(ErrorCode.X, message)` rather than constructing responses manually.
+All controllers return `ResponseEntity<ApiResponse<T>>` (success) or `ResponseEntity<ApiErrorResponse<T>>` (error) via the `Res` factory class. Use `Res.success(SuccessCode.CREATED, body)` / `Res.error(ErrorCode.X, message)` rather than constructing responses manually. Return flat lists of resources (for example, `GET /courses` returns `List<CourseResponse>`, each with its department); grouping for display is the client's job.
 
 ### Mappers
 
-Each domain package has a `*Mapper` class with static methods for converting between entities, DTOs, and internal command objects. No MapStruct — all mappings are hand-written.
+Each domain package has a `*Mapper` class with static methods for converting between entities, DTOs, and internal command objects. No MapStruct; all mappings are hand-written.
+
+### Time
+
+Inject the `Clock` bean (`TimeConfig`) and use `LocalDate.now(clock)`; never call `LocalDate.now()` directly. Tests replace it with a fixed clock (`TestClockConfig`), which keeps date-dependent logic such as registration windows deterministic.
 
 ### Package layout
 
+Packages are by domain. Each holds its own controller / service / repo / entity / mapper, with `dto/`, `types/` (enums) and, where needed, `converter/` and `validators/` sub-packages.
+
 ```
-auth/          — login endpoint, JWT token issuance, AuthorizationExpressions constants
-admin/         — admin-only controllers for approving registrations, AdminSeeder
-registration/  — student/ and instructor/ sub-packages with entity/repo/service/mapper/dto
-student/       — StudentEntity, StudentService, StudentRepo, StudentMapper
-instructor/    — InstructorEntity, InstructorService, InstructorRepo, InstructorMapper
-user/          — UserEntity, UserService, UserRepo, CurrentUserService
-course/        — CourseEntity, CourseService, CourseRepo, CourseMapper, CourseController
-security/      — SecurityConfig, JwtAuthenticationFilter, JwtService, UserPrincipal, etc.
-config/        — JpaConfig, AppSecurityBeansConfig, PublicEndpointConfig
-common/        — rest (Res, ApiResponse, ErrorCode, SuccessCode), exceptions, types (Role, RegistrationStatus)
+auth/            — login, /auth/me, JWT issuance, AuthorizationExpressions constants
+admin/           — admin registration-approval controllers, AdminSeeder
+registration/    — student/ and instructor/ registration requests
+user/            — UserEntity, UserService, CurrentUserService
+student/         — StudentEntity, StudentService
+instructor/      — InstructorEntity, InstructorService, InstructorValidator
+department/      — DepartmentEntity, public GET /departments
+course/          — CourseEntity, GET/POST /courses
+semester/        — SemesterEntity, SemesterStatus/Action, SemesterActionPolicy, SemesterValidator
+courseOffering/  — CourseOfferingEntity (capacity / enrolled seats), offerings and their enrollments
+enrollment/      — EnrollmentEntity, EnrollmentStatus/Action/Denial, EnrollmentActionPolicy
+security/        — SecurityConfig, jwt/, UserPrincipal, AuthorizationService, annotation/
+config/          — JpaConfig, AppSecurityBeansConfig, PublicEndpointConfig, TimeConfig
+common/          — rest (Res, ApiResponse, ErrorCode, SuccessCode), exceptions, entity (BaseEntity), types
 ```
 
 ### Database
 
-**Migration to Flyway is in progress.** Schema is now defined via versioned migrations in `src/main/resources/db/migration/` (e.g. `V1__initial_schema.sql`), replacing the old `src/main/resources/sql/*.sql` scripts (`schema.sql`, `admin.sql`, `reset.sql`), which have been deleted. `flyway-core` and `flyway-mysql` are on the classpath (`pom.xml`), so Flyway auto-runs migrations on startup by default in every profile unless explicitly disabled.
+Flyway owns the schema in every profile. Migrations live in `src/main/resources/db/migration/` (`V1__initial_schema.sql` … `V5__courseOffering_enrolled.sql`), and `ddl-auto=validate` makes Hibernate check the entity mappings against them. Schema changes always go in a new `V{n}__description.sql`; never edit an applied migration.
 
-- `prod` profile: `spring.flyway.enabled=true`, `locations=classpath:db/migration`, `ddl-auto=validate` — Flyway owns the schema, Hibernate only validates entity mappings against it.
-- `dev` profile: no Flyway override (so it inherits the default enabled behavior and runs the same migrations against the dev MySQL at `localhost:3306/universityManagementDev`), `ddl-auto=validate` — schema changes must go through a new migration file.
+JPA uses `PhysicalNamingStrategyStandardImpl`, so column and table names match exactly what you write in the entity (no automatic camelCase → snake_case conversion).
 
-JPA uses `PhysicalNamingStrategyStandardImpl` so column/table names match exactly what you write in the entity (no automatic camelCase → snake_case conversion). When adding/changing entities, add a new `V{n}__description.sql` migration under `db/migration` rather than relying on Hibernate to generate the schema.
+Invariants are enforced twice: in code with a clear message, and in the database as a backstop. Examples are unique semester `term + year`, unique course `code`, unique offering `course + semester + section`, the `chk_*` date, credits and seat checks, and `0 <= enrolled <= capacity`.
+
+## Testing
+
+Tests run against MySQL in Testcontainers (`MySqlTestContainer`), so Docker must be running.
+
+- **Base classes** (`config/`): `IntegrationTests` (`@SpringBootTest`, rolled back per test) and `RepoTests` (`@DataJpaTest`). Concurrency tests extend `MySqlTestContainer` directly without `@Transactional`, because threads must see each other's commits; they clean up in `@AfterEach`.
+- **Test data** (`testUtils/`): `fixtures/` (pre-filled entity and request builders), `seeders/` (save fixtures, with counters for unique values), `scenerio/` (builders that seed a whole graph, e.g. `EnrollmentScenarioSeeder`). Use these; don't build ad-hoc helpers.
+- **Authentication:** `TestAuthentication.asAdmin()`, `asRole(Role)`, `asUser(UserEntity)`, `asStudent(...)`, `asInstructor(...)` and `clear()`, or the `@WithAdmin` / `@WithInstructor` / `@WithStudent` annotations. Clear the context in `@AfterEach` when setting it by hand.
+- **Style:** prefer `@ParameterizedTest` tables. Transition tests list the valid cases and derive the invalid ones as "all pairs minus valid". Authorization tests are actor × outcome tables (`ALLOWED`, `ACCESS_DENIED`, `UNAUTHENTICATED`) that start from a state where the action is otherwise valid, so a denial can only come from authorization.
+- Controller (MockMvc) tests are not written yet.

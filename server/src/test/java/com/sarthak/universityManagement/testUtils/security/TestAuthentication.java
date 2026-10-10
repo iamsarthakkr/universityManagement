@@ -4,6 +4,7 @@ import com.sarthak.universityManagement.common.types.Role;
 import com.sarthak.universityManagement.instructor.InstructorEntity;
 import com.sarthak.universityManagement.security.UserPrincipal;
 import com.sarthak.universityManagement.student.StudentEntity;
+import com.sarthak.universityManagement.user.UserEntity;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -23,14 +24,16 @@ public class TestAuthentication {
         authenticate(principal);
     }
 
+    public static void asUser(UserEntity user) {
+        authenticate(new UserPrincipal(user));
+    }
+
     public static void asStudent(StudentEntity student) {
-        var principal = new UserPrincipal(student.getUser());
-        authenticate(principal);
+        asUser(student.getUser());
     }
 
     public static void asInstructor(InstructorEntity instructor) {
-        var principal = new UserPrincipal(instructor.getUser());
-        authenticate(principal);
+        asUser(instructor.getUser());
     }
 
     public static void asRole(Role role) {
