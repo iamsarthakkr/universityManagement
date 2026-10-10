@@ -27,7 +27,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
         HttpServletResponse response,
         AuthenticationException authException
     ) throws IOException {
-        LOG.error(authException.getMessage(), authException);
+        LOG.warn("Authentication required: {}", authException.getMessage());
         
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);

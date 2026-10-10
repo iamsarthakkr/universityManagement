@@ -1,26 +1,24 @@
 package com.sarthak.universityManagement.enrollment;
 
 import com.sarthak.universityManagement.courseOffering.CourseOfferingMapper;
-import com.sarthak.universityManagement.enrollment.dto.EnrollmentDetailResponse;
 import com.sarthak.universityManagement.enrollment.dto.EnrollmentResponse;
+import com.sarthak.universityManagement.enrollment.types.EnrollmentAction;
 import com.sarthak.universityManagement.student.StudentMapper;
 
-public final class EnrollmentMapper {
-    public static EnrollmentResponse toResponse(EnrollmentEntity enrollmentEntity) {
-        return EnrollmentResponse.builder()
-            .id(enrollmentEntity.getId())
-            .studentId(enrollmentEntity.getStudent().getId())
-            .courseOfferingId(enrollmentEntity.getCourseOffering().getId())
-            .enrollmentStatus(enrollmentEntity.getStatus())
-            .build();
-    }
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.List;
 
-    public static EnrollmentDetailResponse toDetailedResponse(EnrollmentEntity enrollmentEntity) {
-        return EnrollmentDetailResponse.builder()
+public final class EnrollmentMapper {
+    public static EnrollmentResponse toResponse(EnrollmentEntity enrollmentEntity, LocalDate today, List<EnrollmentAction> allowedActions) {
+        return EnrollmentResponse.builder()
             .id(enrollmentEntity.getId())
             .enrollmentStatus(enrollmentEntity.getStatus())
             .student(StudentMapper.toResponse(enrollmentEntity.getStudent()))
-            .courseOffering(CourseOfferingMapper.toResponse(enrollmentEntity.getCourseOffering()))
+            .courseOffering(CourseOfferingMapper.toResponse(enrollmentEntity.getCourseOffering(), today))
+            .allowedActions(allowedActions)
+            .createdAt(enrollmentEntity.getCreatedAt())
+            .updatedAt(enrollmentEntity.getUpdatedAt())
             .build();
     }
 }

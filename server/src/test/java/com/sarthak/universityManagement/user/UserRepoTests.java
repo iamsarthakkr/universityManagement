@@ -2,7 +2,7 @@ package com.sarthak.universityManagement.user;
 
 import com.sarthak.universityManagement.common.types.Role;
 import com.sarthak.universityManagement.config.RepoTests;
-import com.sarthak.universityManagement.testUtils.TestDataFactory;
+import com.sarthak.universityManagement.testUtils.fixtures.UserFixtures;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -15,12 +15,14 @@ class UserRepoTests extends RepoTests {
     
     @Autowired
     private UserRepo userRepo;
-    @Autowired
-    private TestDataFactory dataFactory;
+
+    private static UserEntity user(String username, String email, Role role) {
+        return UserFixtures.user().username(username).email(email).role(role).build();
+    }
     
     @Test
     void shouldSaveUserSuccessfully() {
-        UserEntity user = dataFactory.user("alice", "alice@example.com", Role.STUDENT);
+        UserEntity user = user("alice", "alice@example.com", Role.STUDENT);
         UserEntity saved = userRepo.save(user);
         assertNotNull(saved.getId(), "Saved user should have an id");
         assertTrue(userRepo.findById(saved.getId()).isPresent(), "User must be retrievable by id");
@@ -29,7 +31,7 @@ class UserRepoTests extends RepoTests {
     @Test
     void shouldFindUserByUsername() {
         String username = "bob";
-        UserEntity user = dataFactory.user(username, "bob@example.com", Role.STUDENT);
+        UserEntity user = user(username, "bob@example.com", Role.STUDENT);
         userRepo.saveAndFlush(user);
         
         var found = userRepo.findByUsername(username);
@@ -40,7 +42,7 @@ class UserRepoTests extends RepoTests {
     @Test
     void shouldReturnTrueWhenUsernameExists() {
         String username = "carol";
-        UserEntity user = dataFactory.user(username, "carol@example.com", Role.STUDENT);
+        UserEntity user = user(username, "carol@example.com", Role.STUDENT);
         userRepo.saveAndFlush(user);
         
         assertTrue(userRepo.existsByUsername(username), "existsByUsername should return true for existing username");
@@ -49,7 +51,7 @@ class UserRepoTests extends RepoTests {
     @Test
     void shouldReturnTrueWhenEmailExists() {
         String email = "frank@example.com";
-        UserEntity user = dataFactory.user("frank", email, Role.STUDENT);
+        UserEntity user = user("frank", email, Role.STUDENT);
         userRepo.saveAndFlush(user);
         
         assertTrue(userRepo.existsByEmail(email), "existsByEmail should return true for existing email");
@@ -58,10 +60,10 @@ class UserRepoTests extends RepoTests {
     @Test
     void shouldRejectDuplicateUsername() {
         String username = "dave";
-        UserEntity first = dataFactory.user(username, "dave1@example.com", Role.STUDENT);
+        UserEntity first = user(username, "dave1@example.com", Role.STUDENT);
         userRepo.saveAndFlush(first);
         
-        UserEntity duplicate = dataFactory.user(username, "dave2@example.com", Role.STUDENT);
+        UserEntity duplicate = user(username, "dave2@example.com", Role.STUDENT);
         assertThrows(DataIntegrityViolationException.class, () -> userRepo.saveAndFlush(duplicate),
             "Saving a user with duplicate username should fail with a DataIntegrityViolationException");
     }
@@ -69,10 +71,10 @@ class UserRepoTests extends RepoTests {
     @Test
     void shouldRejectDuplicateEmail() {
         String email = "erin@example.com";
-        UserEntity first = dataFactory.user("erin1", email, Role.STUDENT);
+        UserEntity first = user("erin1", email, Role.STUDENT);
         userRepo.saveAndFlush(first);
         
-        UserEntity duplicate = dataFactory.user("erin2", email, Role.STUDENT);
+        UserEntity duplicate = user("erin2", email, Role.STUDENT);
         assertThrows(DataIntegrityViolationException.class, () -> userRepo.saveAndFlush(duplicate),
             "Saving a user with duplicate email should fail with a DataIntegrityViolationException");
     }
@@ -80,7 +82,7 @@ class UserRepoTests extends RepoTests {
     @Test
     void shouldPersistUserRole() {
         Role role = Role.ADMIN;
-        UserEntity user = dataFactory.user("greg", "greg@example.com", role);
+        UserEntity user = user("greg", "greg@example.com", role);
         UserEntity saved = userRepo.saveAndFlush(user);
         
         assertNotNull(saved.getId(), "Saved user should have an id");
@@ -89,35 +91,35 @@ class UserRepoTests extends RepoTests {
     
     @Test
     void shouldRejectNullUsername() {
-        UserEntity u = dataFactory.user("temp", "temp@example.com", Role.STUDENT);
+        UserEntity u = user("temp", "temp@example.com", Role.STUDENT);
         u.setUsername(null);
         assertThrows(DataIntegrityViolationException.class, () -> userRepo.saveAndFlush(u));
     }
     
     @Test
     void shouldRejectNullEmail() {
-        UserEntity u = dataFactory.user("temp2", "temp2@example.com", Role.STUDENT);
+        UserEntity u = user("temp2", "temp2@example.com", Role.STUDENT);
         u.setEmail(null);
         assertThrows(DataIntegrityViolationException.class, () -> userRepo.saveAndFlush(u));
     }
     
     @Test
     void shouldRejectNullPassword() {
-        UserEntity u = dataFactory.user("temp3", "temp3@example.com", Role.STUDENT);
+        UserEntity u = user("temp3", "temp3@example.com", Role.STUDENT);
         u.setPassword(null);
         assertThrows(DataIntegrityViolationException.class, () -> userRepo.saveAndFlush(u));
     }
     
     @Test
     void shouldRejectNullRole() {
-        UserEntity u = dataFactory.user("temp4", "temp4@example.com", Role.STUDENT);
+        UserEntity u = user("temp4", "temp4@example.com", Role.STUDENT);
         u.setRole(null);
         assertThrows(DataIntegrityViolationException.class, () -> userRepo.saveAndFlush(u));
     }
     
     @Test
     void shouldPopulateCreatedAtBeforeNow() {
-        UserEntity user = dataFactory.user("audit1", "audit1@example.com", Role.STUDENT);
+        UserEntity user = user("audit1", "audit1@example.com", Role.STUDENT);
         UserEntity saved = userRepo.saveAndFlush(user);
         
         Instant createdInstant = saved.getCreatedAt();
@@ -128,7 +130,7 @@ class UserRepoTests extends RepoTests {
     
     @Test
     void shouldPopulateUpdatedAtBeforeNow() {
-        UserEntity user = dataFactory.user("audit2", "audit2@example.com", Role.STUDENT);
+        UserEntity user = user("audit2", "audit2@example.com", Role.STUDENT);
         UserEntity saved = userRepo.saveAndFlush(user);
         
         Instant updatedInstant = saved.getUpdatedAt();

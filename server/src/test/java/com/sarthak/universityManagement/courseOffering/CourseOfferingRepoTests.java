@@ -177,7 +177,7 @@ public class CourseOfferingRepoTests extends RepoTests {
             var c4 = courseOfferingSeeder.saveDefault(course1, sem2, "A");
             var c5 = courseOfferingSeeder.saveDefault(course3, sem2, "A");
 
-            var ret =  courseOfferingRepo.findAllBySemesterId(sem1.getId());
+            var ret =  courseOfferingRepo.findManagedOfferings(sem1.getId(), null);
 
             assertNotNull(ret);
             assertEquals(3, ret.size());

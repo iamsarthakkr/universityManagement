@@ -21,7 +21,6 @@ import lombok.NonNull;
 import lombok.Setter;
 
 import java.time.LocalDate;
-import java.time.Year;
 
 @Entity
 @Table(
@@ -68,8 +67,7 @@ public class SemesterEntity extends BaseEntity {
     private LocalDate endDate;
 
     public boolean isRegistrationOpen(LocalDate today) {
-        return (status != SemesterStatus.COMPLETED &&
-            status != SemesterStatus.CANCELLED &&
+        return (allowsEnrollment() &&
             !today.isBefore(registrationStartDate) &&
             !today.isAfter(registrationEndDate)
         );
@@ -78,12 +76,11 @@ public class SemesterEntity extends BaseEntity {
     public boolean canTransitionTo(
         @NonNull SemesterStatus newStatus
     ) {
-        return switch (newStatus) {
-            case PLANNED -> false;
-            case ACTIVE -> status == SemesterStatus.PLANNED;
-            case COMPLETED -> status == SemesterStatus.ACTIVE;
-            case CANCELLED -> status == SemesterStatus.ACTIVE ||
-                status == SemesterStatus.PLANNED;
-        };
+        return status.canTransitionTo(newStatus);
     }
+
+    public boolean allowsEnrollment() {
+        return !(this.status == SemesterStatus.CANCELLED || status == SemesterStatus.COMPLETED);
+    }
+
 }

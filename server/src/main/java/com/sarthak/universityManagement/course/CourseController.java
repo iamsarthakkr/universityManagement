@@ -3,13 +3,13 @@ package com.sarthak.universityManagement.course;
 import com.sarthak.universityManagement.common.rest.ApiResponse;
 import com.sarthak.universityManagement.common.rest.Res;
 import com.sarthak.universityManagement.common.rest.SuccessCode;
-import com.sarthak.universityManagement.course.dto.CourseCatalogueResponse;
 import com.sarthak.universityManagement.course.dto.CourseRequest;
 import com.sarthak.universityManagement.course.dto.CourseResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,13 +27,19 @@ public class CourseController {
         this.courseService = courseService;
     }
 
-    @GetMapping("/catalogue")
-    public ResponseEntity<ApiResponse<List<CourseCatalogueResponse>>> getCoursesCatalogue() {
-        return Res.success(courseService.getCoursesCatalogue());
-    }
-
     @PostMapping
     public ResponseEntity<ApiResponse<CourseResponse>> createNewCourse(@Valid @RequestBody CourseRequest courseRequest) {
         return Res.success(SuccessCode.CREATED, courseService.createCourse(courseRequest));
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<CourseResponse>> getCourseById(@PathVariable Integer id) {
+        return Res.success(courseService.getCourseById(id));
+    }
+
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<CourseResponse>>> getCourses() {
+        return Res.success(courseService.getCourses());
+    }
+
 }

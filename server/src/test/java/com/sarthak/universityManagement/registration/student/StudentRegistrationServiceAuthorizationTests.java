@@ -4,7 +4,7 @@ import com.sarthak.universityManagement.common.types.RegistrationStatus;
 import com.sarthak.universityManagement.common.types.Role;
 import com.sarthak.universityManagement.config.IntegrationTests;
 import com.sarthak.universityManagement.registration.student.dto.StudentRegistrationResponse;
-import com.sarthak.universityManagement.testUtils.TestSecurityUtils;
+import com.sarthak.universityManagement.testUtils.security.TestAuthentication;
 import com.sarthak.universityManagement.testUtils.fixtures.UserFixtures;
 import com.sarthak.universityManagement.testUtils.seeders.StudentRegistrationSeeder;
 import com.sarthak.universityManagement.testUtils.seeders.UserSeeder;
@@ -29,14 +29,14 @@ public class StudentRegistrationServiceAuthorizationTests extends IntegrationTes
 
     @AfterEach
     void cleanup() {
-        TestSecurityUtils.clearAuthentication();
+        TestAuthentication.clear();
     }
 
     private void setupUser(Role role) {
         var user = userSeeder.saveUser(
                 UserFixtures.user() .username("seeded-user") .email("seeded@abc.com") .role(role) .build()
         );
-        TestSecurityUtils.authenticateAs(user);
+        TestAuthentication.asUser(user);
     }
     
 

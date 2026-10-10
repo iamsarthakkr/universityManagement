@@ -4,8 +4,8 @@ import com.sarthak.universityManagement.config.RepoTests;
 import com.sarthak.universityManagement.courseOffering.CourseOfferingEntity;
 import com.sarthak.universityManagement.student.StudentEntity;
 import com.sarthak.universityManagement.testUtils.fixtures.EnrollmentFixtures;
-import com.sarthak.universityManagement.testUtils.scenerio.courseOffering.CourseOfferingScenarioSeeder;
-import com.sarthak.universityManagement.testUtils.scenerio.enrollment.EnrollmentScenarioSeeder;
+import com.sarthak.universityManagement.testUtils.scenario.courseOffering.CourseOfferingScenarioSeeder;
+import com.sarthak.universityManagement.testUtils.scenario.enrollment.EnrollmentScenarioSeeder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,8 +62,8 @@ public class EnrollmentRepoTests extends RepoTests {
 
     @Test
     void shouldFetchEnrollmentsForStudent() {
-        var res1 = enrollmentRepo.findByStudentId(student1.getId());
-        var res2 = enrollmentRepo.findByStudentId(student2.getId());
+        var res1 = enrollmentRepo.findByStudentId(student1.getId(), null, null);
+        var res2 = enrollmentRepo.findByStudentId(student2.getId(), null, null);
 
         assertEquals(2, res1.size());
         assertEquals(1, res2.size());
@@ -105,6 +105,16 @@ public class EnrollmentRepoTests extends RepoTests {
 
         assertFalse(enrollmentRepo.existsByIdAndCourseOffering_Instructor_User_Id(enrollment2.getId(), instructor2.getUser().getId()));
 
+    }
+
+    @Test
+    void shouldDetermineEnrollmentByIdAndStudent() {
+        assertTrue(enrollmentRepo.existsByIdAndStudent_User_Id(enrollment1.getId(), student1.getUser().getId()));
+        assertTrue(enrollmentRepo.existsByIdAndStudent_User_Id(enrollment3.getId(), student1.getUser().getId()));
+        assertTrue(enrollmentRepo.existsByIdAndStudent_User_Id(enrollment2.getId(), student2.getUser().getId()));
+
+        assertFalse(enrollmentRepo.existsByIdAndStudent_User_Id(enrollment2.getId(), student1.getUser().getId()));
+        assertFalse(enrollmentRepo.existsByIdAndStudent_User_Id(enrollment1.getId(), student2.getUser().getId()));
     }
 
     @Test

@@ -27,23 +27,23 @@ public class AuthorizationService {
     }
 
     public boolean isInstructorForCourseOffering(Integer offeringId) {
-        var currentUser = currentUserService.getCurrentUser();
-        return courseOfferingRepo.existsByIdAndInstructor_User_Id(offeringId, currentUser.getId());
+        return courseOfferingRepo.existsByIdAndInstructor_User_Id(offeringId, getCurrentUserId());
     }
 
     public boolean isInstructorForEnrollment(Integer enrollmentId) {
-        var currentUser = currentUserService.getCurrentUser();
-        return enrollmentRepo.existsByIdAndCourseOffering_Instructor_User_Id(enrollmentId, currentUser.getId());
+        return enrollmentRepo.existsByIdAndCourseOffering_Instructor_User_Id(enrollmentId, getCurrentUserId());
     }
 
     public boolean isStudentForEnrollment(Integer enrollmentId) {
-        var currentUser = currentUserService.getCurrentUser();
-        return enrollmentRepo.existsByIdAndStudent_User_Id(enrollmentId, currentUser.getId());
+        return enrollmentRepo.existsByIdAndStudent_User_Id(enrollmentId, getCurrentUserId());
     }
 
     public boolean isCurrentStudent(Integer studentId) {
-        var currentUser = currentUserService.getCurrentUser();
-        return studentRepo.existsByIdAndUser_Id(studentId, currentUser.getId());
+        return studentRepo.existsByIdAndUser_Id(studentId, getCurrentUserId());
+    }
+
+    private Integer getCurrentUserId() {
+        return currentUserService.getCurrentUserId();
     }
 
 }

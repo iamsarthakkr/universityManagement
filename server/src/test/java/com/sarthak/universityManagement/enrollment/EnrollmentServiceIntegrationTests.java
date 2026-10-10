@@ -1,25 +1,33 @@
 package com.sarthak.universityManagement.enrollment;
 
 import com.sarthak.universityManagement.common.exceptions.BadRequestException;
+import com.sarthak.universityManagement.common.exceptions.ConflictException;
 import com.sarthak.universityManagement.config.IntegrationTests;
 import com.sarthak.universityManagement.courseOffering.CourseOfferingService;
+import com.sarthak.universityManagement.enrollment.types.EnrollmentAction;
 import com.sarthak.universityManagement.enrollment.types.EnrollmentStatus;
-import com.sarthak.universityManagement.testUtils.scenerio.courseOffering.CourseOfferingScenarioSeeder;
-import com.sarthak.universityManagement.testUtils.scenerio.enrollment.EnrollmentScenarioSeeder;
-import com.sarthak.universityManagement.testUtils.scenerio.student.StudentScenario;
-import com.sarthak.universityManagement.testUtils.scenerio.student.StudentScenarioSeeder;
+import com.sarthak.universityManagement.semester.types.SemesterStatus;
+import com.sarthak.universityManagement.testUtils.scenario.courseOffering.CourseOfferingScenarioSeeder;
+import com.sarthak.universityManagement.testUtils.scenario.enrollment.EnrollmentScenario;
+import com.sarthak.universityManagement.testUtils.scenario.enrollment.EnrollmentScenarioSeeder;
+import com.sarthak.universityManagement.testUtils.scenario.student.StudentScenario;
+import com.sarthak.universityManagement.testUtils.scenario.student.StudentScenarioSeeder;
 import com.sarthak.universityManagement.testUtils.security.TestAuthentication;
-import com.sarthak.universityManagement.testUtils.security.WithAdmin;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.Clock;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -81,8 +89,8 @@ public class EnrollmentServiceIntegrationTests extends IntegrationTests {
             assertNotNull(resp);
 
             assertEquals(EnrollmentStatus.PENDING, resp.enrollmentStatus());
-            assertEquals(student.getId(), resp.studentId());
-            assertEquals(offering.getId(), resp.courseOfferingId());
+            assertEquals(student.getId(), resp.student().id());
+            assertEquals(offering.getId(), resp.courseOffering().id());
 
             var updatedOffering = courseOfferingService.getCourseOfferingEntity(offering.getId());
             assertEquals(0, updatedOffering.getEnrolled());
@@ -125,8 +133,8 @@ public class EnrollmentServiceIntegrationTests extends IntegrationTests {
 
             assertNotNull(resp);
             assertEquals(EnrollmentStatus.PENDING, resp.enrollmentStatus());
-            assertEquals(student.getId(), resp.studentId());
-            assertEquals(offering.getId(), resp.courseOfferingId());
+            assertEquals(student.getId(), resp.student().id());
+            assertEquals(offering.getId(), resp.courseOffering().id());
 
         }
 
@@ -141,203 +149,159 @@ public class EnrollmentServiceIntegrationTests extends IntegrationTests {
             enrollmentScenarioBuilder = enrollmentScenarioSeeder.builder();
         }
 
-        @Test
-        @WithAdmin
-        void shouldApproveEnrollmentWhenSeatsAvailable() {
+        @AfterEach
+        void tearDown() {
+            TestAuthentication.clear();
+        }
+
+        final int capacity = 10;
+        record TransitionCase(
+            EnrollmentAction action,
+            EnrollmentStatus from,
+            EnrollmentStatus to,
+            Integer enrolledBefore,
+            Integer enrolledAfter
+        ) {}
+
+        static Stream<TransitionCase> validTransitionCases() {
+            return Stream.of(
+                new TransitionCase(EnrollmentAction.APPROVE, EnrollmentStatus.PENDING, EnrollmentStatus.ENROLLED, 9, 10),
+                new TransitionCase(EnrollmentAction.REJECT, EnrollmentStatus.PENDING, EnrollmentStatus.REJECTED, 9, 9),
+                new TransitionCase(EnrollmentAction.CANCEL, EnrollmentStatus.PENDING, EnrollmentStatus.CANCELLED, 9, 9),
+                new TransitionCase(EnrollmentAction.DROP, EnrollmentStatus.ENROLLED, EnrollmentStatus.DROPPED, 10, 9)
+            );
+        }
+
+        static Stream<Arguments> invalidTransitionCases() {
+            List<Arguments> invalidTransitionCases = new ArrayList<>();
+            for(var valid: validTransitionCases().toList()) {
+                for(var status: EnrollmentStatus.values()) {
+                    if(status != valid.from()) {
+                        invalidTransitionCases.add(Arguments.of(valid.action(), status));
+                    }
+                }
+            }
+
+            return invalidTransitionCases.stream();
+        }
+
+        private void authenticateFor(EnrollmentAction action, EnrollmentScenario scenario) {
+            switch (action) {
+                case APPROVE, REJECT: TestAuthentication.asInstructor(scenario.instructor()); break;
+                case DROP, CANCEL: TestAuthentication.asStudent(scenario.student()); break;
+            }
+        }
+
+        @ParameterizedTest(name = "{0}")
+        @MethodSource("validTransitionCases")
+        void shouldPerformValidTransition(TransitionCase transitionCase) {
             var enrollmentScenario = enrollmentScenarioBuilder
-                .offering(o -> o.capacity(10).enrolled(9))
+                .enrollmentStatus(transitionCase.from())
+                .offering(o -> o.capacity(capacity).enrolled(transitionCase.enrolledBefore()))
                 .build();
+
+            authenticateFor(transitionCase.action(), enrollmentScenario);
 
             var enrollment = enrollmentScenario.enrollment();
 
-            enrollmentService.approveEnrollment(enrollment.getId());
+            var before = enrollmentService.getEnrollment(enrollment.getId());
+            assertTrue(before.allowedActions().contains(transitionCase.action()));
+
+            var response = enrollmentService.performAction(enrollment.getId(), transitionCase.action());
+            // Every valid transition leaves the acting party with nothing further to do on this enrollment
+            assertEquals(List.of(), response.allowedActions());
 
             var saved = enrollmentService.getEnrollment(enrollment.getId());
-            assertEquals(EnrollmentStatus.ENROLLED, saved.enrollmentStatus());
+            assertEquals(transitionCase.to(), saved.enrollmentStatus());
 
             var updatedOffering = courseOfferingService.getCourseOfferingEntity(enrollmentScenario.courseOffering().getId());
-            assertEquals(10, updatedOffering.getEnrolled());
+            assertEquals(transitionCase.enrolledAfter(), updatedOffering.getEnrolled());
+        }
 
+        @ParameterizedTest(name = "{0} from {1}")
+        @MethodSource("invalidTransitionCases")
+        void shouldRejectInvalidTransition(EnrollmentAction action, EnrollmentStatus from) {
+            var enrollmentScenario = enrollmentScenarioBuilder
+                .enrollmentStatus(from)
+                .offering(o -> o.capacity(capacity).enrolled(5).semester(s -> s.registrationOpenOn(LocalDate.now(clock))))
+                .build();
+
+            authenticateFor(action, enrollmentScenario);
+
+            var enrollment = enrollmentScenario.enrollment();
+
+            var before = enrollmentService.getEnrollment(enrollment.getId());
+            assertFalse(before.allowedActions().contains(action));
+
+            assertThrows(BadRequestException.class, () -> enrollmentService.performAction(enrollment.getId(), action));
+
+            var savedEnrollment = enrollmentService.getEnrollment(enrollment.getId());
+            var savedOffering = courseOfferingService.getCourseOfferingEntity(enrollmentScenario.courseOffering().getId());
+
+            assertEquals(5, savedOffering.getEnrolled());
+            assertEquals(from, savedEnrollment.enrollmentStatus());
         }
 
         @Test
-        @WithAdmin
-        void shouldNotApproveEnrollmentWhenOfferingFull() {
+        void shouldReflectViewerInAllowedActionsAfterApproval() {
             var enrollmentScenario = enrollmentScenarioBuilder
-                .offering(o -> o.capacity(10).enrolled(10))
+                .offering(o -> o.capacity(capacity).enrolled(5))
                 .build();
+            var enrollmentId = enrollmentScenario.enrollment().getId();
 
-            var enrollment = enrollmentScenario.enrollment();
-            var ex = assertThrows(BadRequestException.class, () -> enrollmentService.approveEnrollment(enrollment.getId()));
-            var msg = ex.getMessage();
-            assertTrue(msg.contains("Insufficient capacity for offering "));
-
-            var savedEnrollment = enrollmentService.getEnrollment(enrollment.getId());
-            var savedOffering = courseOfferingService.getCourseOfferingEntity(enrollmentScenario.courseOffering().getId());
-
-            assertEquals(10, savedOffering.getEnrolled());
-            assertEquals(EnrollmentStatus.PENDING, savedEnrollment.enrollmentStatus());
-        }
-
-        @ParameterizedTest
-        @EnumSource(
-            value = EnrollmentStatus.class,
-            names = {"ENROLLED", "REJECTED", "CANCELLED", "DROPPED"}
-        )
-        @WithAdmin
-        void shouldNotApproveInvalidTransition(EnrollmentStatus enrollmentStatus) {
-            var enrollmentScenario = enrollmentScenarioBuilder
-                .enrollmentStatus(enrollmentStatus)
-                .offering(o -> o.capacity(10).enrolled(9))
-                .build();
-
-            var enrollment = enrollmentScenario.enrollment();
-            var ex = assertThrows(BadRequestException.class, () -> enrollmentService.approveEnrollment(enrollment.getId()));
-            var msg = ex.getMessage();
-            assertTrue(msg.contains("Enrollment with id " + enrollment.getId() + " cannot be approved"));
-
-            var savedEnrollment = enrollmentService.getEnrollment(enrollment.getId());
-            var savedOffering = courseOfferingService.getCourseOfferingEntity(enrollmentScenario.courseOffering().getId());
-
-            assertEquals(9, savedOffering.getEnrolled());
-            assertEquals(enrollmentStatus, savedEnrollment.enrollmentStatus());
-        }
-
-       @Test
-       @WithAdmin
-       void shouldRejectEnrollment() {
-            var enrollmentScenario = enrollmentScenarioBuilder
-                .offering(o -> o.capacity(10).enrolled(9))
-                .build();
-
-            var enrollment = enrollmentScenario.enrollment();
-
-            enrollmentService.rejectEnrollment(enrollment.getId());
-
-            var saved = enrollmentService.getEnrollment(enrollment.getId());
-            var savedOffering = courseOfferingService.getCourseOfferingEntity(enrollmentScenario.courseOffering().getId());
-
-            assertEquals(EnrollmentStatus.REJECTED, saved.enrollmentStatus());
-            assertEquals(9,  savedOffering.getEnrolled());
-       }
-
-        @ParameterizedTest
-        @EnumSource(
-            value = EnrollmentStatus.class,
-            names = {"ENROLLED", "REJECTED", "CANCELLED", "DROPPED"}
-        )
-        @WithAdmin
-        void shouldNotRejectInvalidTransition(EnrollmentStatus enrollmentStatus) {
-            var enrollmentScenario = enrollmentScenarioBuilder
-                .enrollmentStatus(enrollmentStatus)
-                .offering(o -> o.capacity(10).enrolled(9))
-                .build();
-
-            var enrollment = enrollmentScenario.enrollment();
-            var ex = assertThrows(BadRequestException.class, () -> enrollmentService.rejectEnrollment(enrollment.getId()));
-            var msg = ex.getMessage();
-            assertTrue(msg.contains("Enrollment with id " + enrollment.getId() + " cannot be rejected"));
-
-            var savedEnrollment = enrollmentService.getEnrollment(enrollment.getId());
-            var savedOffering = courseOfferingService.getCourseOfferingEntity(enrollmentScenario.courseOffering().getId());
-
-            assertEquals(9, savedOffering.getEnrolled());
-            assertEquals(enrollmentStatus, savedEnrollment.enrollmentStatus());
-       }
-
-        @Test
-        void shouldCancelEnrollment() {
-            var enrollmentScenario = enrollmentScenarioBuilder
-                .offering(o -> o.capacity(10).enrolled(9))
-                .build();
+            TestAuthentication.asInstructor(enrollmentScenario.instructor());
+            enrollmentService.performAction(enrollmentId, EnrollmentAction.APPROVE);
 
             TestAuthentication.asStudent(enrollmentScenario.student());
+            var studentView = enrollmentService.getEnrollment(enrollmentId);
 
-            var enrollment = enrollmentScenario.enrollment();
-
-            enrollmentService.cancelEnrollment(enrollment.getId());
-
-            var saved = enrollmentService.getEnrollment(enrollment.getId());
-            var savedOffering = courseOfferingService.getCourseOfferingEntity(enrollmentScenario.courseOffering().getId());
-
-            assertEquals(EnrollmentStatus.CANCELLED, saved.enrollmentStatus());
-            assertEquals(9,  savedOffering.getEnrolled());
-        }
-
-        @ParameterizedTest
-        @EnumSource(
-            value = EnrollmentStatus.class,
-            names = {"ENROLLED", "REJECTED", "CANCELLED", "DROPPED"}
-        )
-        void shouldNotCancelInvalidTransition(EnrollmentStatus enrollmentStatus) {
-            var enrollmentScenario = enrollmentScenarioBuilder
-                .enrollmentStatus(enrollmentStatus)
-                .offering(o -> o.capacity(10).enrolled(9))
-                .build();
-
-            TestAuthentication.asStudent(enrollmentScenario.student());
-
-            var enrollment = enrollmentScenario.enrollment();
-            var ex = assertThrows(BadRequestException.class, () -> enrollmentService.cancelEnrollment(enrollment.getId()));
-            var msg = ex.getMessage();
-            assertTrue(msg.contains("Enrollment with id " + enrollment.getId() + " cannot be cancelled"));
-
-            var savedEnrollment = enrollmentService.getEnrollment(enrollment.getId());
-            var savedOffering = courseOfferingService.getCourseOfferingEntity(enrollmentScenario.courseOffering().getId());
-
-            assertEquals(9, savedOffering.getEnrolled());
-            assertEquals(enrollmentStatus, savedEnrollment.enrollmentStatus());
-
-            TestAuthentication.clear();
-        }
-
-        @Test
-        void shouldDropEnrollment() {
-            var enrollmentScenario = enrollmentScenarioBuilder
-                .enrollmentStatus(EnrollmentStatus.ENROLLED)
-                .offering(o -> o.capacity(10).enrolled(5))
-                .build();
-
-            TestAuthentication.asStudent(enrollmentScenario.student());
-
-            var enrollment = enrollmentScenario.enrollment();
-
-            enrollmentService.dropEnrollment(enrollment.getId());
-
-            var saved = enrollmentService.getEnrollment(enrollment.getId());
-            var savedOffering = courseOfferingService.getCourseOfferingEntity(enrollmentScenario.courseOffering().getId());
-
-            assertEquals(EnrollmentStatus.DROPPED, saved.enrollmentStatus());
-            assertEquals(4,  savedOffering.getEnrolled());
-
-            TestAuthentication.clear();
-        }
-
-        @ParameterizedTest
-        @EnumSource(
-            value = EnrollmentStatus.class,
-            names = {"PENDING", "REJECTED", "CANCELLED", "DROPPED"}
-        )
-        void shouldNotDropInvalidTransition(EnrollmentStatus enrollmentStatus) {
-            var enrollmentScenario = enrollmentScenarioBuilder
-                .enrollmentStatus(enrollmentStatus)
-                .offering(o -> o.capacity(10).enrolled(9))
-                .build();
-
-            TestAuthentication.asStudent(enrollmentScenario.student());
-
-            var enrollment = enrollmentScenario.enrollment();
-            var ex = assertThrows(BadRequestException.class, () -> enrollmentService.dropEnrollment(enrollment.getId()));
-            var msg = ex.getMessage();
-            assertTrue(msg.contains("Enrollment with id " + enrollment.getId() + " cannot be dropped"));
-
-            var savedEnrollment = enrollmentService.getEnrollment(enrollment.getId());
-            var savedOffering = courseOfferingService.getCourseOfferingEntity(enrollmentScenario.courseOffering().getId());
-
-            assertEquals(9, savedOffering.getEnrolled());
-            assertEquals(enrollmentStatus, savedEnrollment.enrollmentStatus());
+            assertEquals(EnrollmentStatus.ENROLLED, studentView.enrollmentStatus());
+            assertEquals(List.of(EnrollmentAction.DROP), studentView.allowedActions());
         }
 
     }
 
+    @Nested
+    class ApprovalRules {
+        private static final int CAPACITY = 10;
+
+        @AfterEach
+        void tearDown() {
+            TestAuthentication.clear();
+        }
+
+        @Test
+        void shouldNotApproveWhenOfferingFull() {
+            var enrollmentScenario = enrollmentScenarioSeeder.builder()
+                .offering(o -> o.capacity(CAPACITY).enrolled(CAPACITY))
+                .build();
+            var enrollmentId = enrollmentScenario.enrollment().getId();
+            TestAuthentication.asInstructor(enrollmentScenario.instructor());
+
+            assertThrows(ConflictException.class, () -> enrollmentService.performAction(enrollmentId, EnrollmentAction.APPROVE));
+
+            var savedEnrollment = enrollmentService.getEnrollment(enrollmentId);
+            var savedOffering = courseOfferingService.getCourseOfferingEntity(enrollmentScenario.courseOffering().getId());
+            assertEquals(EnrollmentStatus.PENDING, savedEnrollment.enrollmentStatus());
+            assertEquals(CAPACITY, savedOffering.getEnrolled());
+        }
+
+        @ParameterizedTest(name = "{0}")
+        @EnumSource(value = SemesterStatus.class, names = {"COMPLETED", "CANCELLED"})
+        void shouldNotApproveWhenSemesterClosed(SemesterStatus semesterStatus) {
+            var enrollmentScenario = enrollmentScenarioSeeder.builder()
+                .offering(o -> o.capacity(CAPACITY).enrolled(5).semester(s -> s.status(semesterStatus)))
+                .build();
+            var enrollmentId = enrollmentScenario.enrollment().getId();
+            TestAuthentication.asInstructor(enrollmentScenario.instructor());
+
+            assertThrows(BadRequestException.class, () -> enrollmentService.performAction(enrollmentId, EnrollmentAction.APPROVE));
+
+            var savedEnrollment = enrollmentService.getEnrollment(enrollmentId);
+            var savedOffering = courseOfferingService.getCourseOfferingEntity(enrollmentScenario.courseOffering().getId());
+            assertEquals(EnrollmentStatus.PENDING, savedEnrollment.enrollmentStatus());
+            assertEquals(5, savedOffering.getEnrolled());
+        }
+    }
 }
+

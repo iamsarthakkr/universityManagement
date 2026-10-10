@@ -1,8 +1,8 @@
 package com.sarthak.universityManagement.course;
 
 import com.sarthak.universityManagement.auth.AuthorizationExpressions;
+import com.sarthak.universityManagement.common.exceptions.ConflictException;
 import com.sarthak.universityManagement.common.exceptions.ResourceNotFoundException;
-import com.sarthak.universityManagement.course.dto.CourseCatalogueResponse;
 import com.sarthak.universityManagement.course.dto.CourseRequest;
 import com.sarthak.universityManagement.course.dto.CourseResponse;
 import com.sarthak.universityManagement.department.DepartmentService;
@@ -26,9 +26,18 @@ public class CourseService {
     }
 
     @Transactional(readOnly = true)
-    public List<CourseCatalogueResponse> getCoursesCatalogue() {
-        var courses = courseRepo.findAllByOrderByDepartmentNameAsc();
-        return CourseMapper.toCatalogue(courses);
+    public List<CourseResponse> getCourses() {
+        return courseRepo
+            .findAllByOrderByDepartmentNameAscCodeAsc()
+            .stream()
+            .map(CourseMapper::toResponse)
+            .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public CourseResponse getCourseById(Integer id) {
+        var entity = getCourseEntity(id);
+        return CourseMapper.toResponse(entity);
     }
 
     @Transactional(readOnly = true)
@@ -40,6 +49,9 @@ public class CourseService {
 
     @PreAuthorize(AuthorizationExpressions.ADMIN)
     public CourseResponse createCourse(CourseRequest courseRequest) {
+        if(courseRepo.existsByCode(courseRequest.code())) {
+            throw new ConflictException("Course with code " + courseRequest.code() + " already exists!");
+        }
         var departmentId = courseRequest.departmentId();
 
         var department = departmentService.getDepartmentById(departmentId);

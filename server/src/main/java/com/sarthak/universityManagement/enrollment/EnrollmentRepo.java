@@ -1,8 +1,8 @@
 package com.sarthak.universityManagement.enrollment;
 
 import com.sarthak.universityManagement.enrollment.types.EnrollmentStatus;
+import jakarta.annotation.Nullable;
 import jakarta.persistence.LockModeType;
-import org.jspecify.annotations.Nullable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
@@ -17,17 +17,37 @@ public interface EnrollmentRepo extends JpaRepository<EnrollmentEntity, Integer>
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<EnrollmentEntity> findForUpdateById(Integer id);
 
-    @EntityGraph(attributePaths = {"student", "courseOffering"})
-    List<EnrollmentEntity> findByStudentId(Integer studentId);
-
+    @EntityGraph(attributePaths = {
+        "student",
+        "courseOffering.course.department",
+        "courseOffering.instructor.department",
+        "courseOffering.semester"
+    })
     @Query("""
-        select distinct e
-        from EnrollmentEntity e
-        join fetch e.student s
-        join fetch e.courseOffering co
-        where co.id = :courseOfferingId
-            and (:status is null or e.status = :status)
-        order by e.createdAt DESC
+        SELECT e
+        FROM EnrollmentEntity e
+        WHERE (e.student.id = :studentId)
+            AND (:semesterId IS NULL OR e.courseOffering.semester.id = :semesterId)
+            AND (:enrollmentStatus IS NULL OR e.status = :enrollmentStatus)
+        ORDER BY e.courseOffering.semester.year DESC, e.courseOffering.semester.term DESC,
+            e.courseOffering.course.department.name ASC, e.courseOffering.course.code ASC,
+            e.courseOffering.section ASC,
+            e.createdAt DESC, e.id DESC
+    """)
+    List<EnrollmentEntity> findByStudentId(Integer studentId, @Nullable Integer semesterId, @Nullable EnrollmentStatus enrollmentStatus);
+
+    @EntityGraph(attributePaths = {
+        "student",
+        "courseOffering.course.department",
+        "courseOffering.instructor.department",
+        "courseOffering.semester"
+    })
+    @Query("""
+        SELECT e
+        FROM EnrollmentEntity e
+        WHERE e.courseOffering.id = :courseOfferingId
+            AND (:status IS NULL OR e.status = :status)
+        ORDER BY e.createdAt DESC, e.id DESC
     """)
     List<EnrollmentEntity> findAllForCourseOfferingWithDetails(Integer courseOfferingId, @Nullable EnrollmentStatus status);
 

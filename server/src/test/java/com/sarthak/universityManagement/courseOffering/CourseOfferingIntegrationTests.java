@@ -1,6 +1,7 @@
 package com.sarthak.universityManagement.courseOffering;
 
 import com.sarthak.universityManagement.common.exceptions.BadRequestException;
+import com.sarthak.universityManagement.common.exceptions.ConflictException;
 import com.sarthak.universityManagement.common.exceptions.ResourceNotFoundException;
 import com.sarthak.universityManagement.config.IntegrationTests;
 import com.sarthak.universityManagement.course.CourseEntity;
@@ -24,10 +25,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Clock;
+import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -45,6 +45,8 @@ public class CourseOfferingIntegrationTests extends IntegrationTests {
     private DepartmentSeeder departmentSeeder;
     @Autowired
     private CourseOfferingSeeder courseOfferingSeeder;
+    @Autowired
+    private Clock clock;
 
     private DepartmentEntity department;
     private SemesterEntity semester;
@@ -78,9 +80,9 @@ public class CourseOfferingIntegrationTests extends IntegrationTests {
             assertNotNull(ret);
             assertEquals("A", ret.section());
             assertEquals(100, ret.capacity());
-            assertEquals(course.getId(), ret.courseId());
-            assertEquals(semester.getId(), ret.semesterId());
-            assertEquals(instructor.getId(), ret.instructorId());
+            assertEquals(course.getId(), ret.course().id());
+            assertEquals(semester.getId(), ret.semester().id());
+            assertEquals(instructor.getId(), ret.instructor().id());
         }
 
         @Test
@@ -183,7 +185,7 @@ public class CourseOfferingIntegrationTests extends IntegrationTests {
                 .instructorId(instructor2.getId())
                 .build();
 
-            assertThrows(BadRequestException.class, () -> courseOfferingService.createOffering(courseOfferingReq2));
+            assertThrows(ConflictException.class, () -> courseOfferingService.createOffering(courseOfferingReq2));
         }
 
    }
@@ -195,18 +197,19 @@ public class CourseOfferingIntegrationTests extends IntegrationTests {
         void shouldReturnCorrectResponse() {
             var offering = courseOfferingSeeder.saveDefault(course, semester, "A");
 
-            var ret = courseOfferingService.getOffering(offering.getId());
+            var ret = courseOfferingService.getCourseOfferingById(offering.getId());
             assertNotNull(ret);
-            assertEquals(CourseOfferingMapper.toResponse(offering), ret);
+            assertEquals(CourseOfferingMapper.toResponse(offering, LocalDate.now(clock)), ret);
 
         }
 
         @Test
         void shouldReturnEmptyForNonExistentCourseOffering() {
-            assertThrows(ResourceNotFoundException.class, () -> courseOfferingService.getOffering(-1));
+            assertThrows(ResourceNotFoundException.class, () -> courseOfferingService.getCourseOfferingById(-1));
         }
 
         @Test
+        @WithAdmin
         void shouldReturnCorrectOfferingsForSemester() {
             var sem2 =  semesterSeeder.saveDefaultSemester(SemesterTerm.SUMMER, 2027);
 
@@ -231,7 +234,7 @@ public class CourseOfferingIntegrationTests extends IntegrationTests {
                 "A"
             );
 
-            var ret = courseOfferingService.getOfferingsBySemester(semester.getId());
+            var ret = courseOfferingService.getCourseOfferings(semester.getId());
             assertNotNull(ret);
             assertEquals(2, ret.size());
             var ids = ret.stream().map(CourseOfferingResponse::id).toList();
@@ -241,10 +244,11 @@ public class CourseOfferingIntegrationTests extends IntegrationTests {
         }
 
         @Test
+        @WithAdmin
         void shouldReturnEmptyListForNonExistentCourseOfferings() {
             var sem = semesterSeeder.saveDefaultSemester(SemesterTerm.SUMMER, 2027);
 
-            var ret = courseOfferingService.getOfferingsBySemester(sem.getId());
+            var ret = courseOfferingService.getCourseOfferings(sem.getId());
             assertNotNull(ret);
             assertEquals(0, ret.size());
         }

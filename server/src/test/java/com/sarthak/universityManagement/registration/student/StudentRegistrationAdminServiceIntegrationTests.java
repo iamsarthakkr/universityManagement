@@ -5,7 +5,7 @@ import com.sarthak.universityManagement.common.exceptions.ResourceNotFoundExcept
 import com.sarthak.universityManagement.common.types.RegistrationStatus;
 import com.sarthak.universityManagement.config.IntegrationTests;
 import com.sarthak.universityManagement.student.StudentRepo;
-import com.sarthak.universityManagement.testUtils.TestSecurityUtils;
+import com.sarthak.universityManagement.testUtils.security.TestAuthentication;
 import com.sarthak.universityManagement.testUtils.fixtures.UserFixtures;
 import com.sarthak.universityManagement.testUtils.seeders.StudentRegistrationSeeder;
 import com.sarthak.universityManagement.testUtils.seeders.UserSeeder;
@@ -41,12 +41,12 @@ public class StudentRegistrationAdminServiceIntegrationTests extends Integration
     @BeforeEach
     public void setup() {
         var user = userSeeder.saveUser(UserFixtures.user().username(adminUsername).email(adminEmail).build());
-        TestSecurityUtils.authenticateAs(user);
+        TestAuthentication.asUser(user);
     }
     
     @AfterEach
     public void cleanup() {
-        TestSecurityUtils.clearAuthentication();
+        TestAuthentication.clear();
     }
     
     @Test

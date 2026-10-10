@@ -6,7 +6,7 @@ import com.sarthak.universityManagement.common.types.RegistrationStatus;
 import com.sarthak.universityManagement.common.types.Role;
 import com.sarthak.universityManagement.config.IntegrationTests;
 import com.sarthak.universityManagement.instructor.InstructorRepo;
-import com.sarthak.universityManagement.testUtils.TestSecurityUtils;
+import com.sarthak.universityManagement.testUtils.security.TestAuthentication;
 import com.sarthak.universityManagement.testUtils.fixtures.UserFixtures;
 import com.sarthak.universityManagement.testUtils.seeders.InstructorRegistrationSeeder;
 import com.sarthak.universityManagement.testUtils.seeders.UserSeeder;
@@ -44,12 +44,12 @@ public class InstructorRegistrationAdminServiceIntegrationTests extends Integrat
         var user = userSeeder.saveUser(
                 UserFixtures.user().username(adminUsername).email(adminEmail).role(Role.ADMIN).build()
         );
-        TestSecurityUtils.authenticateAs(user);
+        TestAuthentication.asUser(user);
     }
 
     @AfterEach
     void afterEach() {
-        TestSecurityUtils.clearAuthentication();
+        TestAuthentication.clear();
     }
 
     @Nested

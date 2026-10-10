@@ -1,5 +1,6 @@
 package com.sarthak.universityManagement.enrollment;
 
+import com.sarthak.universityManagement.common.exceptions.ConflictException;
 import com.sarthak.universityManagement.config.TestClockConfig;
 import com.sarthak.universityManagement.config.MySqlTestContainer;
 import com.sarthak.universityManagement.config.TestUtilsConfiguration;
@@ -7,12 +8,13 @@ import com.sarthak.universityManagement.course.CourseRepo;
 import com.sarthak.universityManagement.courseOffering.CourseOfferingRepo;
 import com.sarthak.universityManagement.courseOffering.CourseOfferingService;
 import com.sarthak.universityManagement.department.DepartmentRepo;
+import com.sarthak.universityManagement.enrollment.types.EnrollmentAction;
 import com.sarthak.universityManagement.enrollment.types.EnrollmentStatus;
 import com.sarthak.universityManagement.instructor.InstructorRepo;
 import com.sarthak.universityManagement.semester.SemesterRepo;
 import com.sarthak.universityManagement.student.StudentRepo;
-import com.sarthak.universityManagement.testUtils.scenerio.courseOffering.CourseOfferingScenarioSeeder;
-import com.sarthak.universityManagement.testUtils.scenerio.student.StudentScenarioSeeder;
+import com.sarthak.universityManagement.testUtils.scenario.courseOffering.CourseOfferingScenarioSeeder;
+import com.sarthak.universityManagement.testUtils.scenario.student.StudentScenarioSeeder;
 import com.sarthak.universityManagement.testUtils.security.TestAuthentication;
 import com.sarthak.universityManagement.user.UserRepo;
 import org.junit.jupiter.api.AfterEach;
@@ -24,6 +26,8 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.time.Clock;
 import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -111,7 +115,7 @@ public class EnrollmentConcurrencyTests extends MySqlTestContainer {
             start.await();
 
             try {
-                enrollmentService.approveEnrollment(enrollment1.id());
+                enrollmentService.performAction(enrollment1.id(), EnrollmentAction.APPROVE);
                 return null;
             } catch (Throwable throwable) {
                 return throwable;
@@ -127,7 +131,7 @@ public class EnrollmentConcurrencyTests extends MySqlTestContainer {
             start.await();
 
             try {
-                enrollmentService.approveEnrollment(enrollment2.id());
+                enrollmentService.performAction(enrollment2.id(), EnrollmentAction.APPROVE);
                 return null;
             } catch (Throwable throwable) {
                 return throwable;
@@ -144,11 +148,12 @@ public class EnrollmentConcurrencyTests extends MySqlTestContainer {
         start.countDown();
 
 
-        future1.get();
-        future2.get();
+        var outcomes = Arrays.asList(future1.get(), future2.get());
 
         executor.shutdown();
 
+        assertEquals(1, outcomes.stream().filter(Objects::isNull).count());
+        assertEquals(1, outcomes.stream().filter(ConflictException.class::isInstance).count());
 
         TestAuthentication.asInstructor(instructor);
 
