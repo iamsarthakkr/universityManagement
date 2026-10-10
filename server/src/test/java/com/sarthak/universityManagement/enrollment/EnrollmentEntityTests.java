@@ -1,9 +1,15 @@
 package com.sarthak.universityManagement.enrollment;
 
+import com.sarthak.universityManagement.courseOffering.CourseOfferingEntity;
 import com.sarthak.universityManagement.enrollment.types.EnrollmentStatus;
+import com.sarthak.universityManagement.instructor.InstructorEntity;
+import com.sarthak.universityManagement.student.StudentEntity;
+import com.sarthak.universityManagement.user.UserEntity;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,6 +70,47 @@ public class EnrollmentEntityTests {
                 .build();
 
             assertFalse(enrollment.canTransitionTo(invalidTransitionCase.to()));
+        }
+    }
+
+    @Nested
+    class Ownership {
+        private static final int STUDENT_USER_ID = 10;
+        private static final int INSTRUCTOR_USER_ID = 20;
+        private static final int UNRELATED_USER_ID = 30;
+
+        private final EnrollmentEntity enrollment = EnrollmentEntity.builder()
+            .student(StudentEntity.builder()
+                .user(UserEntity.builder().id(STUDENT_USER_ID).build())
+                .build())
+            .courseOffering(CourseOfferingEntity.builder()
+                .instructor(InstructorEntity.builder()
+                    .user(UserEntity.builder().id(INSTRUCTOR_USER_ID).build())
+                    .build())
+                .build())
+            .status(EnrollmentStatus.PENDING)
+            .build();
+
+        @Test
+        void shouldBelongToStudentUser() {
+            assertTrue(enrollment.belongsToUser(STUDENT_USER_ID));
+        }
+
+        @ParameterizedTest
+        @ValueSource(ints = {INSTRUCTOR_USER_ID, UNRELATED_USER_ID})
+        void shouldNotBelongToOtherUsers(int userId) {
+            assertFalse(enrollment.belongsToUser(userId));
+        }
+
+        @Test
+        void shouldBeTaughtByOfferingInstructorUser() {
+            assertTrue(enrollment.isTaughtBy(INSTRUCTOR_USER_ID));
+        }
+
+        @ParameterizedTest
+        @ValueSource(ints = {STUDENT_USER_ID, UNRELATED_USER_ID})
+        void shouldNotBeTaughtByOtherUsers(int userId) {
+            assertFalse(enrollment.isTaughtBy(userId));
         }
     }
 }

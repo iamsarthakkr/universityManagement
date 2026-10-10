@@ -1,17 +1,18 @@
 package com.sarthak.universityManagement.enrollment;
 
 import com.sarthak.universityManagement.common.exceptions.BadRequestException;
+import com.sarthak.universityManagement.common.exceptions.ConflictException;
 import com.sarthak.universityManagement.config.IntegrationTests;
 import com.sarthak.universityManagement.courseOffering.CourseOfferingService;
 import com.sarthak.universityManagement.enrollment.types.EnrollmentAction;
 import com.sarthak.universityManagement.enrollment.types.EnrollmentStatus;
+import com.sarthak.universityManagement.semester.types.SemesterStatus;
 import com.sarthak.universityManagement.testUtils.scenerio.courseOffering.CourseOfferingScenarioSeeder;
 import com.sarthak.universityManagement.testUtils.scenerio.enrollment.EnrollmentScenario;
 import com.sarthak.universityManagement.testUtils.scenerio.enrollment.EnrollmentScenarioSeeder;
 import com.sarthak.universityManagement.testUtils.scenerio.student.StudentScenario;
 import com.sarthak.universityManagement.testUtils.scenerio.student.StudentScenarioSeeder;
 import com.sarthak.universityManagement.testUtils.security.TestAuthentication;
-import com.sarthak.universityManagement.testUtils.security.WithAdmin;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -203,7 +204,12 @@ public class EnrollmentServiceIntegrationTests extends IntegrationTests {
 
             var enrollment = enrollmentScenario.enrollment();
 
-            enrollmentService.performAction(enrollment.getId(), transitionCase.action());
+            var before = enrollmentService.getEnrollment(enrollment.getId());
+            assertTrue(before.allowedActions().contains(transitionCase.action()));
+
+            var response = enrollmentService.performAction(enrollment.getId(), transitionCase.action());
+            // Every valid transition leaves the acting party with nothing further to do on this enrollment
+            assertEquals(List.of(), response.allowedActions());
 
             var saved = enrollmentService.getEnrollment(enrollment.getId());
             assertEquals(transitionCase.to(), saved.enrollmentStatus());
@@ -223,6 +229,10 @@ public class EnrollmentServiceIntegrationTests extends IntegrationTests {
             authenticateFor(action, enrollmentScenario);
 
             var enrollment = enrollmentScenario.enrollment();
+
+            var before = enrollmentService.getEnrollment(enrollment.getId());
+            assertFalse(before.allowedActions().contains(action));
+
             assertThrows(BadRequestException.class, () -> enrollmentService.performAction(enrollment.getId(), action));
 
             var savedEnrollment = enrollmentService.getEnrollment(enrollment.getId());
@@ -232,6 +242,66 @@ public class EnrollmentServiceIntegrationTests extends IntegrationTests {
             assertEquals(from, savedEnrollment.enrollmentStatus());
         }
 
+        @Test
+        void shouldReflectViewerInAllowedActionsAfterApproval() {
+            var enrollmentScenario = enrollmentScenarioBuilder
+                .offering(o -> o.capacity(capacity).enrolled(5))
+                .build();
+            var enrollmentId = enrollmentScenario.enrollment().getId();
+
+            TestAuthentication.asInstructor(enrollmentScenario.instructor());
+            enrollmentService.performAction(enrollmentId, EnrollmentAction.APPROVE);
+
+            TestAuthentication.asStudent(enrollmentScenario.student());
+            var studentView = enrollmentService.getEnrollment(enrollmentId);
+
+            assertEquals(EnrollmentStatus.ENROLLED, studentView.enrollmentStatus());
+            assertEquals(List.of(EnrollmentAction.DROP), studentView.allowedActions());
+        }
+
+    }
+
+    @Nested
+    class ApprovalRules {
+        private static final int CAPACITY = 10;
+
+        @AfterEach
+        void tearDown() {
+            TestAuthentication.clear();
+        }
+
+        @Test
+        void shouldNotApproveWhenOfferingFull() {
+            var enrollmentScenario = enrollmentScenarioSeeder.builder()
+                .offering(o -> o.capacity(CAPACITY).enrolled(CAPACITY))
+                .build();
+            var enrollmentId = enrollmentScenario.enrollment().getId();
+            TestAuthentication.asInstructor(enrollmentScenario.instructor());
+
+            assertThrows(ConflictException.class, () -> enrollmentService.performAction(enrollmentId, EnrollmentAction.APPROVE));
+
+            var savedEnrollment = enrollmentService.getEnrollment(enrollmentId);
+            var savedOffering = courseOfferingService.getCourseOfferingEntity(enrollmentScenario.courseOffering().getId());
+            assertEquals(EnrollmentStatus.PENDING, savedEnrollment.enrollmentStatus());
+            assertEquals(CAPACITY, savedOffering.getEnrolled());
+        }
+
+        @ParameterizedTest(name = "{0}")
+        @EnumSource(value = SemesterStatus.class, names = {"COMPLETED", "CANCELLED"})
+        void shouldNotApproveWhenSemesterClosed(SemesterStatus semesterStatus) {
+            var enrollmentScenario = enrollmentScenarioSeeder.builder()
+                .offering(o -> o.capacity(CAPACITY).enrolled(5).semester(s -> s.status(semesterStatus)))
+                .build();
+            var enrollmentId = enrollmentScenario.enrollment().getId();
+            TestAuthentication.asInstructor(enrollmentScenario.instructor());
+
+            assertThrows(BadRequestException.class, () -> enrollmentService.performAction(enrollmentId, EnrollmentAction.APPROVE));
+
+            var savedEnrollment = enrollmentService.getEnrollment(enrollmentId);
+            var savedOffering = courseOfferingService.getCourseOfferingEntity(enrollmentScenario.courseOffering().getId());
+            assertEquals(EnrollmentStatus.PENDING, savedEnrollment.enrollmentStatus());
+            assertEquals(5, savedOffering.getEnrolled());
+        }
     }
 }
 

@@ -35,7 +35,9 @@ public class EnrollmentActionPolicy {
         EnrollmentEntity enrollment,
         EnrollmentAction action
     ) {
-        if(!enrollment.canTransitionTo(action.getTargetStatus())) return Optional.of(EnrollmentDenial.INVALID_TRANSITION);
+        if(!enrollment.canTransitionTo(action.getTargetStatus())) {
+            return Optional.of(EnrollmentDenial.INVALID_TRANSITION);
+        }
 
         var offering = enrollment.getCourseOffering();
         return switch (action) {

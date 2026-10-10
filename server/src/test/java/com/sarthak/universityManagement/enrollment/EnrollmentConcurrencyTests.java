@@ -1,5 +1,6 @@
 package com.sarthak.universityManagement.enrollment;
 
+import com.sarthak.universityManagement.common.exceptions.ConflictException;
 import com.sarthak.universityManagement.config.TestClockConfig;
 import com.sarthak.universityManagement.config.MySqlTestContainer;
 import com.sarthak.universityManagement.config.TestUtilsConfiguration;
@@ -25,6 +26,8 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.time.Clock;
 import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -145,10 +148,12 @@ public class EnrollmentConcurrencyTests extends MySqlTestContainer {
         start.countDown();
 
 
-        future1.get();
-        future2.get();
+        var outcomes = Arrays.asList(future1.get(), future2.get());
 
         executor.shutdown();
+
+        assertEquals(1, outcomes.stream().filter(Objects::isNull).count());
+        assertEquals(1, outcomes.stream().filter(ConflictException.class::isInstance).count());
 
         TestAuthentication.asInstructor(instructor);
 

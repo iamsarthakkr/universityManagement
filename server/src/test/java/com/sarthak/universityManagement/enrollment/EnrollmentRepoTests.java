@@ -108,6 +108,16 @@ public class EnrollmentRepoTests extends RepoTests {
     }
 
     @Test
+    void shouldDetermineEnrollmentByIdAndStudent() {
+        assertTrue(enrollmentRepo.existsByIdAndStudent_User_Id(enrollment1.getId(), student1.getUser().getId()));
+        assertTrue(enrollmentRepo.existsByIdAndStudent_User_Id(enrollment3.getId(), student1.getUser().getId()));
+        assertTrue(enrollmentRepo.existsByIdAndStudent_User_Id(enrollment2.getId(), student2.getUser().getId()));
+
+        assertFalse(enrollmentRepo.existsByIdAndStudent_User_Id(enrollment2.getId(), student1.getUser().getId()));
+        assertFalse(enrollmentRepo.existsByIdAndStudent_User_Id(enrollment1.getId(), student2.getUser().getId()));
+    }
+
+    @Test
     void shouldRejectDuplicateEnrollment() {
         var toSave = EnrollmentFixtures.enrollment(student1, courseOffering1);
         assertThrows(DataIntegrityViolationException.class, () -> enrollmentRepo.saveAndFlush(toSave.build()));
