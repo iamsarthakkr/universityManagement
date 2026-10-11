@@ -65,11 +65,11 @@ public class EnrollmentActionPolicyIntegrationTests extends IntegrationTests {
         var targetInstructor = target.getCourseOffering().getInstructor();
         var otherInstructor = other.getCourseOffering().getInstructor();
         return switch (actor) {
-            case ADMIN -> base.role(Role.ADMIN).userId(-1).build();
-            case OWNING_STUDENT -> base.role(Role.STUDENT).userId(targetStudent.getUser().getId()).build();
-            case OFFERING_INSTRUCTOR -> base.role(Role.INSTRUCTOR).userId(targetInstructor.getUser().getId()).build();
-            case OTHER_STUDENT -> base.role(Role.STUDENT).userId(otherStudent.getUser().getId()).build();
-            case OTHER_INSTRUCTOR -> base.role(Role.INSTRUCTOR).userId(otherInstructor.getUser().getId()).build();
+            case ADMIN -> base.role(Role.ADMIN).id(-1).build();
+            case OWNING_STUDENT -> base.role(Role.STUDENT).id(targetStudent.getUser().getId()).build();
+            case OFFERING_INSTRUCTOR -> base.role(Role.INSTRUCTOR).id(targetInstructor.getUser().getId()).build();
+            case OTHER_STUDENT -> base.role(Role.STUDENT).id(otherStudent.getUser().getId()).build();
+            case OTHER_INSTRUCTOR -> base.role(Role.INSTRUCTOR).id(otherInstructor.getUser().getId()).build();
         };
     }
 

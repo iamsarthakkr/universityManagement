@@ -18,7 +18,7 @@ public class TestAuthentication {
         var principal = UserPrincipal
             .builder()
             .username("test-admin")
-            .userId(-1)
+            .id(-1)
             .role(Role.ADMIN).enabled(true)
             .build();
         authenticate(principal);
@@ -40,7 +40,7 @@ public class TestAuthentication {
         var principal = UserPrincipal
             .builder()
             .username("test-" + role.name().toLowerCase())
-            .userId(-1)
+            .id(-1)
             .role(role).enabled(true)
             .build();
         authenticate(principal);

@@ -35,7 +35,7 @@ public class JwtService {
         Instant now = Instant.now();
         
         Map<String, Object> claims = new HashMap<>();
-        claims.put(USER_ID, authenticatedUser.getUserId());
+        claims.put(USER_ID, authenticatedUser.getId());
         claims.put(ROLE, authenticatedUser.getRole().name());
         
         return Jwts.builder()

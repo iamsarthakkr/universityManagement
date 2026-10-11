@@ -36,7 +36,7 @@ public class CurrentUserServiceTests {
 
     private static UserPrincipal principal() {
         return UserPrincipal.builder()
-            .userId(USER_ID)
+            .id(USER_ID)
             .username("current-user")
             .role(Role.INSTRUCTOR)
             .enabled(true)

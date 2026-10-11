@@ -2,11 +2,12 @@ package com.sarthak.universityManagement.security;
 
 import com.sarthak.universityManagement.common.types.Role;
 import com.sarthak.universityManagement.user.UserEntity;
+import jakarta.annotation.Nullable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,15 +18,17 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
 public class UserPrincipal implements UserDetails {
-    private Integer userId;
+    private Integer id;
     private String username;
     private String password;
+    private String email;
     private Role role;
     private boolean enabled;
     
     public UserPrincipal(UserEntity user) {
-        this(user.getId(), user.getUsername(), user.getPassword(), user.getRole(), user.isActive());
+        this(user.getId(), user.getUsername(), user.getPassword(), user.getEmail(), user.getRole(), user.isActive());
     }
     
     @Override
@@ -50,11 +53,4 @@ public class UserPrincipal implements UserDetails {
         return this.enabled;
     }
     
-    public Role getRole() {
-        return role;
-    }
-    
-    public Integer getUserId() {
-        return this.userId;
-    }
 }

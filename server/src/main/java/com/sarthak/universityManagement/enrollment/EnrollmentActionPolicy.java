@@ -26,8 +26,8 @@ public class EnrollmentActionPolicy {
     ) {
         return switch (currentUser.getRole()) {
             case ADMIN -> EnrollmentActor.ADMIN;
-            case INSTRUCTOR -> enrollment.isTaughtBy(currentUser.getUserId()) ? EnrollmentActor.OFFERING_INSTRUCTOR : EnrollmentActor.NONE;
-            case STUDENT -> enrollment.belongsToUser(currentUser.getUserId()) ? EnrollmentActor.OWNING_STUDENT : EnrollmentActor.NONE;
+            case INSTRUCTOR -> enrollment.isTaughtBy(currentUser.getId()) ? EnrollmentActor.OFFERING_INSTRUCTOR : EnrollmentActor.NONE;
+            case STUDENT -> enrollment.belongsToUser(currentUser.getId()) ? EnrollmentActor.OWNING_STUDENT : EnrollmentActor.NONE;
         };
     }
 

@@ -20,14 +20,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         UserEntity user = userRepo
             .findByUsername(username)
             .orElseThrow(() -> new UsernameNotFoundException("User not found with username " + username));
-        
-        return UserPrincipal
-            .builder()
-            .userId(user.getId())
-            .username(user.getUsername())
-            .password(user.getPassword())
-            .role(user.getRole())
-            .enabled(user.isActive())
-            .build();
+
+        return new UserPrincipal(user);
     }
 }

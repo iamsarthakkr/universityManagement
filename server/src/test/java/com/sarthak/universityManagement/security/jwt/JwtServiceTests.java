@@ -15,7 +15,7 @@ public class JwtServiceTests extends IntegrationTests {
     private JwtService jwtService;
 
     private static UserPrincipal principal(String username) {
-        return UserFixtures.userPrincipal().userId(1).username(username).build();
+        return UserFixtures.userPrincipal().id(1).username(username).build();
     }
     
     @Test
@@ -38,7 +38,7 @@ public class JwtServiceTests extends IntegrationTests {
     void shouldExtractClaimsFromToken() {
         UserPrincipal userPrincipal = principal("admin");
         String token = jwtService.generateToken(userPrincipal);
-        assertEquals(userPrincipal.getUserId(), jwtService.extractUserId(token));
+        assertEquals(userPrincipal.getId(), jwtService.extractUserId(token));
         assertEquals(userPrincipal.getRole(), jwtService.extractRole(token));
     }
     
