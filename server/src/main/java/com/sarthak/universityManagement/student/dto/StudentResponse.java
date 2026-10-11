@@ -8,5 +8,6 @@ public record StudentResponse(
     Integer id,
     String firstName,
     String lastName,
+    String email,
     DepartmentResponse department
 ) { }

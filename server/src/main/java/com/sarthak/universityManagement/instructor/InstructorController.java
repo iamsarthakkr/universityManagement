@@ -2,6 +2,7 @@ package com.sarthak.universityManagement.instructor;
 
 import com.sarthak.universityManagement.common.rest.ApiResponse;
 import com.sarthak.universityManagement.common.rest.Res;
+import com.sarthak.universityManagement.instructor.dto.InstructorFilter;
 import com.sarthak.universityManagement.instructor.dto.InstructorResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -12,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("instructor")
+@RequestMapping("instructors")
 public class InstructorController {
 
     private final InstructorService instructorService;
@@ -23,8 +24,10 @@ public class InstructorController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<InstructorResponse>>> getAllInstructors() {
-        return Res.success(instructorService.getAllInstructors());
+    public ResponseEntity<ApiResponse<List<InstructorResponse>>> getInstructors(
+        InstructorFilter filter
+    ) {
+        return Res.success(instructorService.getInstructors(filter));
     }
 
 }

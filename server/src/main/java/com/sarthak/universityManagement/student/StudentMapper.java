@@ -26,6 +26,7 @@ public class StudentMapper {
             .id(student.getId())
             .firstName(student.getFirstName())
             .lastName(student.getLastName())
+            .email(student.getUser().getEmail())
             .department(DepartmentMapper.toResponse(student.getDepartment()))
             .build();
     }
