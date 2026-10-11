@@ -5,6 +5,7 @@ import com.sarthak.universityManagement.common.exceptions.ResourceNotFoundExcept
 import com.sarthak.universityManagement.courseOffering.CourseOfferingActionPolicy;
 import com.sarthak.universityManagement.courseOffering.CourseOfferingEntity;
 import com.sarthak.universityManagement.courseOffering.CourseOfferingService;
+import com.sarthak.universityManagement.courseOffering.types.EnrollDenial;
 import com.sarthak.universityManagement.enrollment.dto.EnrollmentResponse;
 import com.sarthak.universityManagement.enrollment.types.EnrollmentAction;
 import com.sarthak.universityManagement.enrollment.types.EnrollmentStatus;
@@ -112,12 +113,12 @@ public class EnrollmentService {
     /* ---------------------------------------------------------------------------------------------------------------*/
 
     private void validateEnrollmentRequest(CourseOfferingEntity courseOffering, StudentEntity student) {
-        if(enrollmentRepo.existsByStudentIdAndCourseOfferingId(student.getId(), courseOffering.getId())) {
-            throw new BadRequestException("Enrollment already exists for student in the course offering");
-        }
         CourseOfferingActionPolicy
             .validateEnroll(courseOffering, currentUserService.getCurrentUserRole(), LocalDate.now(clock))
             .ifPresent(denial -> { throw denial.toException(courseOffering.getId()); });
+        if(enrollmentRepo.existsByStudentIdAndCourseOfferingId(student.getId(), courseOffering.getId())) {
+            throw EnrollDenial.ALREADY_REQUESTED.toException(courseOffering.getId());
+        }
     }
 
     private EnrollmentEntity getEnrollmentOrThrow(Integer enrollmentId) {

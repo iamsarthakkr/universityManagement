@@ -30,12 +30,14 @@ public class CourseOfferingActionPolicyTests {
             .build();
     }
 
-    // role × registration open × full; the first failing check decides the denial
+    // role × registration open × full; the first failing check decides the denial.
+    // A student's existing request is deliberately not part of the policy: ENROLL reflects the offering only,
+    // and a duplicate is rejected when the enrollment is created
     static Stream<Arguments> enrollCases() {
         List<Arguments> cases = new ArrayList<>(List.of(
             Arguments.of(Role.STUDENT, true, false, null),
-            Arguments.of(Role.STUDENT, false, false, EnrollDenial.REGISTRATION_CLOSED),
             Arguments.of(Role.STUDENT, true, true, EnrollDenial.OFFERING_FULL),
+            Arguments.of(Role.STUDENT, false, false, EnrollDenial.REGISTRATION_CLOSED),
             Arguments.of(Role.STUDENT, false, true, EnrollDenial.REGISTRATION_CLOSED)
         ));
 

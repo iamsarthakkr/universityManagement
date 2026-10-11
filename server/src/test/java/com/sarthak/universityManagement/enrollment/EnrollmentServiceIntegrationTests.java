@@ -1,5 +1,7 @@
 package com.sarthak.universityManagement.enrollment;
 
+import com.sarthak.universityManagement.courseOffering.types.EnrollDenial;
+import com.sarthak.universityManagement.courseOffering.types.CourseOfferingAction;
 import com.sarthak.universityManagement.common.exceptions.BadRequestException;
 import com.sarthak.universityManagement.common.exceptions.ConflictException;
 import com.sarthak.universityManagement.config.IntegrationTests;
@@ -119,7 +121,27 @@ public class EnrollmentServiceIntegrationTests extends IntegrationTests {
 
             enrollmentService.createEnrollment(student.getId(), offering.getId());
 
-            assertThrows(BadRequestException.class, () -> enrollmentService.createEnrollment(student.getId(), offering.getId()));
+            var ex = assertThrows(ConflictException.class, () -> enrollmentService.createEnrollment(student.getId(), offering.getId()));
+            assertEquals(EnrollDenial.ALREADY_REQUESTED.toException(offering.getId()).getMessage(), ex.getMessage());
+            assertEquals(1, enrollmentRepo.count());
+        }
+
+        @Test
+        void shouldOfferEnrollOnOfferingNotYetRequested() {
+            var offering = courseOfferingScenarioBuilder.build().courseOffering();
+
+            assertEquals(List.of(CourseOfferingAction.ENROLL), courseOfferingService.getCourseOfferingById(offering.getId()).allowedActions());
+        }
+
+        // ENROLL reflects the offering's rules only; the duplicate is rejected on create (see the test above)
+        @Test
+        void shouldStillOfferEnrollAfterRequesting() {
+            var student = studentScenario.student();
+            var offering = courseOfferingScenarioBuilder.build().courseOffering();
+
+            enrollmentService.createEnrollment(student.getId(), offering.getId());
+
+            assertEquals(List.of(CourseOfferingAction.ENROLL), courseOfferingService.getCourseOfferingById(offering.getId()).allowedActions());
         }
 
         @Test

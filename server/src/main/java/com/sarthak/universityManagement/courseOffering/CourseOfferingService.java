@@ -9,7 +9,6 @@ import com.sarthak.universityManagement.courseOffering.dto.CourseOfferingRespons
 import com.sarthak.universityManagement.courseOffering.dto.CreateCourseOfferingRequest;
 import com.sarthak.universityManagement.instructor.InstructorService;
 import com.sarthak.universityManagement.instructor.validators.InstructorValidator;
-import com.sarthak.universityManagement.security.annotation.AdminOrCourseOfferingInstructor;
 import com.sarthak.universityManagement.semester.SemesterService;
 import com.sarthak.universityManagement.semester.validators.SemesterValidator;
 import com.sarthak.universityManagement.user.CurrentUserService;
