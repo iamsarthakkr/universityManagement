@@ -43,8 +43,7 @@ public class CurrentUserService {
 
     @Transactional(readOnly = true)
     public StudentEntity getCurrentStudent() {
-        var user = getCurrentUser();
-        if(user.getRole() != Role.STUDENT) {
+        if(getCurrentUserRole() != Role.STUDENT) {
             throw new ForbiddenException("Current user is not a student");
         }
         return studentService.getStudentByUserId(getCurrentUserId());
@@ -52,8 +51,7 @@ public class CurrentUserService {
 
     @Transactional(readOnly = true)
     public InstructorEntity getCurrentInstructor() {
-        var user = getCurrentUser();
-        if(user.getRole() != Role.INSTRUCTOR) {
+        if(getCurrentUserRole() != Role.INSTRUCTOR) {
             throw new ForbiddenException("Current user is not an instructor");
         }
         return instructorService.getInstructorByUserId(getCurrentUserId());
