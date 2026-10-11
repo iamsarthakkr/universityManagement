@@ -74,7 +74,7 @@ public class CourseServiceAuthorizationTests extends IntegrationTests {
             var course = courseSeeder.saveDefault(departmentSeeder.saveDefault("cs-1"));
             actor.authenticate();
 
-            assertEquals(course.getId(), courseService.getCourseById(course.getId()).id());
+            assertEquals(course.getId(), courseService.getCourse(course.getId()).id());
             assertEquals(1, courseService.getCourses(new CourseFilter(null)).size());
         }
     }

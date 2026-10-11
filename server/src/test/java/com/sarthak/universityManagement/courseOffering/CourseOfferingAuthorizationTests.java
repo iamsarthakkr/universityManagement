@@ -2,6 +2,7 @@ package com.sarthak.universityManagement.courseOffering;
 
 import com.sarthak.universityManagement.common.types.Role;
 import com.sarthak.universityManagement.config.IntegrationTests;
+import com.sarthak.universityManagement.courseOffering.dto.CourseOfferingFilter;
 import com.sarthak.universityManagement.courseOffering.dto.CourseOfferingResponse;
 import com.sarthak.universityManagement.semester.types.SemesterTerm;
 import com.sarthak.universityManagement.testUtils.fixtures.CourseOfferingFixtures;
@@ -13,16 +14,20 @@ import com.sarthak.universityManagement.testUtils.seeders.CourseSeeder;
 import com.sarthak.universityManagement.testUtils.seeders.DepartmentSeeder;
 import com.sarthak.universityManagement.testUtils.seeders.InstructorSeeder;
 import com.sarthak.universityManagement.testUtils.seeders.SemesterSeeder;
+import com.sarthak.universityManagement.testUtils.seeders.UserSeeder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -43,6 +48,15 @@ public class CourseOfferingAuthorizationTests extends IntegrationTests {
     private DepartmentSeeder departmentSeeder;
     @Autowired
     private CourseOfferingSeeder courseOfferingSeeder;
+
+    @Autowired
+    private UserSeeder userSeeder;
+
+    private static final CourseOfferingFilter NO_FILTER = new CourseOfferingFilter(null, null, null);
+
+    private static Set<Integer> ids(List<CourseOfferingResponse> offerings) {
+        return offerings.stream().map(CourseOfferingResponse::id).collect(Collectors.toSet());
+    }
 
     @AfterEach
     void tearDown() {
@@ -82,57 +96,97 @@ public class CourseOfferingAuthorizationTests extends IntegrationTests {
     }
 
     @Nested
-    class ListVisibility {
+    class ListAuthorization {
 
-        enum Viewer { ADMIN, OFFERING_INSTRUCTOR, OTHER_INSTRUCTOR, STUDENT }
-        enum Visible { ALL, OWN, NONE }
-
-        // Instructors only manage their own offerings; admins and students see the whole list
-        static Stream<Arguments> cases() {
-            return Stream.of(
-                Arguments.of(Viewer.ADMIN, Visible.ALL),
-                Arguments.of(Viewer.STUDENT, Visible.ALL),
-                Arguments.of(Viewer.OFFERING_INSTRUCTOR, Visible.OWN),
-                Arguments.of(Viewer.OTHER_INSTRUCTOR, Visible.NONE)
-            );
-        }
-
-        @ParameterizedTest(name = "{0} sees {1}")
-        @MethodSource("cases")
-        void shouldListOfferingsVisibleToViewer(Viewer viewer, Visible visible) {
+        // Every logged-in role gets the same list; "my offerings" lives under /me
+        @ParameterizedTest
+        @EnumSource(value = RoleActor.class, names = {"ADMIN", "INSTRUCTOR", "STUDENT"})
+        void shouldReturnSameListForEveryRole(RoleActor actor) {
             var department = departmentSeeder.saveDefault("dep");
             var semester = semesterSeeder.saveDefaultSemester(SemesterTerm.SUMMER, 2026);
-            var own = courseOfferingSeeder.saveDefault(courseSeeder.saveDefault(department), semester, "A");
-            var someoneElses = courseOfferingSeeder.saveDefault(courseSeeder.saveDefault(department), semester, "A");
-            var otherInstructor = instructorSeeder.saveDefaultInstructor(department);
+            var first = courseOfferingSeeder.saveDefault(courseSeeder.saveDefault(department), semester, "A");
+            var second = courseOfferingSeeder.saveDefault(courseSeeder.saveDefault(department), semester, "A");
+            actor.authenticate();
 
-            switch (viewer) {
-                case ADMIN -> TestAuthentication.asRole(Role.ADMIN);
-                case STUDENT -> TestAuthentication.asRole(Role.STUDENT);
-                case OFFERING_INSTRUCTOR -> TestAuthentication.asInstructor(own.getInstructor());
-                case OTHER_INSTRUCTOR -> TestAuthentication.asInstructor(otherInstructor);
-            }
-
-            var expected = switch (visible) {
-                case ALL -> List.of(own.getId(), someoneElses.getId());
-                case OWN -> List.of(own.getId());
-                case NONE -> List.<Integer>of();
-            };
-
-            var ids = courseOfferingService.getCourseOfferings(semester.getId())
-                .stream()
-                .map(CourseOfferingResponse::id)
-                .sorted()
-                .toList();
-
-            assertEquals(expected.stream().sorted().toList(), ids);
+            assertEquals(Set.of(first.getId(), second.getId()), ids(courseOfferingService.getCourseOfferings(NO_FILTER)));
         }
 
         @Test
         void anonymousShouldBeRejected() {
             RoleActor.ANONYMOUS.authenticate();
 
-            assertThrows(AuthenticationCredentialsNotFoundException.class, () -> courseOfferingService.getCourseOfferings(null));
+            assertThrows(AuthenticationCredentialsNotFoundException.class, () -> courseOfferingService.getCourseOfferings(NO_FILTER));
+        }
+    }
+
+    @Nested
+    class MyOfferings {
+
+        static Stream<Arguments> cases() {
+            return Stream.of(
+                Arguments.of(RoleActor.INSTRUCTOR, AuthOutcome.ALLOWED),
+                Arguments.of(RoleActor.ADMIN, AuthOutcome.ACCESS_DENIED),
+                Arguments.of(RoleActor.STUDENT, AuthOutcome.ACCESS_DENIED),
+                Arguments.of(RoleActor.ANONYMOUS, AuthOutcome.UNAUTHENTICATED)
+            );
+        }
+
+        @ParameterizedTest(name = "{0} -> {1}")
+        @MethodSource("cases")
+        void shouldOnlyLetInstructorsListTheirOfferings(RoleActor actor, AuthOutcome outcome) {
+            var department = departmentSeeder.saveDefault("dep");
+            var semester = semesterSeeder.saveDefaultSemester(SemesterTerm.SUMMER, 2026);
+            var own = courseOfferingSeeder.saveDefault(courseSeeder.saveDefault(department), semester, "A");
+
+            if(outcome == AuthOutcome.ALLOWED) {
+                TestAuthentication.asInstructor(own.getInstructor());
+                assertEquals(Set.of(own.getId()), ids(courseOfferingService.getCourseOfferingsForInstructor(NO_FILTER)));
+            } else {
+                actor.authenticate();
+                assertThrows(outcome.expectedException(), () -> courseOfferingService.getCourseOfferingsForInstructor(NO_FILTER));
+            }
+        }
+
+        @Test
+        void shouldReturnOnlyTheCurrentInstructorsOfferings() {
+            var department = departmentSeeder.saveDefault("dep");
+            var semester = semesterSeeder.saveDefaultSemester(SemesterTerm.SUMMER, 2026);
+            // Extra users push user ids out of step with instructor ids, so mixing the two id spaces fails here
+            userSeeder.saveDefault(Role.ADMIN);
+            userSeeder.saveDefault(Role.ADMIN);
+            var own = courseOfferingSeeder.saveDefault(courseSeeder.saveDefault(department), semester, "A");
+            courseOfferingSeeder.saveDefault(courseSeeder.saveDefault(department), semester, "A");
+            var instructor = own.getInstructor();
+            assertNotEquals(instructor.getId(), instructor.getUser().getId(), "precondition: ids must differ");
+
+            TestAuthentication.asInstructor(instructor);
+
+            assertEquals(Set.of(own.getId()), ids(courseOfferingService.getCourseOfferingsForInstructor(NO_FILTER)));
+        }
+
+        @Test
+        void shouldReturnNothingForInstructorWithoutOfferings() {
+            var department = departmentSeeder.saveDefault("dep");
+            var semester = semesterSeeder.saveDefaultSemester(SemesterTerm.SUMMER, 2026);
+            courseOfferingSeeder.saveDefault(courseSeeder.saveDefault(department), semester, "A");
+
+            TestAuthentication.asInstructor(instructorSeeder.saveDefaultInstructor(department));
+
+            assertTrue(courseOfferingService.getCourseOfferingsForInstructor(NO_FILTER).isEmpty());
+        }
+
+        // The scope comes from the principal; an instructorId sent by the client must not widen it
+        @Test
+        void shouldIgnoreClientSuppliedInstructorId() {
+            var department = departmentSeeder.saveDefault("dep");
+            var semester = semesterSeeder.saveDefaultSemester(SemesterTerm.SUMMER, 2026);
+            var own = courseOfferingSeeder.saveDefault(courseSeeder.saveDefault(department), semester, "A");
+            var someoneElses = courseOfferingSeeder.saveDefault(courseSeeder.saveDefault(department), semester, "A");
+
+            TestAuthentication.asInstructor(own.getInstructor());
+            var filter = new CourseOfferingFilter(null, null, someoneElses.getInstructor().getId());
+
+            assertEquals(Set.of(own.getId()), ids(courseOfferingService.getCourseOfferingsForInstructor(filter)));
         }
     }
 }

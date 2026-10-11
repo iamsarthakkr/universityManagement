@@ -5,6 +5,7 @@ import com.sarthak.universityManagement.common.exceptions.ConflictException;
 import com.sarthak.universityManagement.common.exceptions.ResourceNotFoundException;
 import com.sarthak.universityManagement.config.IntegrationTests;
 import com.sarthak.universityManagement.course.CourseEntity;
+import com.sarthak.universityManagement.courseOffering.dto.CourseOfferingFilter;
 import com.sarthak.universityManagement.courseOffering.dto.CourseOfferingResponse;
 import com.sarthak.universityManagement.department.DepartmentEntity;
 import com.sarthak.universityManagement.instructor.InstructorEntity;
@@ -28,6 +29,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.Clock;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -52,6 +55,25 @@ public class CourseOfferingIntegrationTests extends IntegrationTests {
     private SemesterEntity semester;
     private InstructorEntity instructor;
     private CourseEntity course;
+
+    // Only these helpers know the record's field order, so adding a filter touches one place
+    private static final CourseOfferingFilter NO_FILTER = new CourseOfferingFilter(null, null, null);
+
+    private static CourseOfferingFilter bySemester(Integer semesterId) {
+        return new CourseOfferingFilter(null, semesterId, null);
+    }
+
+    private static CourseOfferingFilter byDepartment(Integer departmentId) {
+        return new CourseOfferingFilter(departmentId, null, null);
+    }
+
+    private static CourseOfferingFilter byInstructor(Integer instructorId) {
+        return new CourseOfferingFilter(null, null, instructorId);
+    }
+
+    private static Set<Integer> ids(List<CourseOfferingResponse> offerings) {
+        return offerings.stream().map(CourseOfferingResponse::id).collect(Collectors.toSet());
+    }
 
     @BeforeEach
     void setUp() {
@@ -198,7 +220,7 @@ public class CourseOfferingIntegrationTests extends IntegrationTests {
         void shouldReturnCorrectResponse() {
             var offering = courseOfferingSeeder.saveDefault(course, semester, "A");
 
-            var ret = courseOfferingService.getCourseOfferingById(offering.getId());
+            var ret = courseOfferingService.getCourseOffering(offering.getId());
 
             assertEquals(offering.getId(), ret.id());
             assertEquals(offering.getSection(), ret.section());
@@ -210,7 +232,7 @@ public class CourseOfferingIntegrationTests extends IntegrationTests {
 
         @Test
         void shouldReturnEmptyForNonExistentCourseOffering() {
-            assertThrows(ResourceNotFoundException.class, () -> courseOfferingService.getCourseOfferingById(-1));
+            assertThrows(ResourceNotFoundException.class, () -> courseOfferingService.getCourseOffering(-1));
         }
 
         @Test
@@ -239,7 +261,7 @@ public class CourseOfferingIntegrationTests extends IntegrationTests {
                 "A"
             );
 
-            var ret = courseOfferingService.getCourseOfferings(semester.getId());
+            var ret = courseOfferingService.getCourseOfferings(bySemester(semester.getId()));
             assertNotNull(ret);
             assertEquals(2, ret.size());
             var ids = ret.stream().map(CourseOfferingResponse::id).toList();
@@ -253,9 +275,54 @@ public class CourseOfferingIntegrationTests extends IntegrationTests {
         void shouldReturnEmptyListForNonExistentCourseOfferings() {
             var sem = semesterSeeder.saveDefaultSemester(SemesterTerm.SUMMER, 2027);
 
-            var ret = courseOfferingService.getCourseOfferings(sem.getId());
+            var ret = courseOfferingService.getCourseOfferings(bySemester(sem.getId()));
             assertNotNull(ret);
             assertEquals(0, ret.size());
+        }
+
+        // A null filter value means "don't filter"
+        @Test
+        @WithAdmin
+        void shouldReturnEveryOfferingWhenFilterIsEmpty() {
+            var otherSemester = semesterSeeder.saveDefaultSemester(SemesterTerm.SUMMER, 2027);
+            var first = courseOfferingSeeder.saveDefault(course, semester, "A");
+            var second = courseOfferingSeeder.saveDefault(course, otherSemester, "A");
+
+            assertEquals(Set.of(first.getId(), second.getId()), ids(courseOfferingService.getCourseOfferings(NO_FILTER)));
+        }
+
+        @Test
+        @WithAdmin
+        void shouldFilterByCourseDepartment() {
+            var otherDepartment = departmentSeeder.saveDefault("other-dep");
+            var own = courseOfferingSeeder.saveDefault(course, semester, "A");
+            courseOfferingSeeder.saveDefault(courseSeeder.saveDefault(otherDepartment), semester, "A");
+
+            assertEquals(Set.of(own.getId()), ids(courseOfferingService.getCourseOfferings(byDepartment(department.getId()))));
+        }
+
+        @Test
+        @WithAdmin
+        void shouldFilterByInstructor() {
+            var own = courseOfferingSeeder.saveDefault(course, semester, "A");
+            courseOfferingSeeder.saveDefault(course, semester, "B");
+
+            var ret = courseOfferingService.getCourseOfferings(byInstructor(own.getInstructor().getId()));
+
+            assertEquals(Set.of(own.getId()), ids(ret));
+        }
+
+        @Test
+        @WithAdmin
+        void shouldCombineFiltersWithAnd() {
+            var otherSemester = semesterSeeder.saveDefaultSemester(SemesterTerm.SUMMER, 2027);
+            var match = courseOfferingSeeder.saveDefault(course, semester, "A");
+            courseOfferingSeeder.saveDefault(course, otherSemester, "A");
+            courseOfferingSeeder.saveDefault(courseSeeder.saveDefault(departmentSeeder.saveDefault("other-dep")), semester, "A");
+
+            var filter = new CourseOfferingFilter(department.getId(), semester.getId(), null);
+
+            assertEquals(Set.of(match.getId()), ids(courseOfferingService.getCourseOfferings(filter)));
         }
 
     }

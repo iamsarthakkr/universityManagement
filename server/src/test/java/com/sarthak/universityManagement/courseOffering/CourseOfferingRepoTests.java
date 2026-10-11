@@ -2,7 +2,9 @@ package com.sarthak.universityManagement.courseOffering;
 
 import com.sarthak.universityManagement.config.RepoTests;
 import com.sarthak.universityManagement.semester.types.SemesterTerm;
+import com.sarthak.universityManagement.testUtils.fixtures.CourseFixtures;
 import com.sarthak.universityManagement.testUtils.fixtures.CourseOfferingFixtures;
+import com.sarthak.universityManagement.testUtils.fixtures.DepartmentFixtures;
 import com.sarthak.universityManagement.testUtils.seeders.CourseOfferingSeeder;
 import com.sarthak.universityManagement.testUtils.seeders.CourseSeeder;
 import com.sarthak.universityManagement.testUtils.seeders.DepartmentSeeder;
@@ -14,6 +16,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -177,7 +181,7 @@ public class CourseOfferingRepoTests extends RepoTests {
             var c4 = courseOfferingSeeder.saveDefault(course1, sem2, "A");
             var c5 = courseOfferingSeeder.saveDefault(course3, sem2, "A");
 
-            var ret =  courseOfferingRepo.findManagedOfferings(sem1.getId(), null);
+            var ret = courseOfferingRepo.search(sem1.getId(), null, null);
 
             assertNotNull(ret);
             assertEquals(3, ret.size());
@@ -185,6 +189,34 @@ public class CourseOfferingRepoTests extends RepoTests {
             assertTrue(ids.contains(c1.getId()));
             assertTrue(ids.contains(c2.getId()));
             assertTrue(ids.contains(c3.getId()));
+        }
+
+        @Test
+        void shouldOrderBySemesterThenDepartmentNameThenCourseCodeThenSection() {
+            var maths = departmentSeeder.save(DepartmentFixtures.departmentWithCode("maths").name("Mathematics").build());
+            var cs = departmentSeeder.save(DepartmentFixtures.departmentWithCode("cse").name("Computer Science").build());
+            var mt101 = courseSeeder.save(CourseFixtures.course(maths).code("MT101").build());
+            var cs200 = courseSeeder.save(CourseFixtures.course(cs).code("CS200").build());
+            var cs100 = courseSeeder.save(CourseFixtures.course(cs).code("CS100").build());
+
+            var summer = semesterSeeder.saveDefaultSemester(SemesterTerm.SUMMER, 2026);
+            var winter = semesterSeeder.saveDefaultSemester(SemesterTerm.WINTER, 2026);
+            var nextYear = semesterSeeder.saveDefaultSemester(SemesterTerm.SUMMER, 2027);
+
+            // Saved out of order on purpose
+            var last = courseOfferingSeeder.saveDefault(cs100, nextYear, "A");
+            var winterCs = courseOfferingSeeder.saveDefault(cs100, winter, "A");
+            var summerMaths = courseOfferingSeeder.saveDefault(mt101, summer, "A");
+            var summerCs200 = courseOfferingSeeder.saveDefault(cs200, summer, "A");
+            var summerCs100B = courseOfferingSeeder.saveDefault(cs100, summer, "B");
+            var summerCs100A = courseOfferingSeeder.saveDefault(cs100, summer, "A");
+
+            var ids = courseOfferingRepo.search(null, null, null).stream().map(CourseOfferingEntity::getId).toList();
+
+            assertEquals(List.of(
+                summerCs100A.getId(), summerCs100B.getId(), summerCs200.getId(), summerMaths.getId(),
+                winterCs.getId(), last.getId()
+            ), ids);
         }
 
         @Test

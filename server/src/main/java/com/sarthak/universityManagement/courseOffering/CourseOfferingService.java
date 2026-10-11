@@ -3,8 +3,8 @@ package com.sarthak.universityManagement.courseOffering;
 import com.sarthak.universityManagement.auth.AuthorizationExpressions;
 import com.sarthak.universityManagement.common.exceptions.ConflictException;
 import com.sarthak.universityManagement.common.exceptions.ResourceNotFoundException;
-import com.sarthak.universityManagement.common.types.Role;
 import com.sarthak.universityManagement.course.CourseService;
+import com.sarthak.universityManagement.courseOffering.dto.CourseOfferingFilter;
 import com.sarthak.universityManagement.courseOffering.dto.CourseOfferingResponse;
 import com.sarthak.universityManagement.courseOffering.dto.CreateCourseOfferingRequest;
 import com.sarthak.universityManagement.instructor.InstructorService;
@@ -12,7 +12,6 @@ import com.sarthak.universityManagement.instructor.validators.InstructorValidato
 import com.sarthak.universityManagement.semester.SemesterService;
 import com.sarthak.universityManagement.semester.validators.SemesterValidator;
 import com.sarthak.universityManagement.user.CurrentUserService;
-import jakarta.annotation.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -23,7 +22,6 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Service
-@Transactional
 public class CourseOfferingService {
     private final CourseOfferingRepo courseOfferingRepo;
     private final CourseService courseService;
@@ -49,6 +47,7 @@ public class CourseOfferingService {
         this.clock = clock;
     }
 
+    @Transactional
     @PreAuthorize(AuthorizationExpressions.ADMIN)
     public CourseOfferingResponse createOffering(CreateCourseOfferingRequest courseOfferingRequest) {
         var courseId = courseOfferingRequest.courseId();
@@ -75,7 +74,7 @@ public class CourseOfferingService {
     }
 
     @Transactional(readOnly = true)
-    public CourseOfferingResponse getCourseOfferingById(Integer offeringId) {
+    public CourseOfferingResponse getCourseOffering(Integer offeringId) {
         var offering = courseOfferingRepo
             .findById(offeringId)
             .orElseThrow(() -> new ResourceNotFoundException("Offering not found with id " + offeringId));
@@ -97,12 +96,21 @@ public class CourseOfferingService {
 
     @Transactional(readOnly = true)
     @PreAuthorize(AuthorizationExpressions.ANY_AUTHENTICATED)
-    public List<CourseOfferingResponse> getCourseOfferings(@Nullable Integer semesterId) {
-        var role = currentUserService.getCurrentUserRole();
-        var instructorUserId = Role.INSTRUCTOR.equals(role) ? currentUserService.getCurrentUserId() : null;
+    public List<CourseOfferingResponse> getCourseOfferings(CourseOfferingFilter filter) {
+        return courseOfferingRepo
+            .search(filter)
+            .stream()
+            .map(this::toResponse)
+            .toList();
+    }
+
+    @Transactional(readOnly = true)
+    @PreAuthorize(AuthorizationExpressions.INSTRUCTOR)
+    public List<CourseOfferingResponse> getCourseOfferingsForInstructor(CourseOfferingFilter filter) {
+        var currentInstructorId = currentUserService.getCurrentInstructor().getId();
 
         return courseOfferingRepo
-            .findManagedOfferings(semesterId, instructorUserId)
+            .searchForInstructor(currentInstructorId, filter)
             .stream()
             .map(this::toResponse)
             .toList();

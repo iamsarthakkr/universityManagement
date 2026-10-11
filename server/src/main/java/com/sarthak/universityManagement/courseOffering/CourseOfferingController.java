@@ -3,6 +3,7 @@ package com.sarthak.universityManagement.courseOffering;
 import com.sarthak.universityManagement.common.rest.ApiResponse;
 import com.sarthak.universityManagement.common.rest.Res;
 import com.sarthak.universityManagement.common.rest.SuccessCode;
+import com.sarthak.universityManagement.courseOffering.dto.CourseOfferingFilter;
 import com.sarthak.universityManagement.courseOffering.dto.CourseOfferingResponse;
 import com.sarthak.universityManagement.courseOffering.dto.CreateCourseOfferingRequest;
 import com.sarthak.universityManagement.enrollment.EnrollmentService;
@@ -40,12 +41,11 @@ public class CourseOfferingController {
         this.currentUserService = currentUserService;
     }
 
-
-    @GetMapping("/{offeringId}")
-    public ResponseEntity<ApiResponse<CourseOfferingResponse>> getOffering(
-        @PathVariable Integer offeringId
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<CourseOfferingResponse>>> getOfferings(
+        CourseOfferingFilter filter
     ) {
-        return Res.success(courseOfferingService.getCourseOfferingById(offeringId));
+        return Res.success(courseOfferingService.getCourseOfferings(filter));
     }
 
     @PostMapping
@@ -55,12 +55,11 @@ public class CourseOfferingController {
         return Res.success(SuccessCode.CREATED, courseOfferingService.createOffering(courseOfferingRequest));
     }
 
-
-    @GetMapping
-    public ResponseEntity<ApiResponse<List<CourseOfferingResponse>>> getOfferings(
-        @RequestParam(name = "semesterId", required = false) Integer semesterId
+    @GetMapping("/{offeringId}")
+    public ResponseEntity<ApiResponse<CourseOfferingResponse>> getOffering(
+        @PathVariable Integer offeringId
     ) {
-        return Res.success(courseOfferingService.getCourseOfferings(semesterId));
+        return Res.success(courseOfferingService.getCourseOffering(offeringId));
     }
 
     @GetMapping("/{offeringId}/enrollments")
