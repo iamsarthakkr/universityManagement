@@ -1,5 +1,6 @@
 package com.sarthak.universityManagement.enrollment;
 
+import com.sarthak.universityManagement.enrollment.dto.EnrollmentFilter;
 import com.sarthak.universityManagement.enrollment.types.EnrollmentStatus;
 import jakarta.annotation.Nullable;
 import jakarta.persistence.LockModeType;
@@ -26,30 +27,30 @@ public interface EnrollmentRepo extends JpaRepository<EnrollmentEntity, Integer>
     @Query("""
         SELECT e
         FROM EnrollmentEntity e
-        WHERE (e.student.id = :studentId)
+        WHERE (:studentId IS NULL OR e.student.id = :studentId)
+            AND (:courseOfferingId IS NULL OR e.courseOffering.id = :courseOfferingId)
             AND (:semesterId IS NULL OR e.courseOffering.semester.id = :semesterId)
-            AND (:enrollmentStatus IS NULL OR e.status = :enrollmentStatus)
+            AND (:status IS NULL OR e.status = :status)
         ORDER BY e.courseOffering.semester.year DESC, e.courseOffering.semester.term DESC,
             e.courseOffering.course.department.name ASC, e.courseOffering.course.code ASC,
             e.courseOffering.section ASC,
             e.createdAt DESC, e.id DESC
     """)
-    List<EnrollmentEntity> findByStudentId(Integer studentId, @Nullable Integer semesterId, @Nullable EnrollmentStatus enrollmentStatus);
+    List<EnrollmentEntity> search(
+        @Nullable Integer studentId,
+        @Nullable Integer courseOfferingId,
+        @Nullable Integer semesterId,
+        @Nullable EnrollmentStatus status
+    );
 
-    @EntityGraph(attributePaths = {
-        "student",
-        "courseOffering.course.department",
-        "courseOffering.instructor.department",
-        "courseOffering.semester"
-    })
-    @Query("""
-        SELECT e
-        FROM EnrollmentEntity e
-        WHERE e.courseOffering.id = :courseOfferingId
-            AND (:status IS NULL OR e.status = :status)
-        ORDER BY e.createdAt DESC, e.id DESC
-    """)
-    List<EnrollmentEntity> findAllForCourseOfferingWithDetails(Integer courseOfferingId, @Nullable EnrollmentStatus status);
+    default List<EnrollmentEntity> searchForStudent(Integer studentId, EnrollmentFilter filter) {
+        return search(studentId, null, filter.semesterId(), filter.status());
+    }
+
+    default List<EnrollmentEntity> searchForOffering(Integer offeringId, EnrollmentFilter filter) {
+        // An offering belongs to one semester, so filter.semesterId() has nothing to narrow
+        return search(null, offeringId, null, filter.status());
+    }
 
     Optional<EnrollmentEntity> findByStudentIdAndCourseOfferingId(Integer studentId, Integer courseOfferingId);
 

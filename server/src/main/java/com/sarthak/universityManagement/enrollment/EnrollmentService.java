@@ -1,11 +1,12 @@
 package com.sarthak.universityManagement.enrollment;
 
-import com.sarthak.universityManagement.common.exceptions.BadRequestException;
+import com.sarthak.universityManagement.auth.AuthorizationExpressions;
 import com.sarthak.universityManagement.common.exceptions.ResourceNotFoundException;
 import com.sarthak.universityManagement.courseOffering.CourseOfferingActionPolicy;
 import com.sarthak.universityManagement.courseOffering.CourseOfferingEntity;
 import com.sarthak.universityManagement.courseOffering.CourseOfferingService;
 import com.sarthak.universityManagement.courseOffering.types.EnrollDenial;
+import com.sarthak.universityManagement.enrollment.dto.EnrollmentFilter;
 import com.sarthak.universityManagement.enrollment.dto.EnrollmentResponse;
 import com.sarthak.universityManagement.enrollment.types.EnrollmentAction;
 import com.sarthak.universityManagement.enrollment.types.EnrollmentStatus;
@@ -15,8 +16,8 @@ import com.sarthak.universityManagement.security.annotation.CurrentStudent;
 import com.sarthak.universityManagement.student.StudentEntity;
 import com.sarthak.universityManagement.student.StudentService;
 import com.sarthak.universityManagement.user.CurrentUserService;
-import jakarta.annotation.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,7 +26,6 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Service
-@Transactional
 public class EnrollmentService {
     private final EnrollmentRepo enrollmentRepo;
     private final CourseOfferingService courseOfferingService;
@@ -48,29 +48,34 @@ public class EnrollmentService {
         this.clock = clock;
     }
 
+    @Transactional(readOnly = true)
     @CanAccessEnrollment
     public EnrollmentResponse getEnrollment(Integer enrollmentId) {
         return getEnrollmentResponse(getEnrollmentOrThrow(enrollmentId));
     }
 
-    @CurrentStudent
-    public List<EnrollmentResponse> getEnrollmentsForStudent(Integer studentId, @Nullable Integer semesterId, @Nullable EnrollmentStatus enrollmentStatus) {
+    @Transactional(readOnly = true)
+    @PreAuthorize(AuthorizationExpressions.STUDENT)
+    public List<EnrollmentResponse> getEnrollmentsForStudent(EnrollmentFilter filter) {
+        var currentStudentId = currentUserService.getCurrentStudent().getId();
         return enrollmentRepo
-            .findByStudentId(studentId, semesterId, enrollmentStatus)
+            .searchForStudent(currentStudentId, filter)
             .stream()
             .map(this::getEnrollmentResponse)
             .toList();
     }
 
+    @Transactional(readOnly = true)
     @AdminOrCourseOfferingInstructor
-    public List<EnrollmentResponse> getEnrollmentsForCourseOffering(Integer courseOfferingId, @Nullable EnrollmentStatus status) {
+    public List<EnrollmentResponse> getEnrollmentsForCourseOffering(Integer courseOfferingId, EnrollmentFilter filter) {
         return enrollmentRepo
-            .findAllForCourseOfferingWithDetails(courseOfferingId, status)
+            .searchForOffering(courseOfferingId, filter)
             .stream()
             .map(this::getEnrollmentResponse)
             .toList();
     }
 
+    @Transactional
     @CurrentStudent
     public EnrollmentResponse createEnrollment(Integer studentId, Integer courseOfferingId) {
         var student = studentService.getStudentEntity(studentId);
@@ -88,6 +93,7 @@ public class EnrollmentService {
     }
 
     @CanAccessEnrollment
+    @Transactional
     public EnrollmentResponse performAction(Integer enrollmentId, EnrollmentAction action) {
         var enrollment = getEnrollmentForUpdateOrThrow(enrollmentId);
         // should be locked before performing validation as the validator checks the offering as well

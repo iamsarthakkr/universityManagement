@@ -7,8 +7,8 @@ import com.sarthak.universityManagement.courseOffering.dto.CourseOfferingFilter;
 import com.sarthak.universityManagement.courseOffering.dto.CourseOfferingResponse;
 import com.sarthak.universityManagement.courseOffering.dto.CreateCourseOfferingRequest;
 import com.sarthak.universityManagement.enrollment.EnrollmentService;
+import com.sarthak.universityManagement.enrollment.dto.EnrollmentFilter;
 import com.sarthak.universityManagement.enrollment.dto.EnrollmentResponse;
-import com.sarthak.universityManagement.enrollment.types.EnrollmentStatus;
 import com.sarthak.universityManagement.user.CurrentUserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -65,9 +64,9 @@ public class CourseOfferingController {
     @GetMapping("/{offeringId}/enrollments")
     public ResponseEntity<ApiResponse<List<EnrollmentResponse>>> getEnrollmentsForOffering(
         @PathVariable Integer offeringId,
-        @RequestParam(required = false) EnrollmentStatus enrollmentStatus
+        EnrollmentFilter filter
     ) {
-        return Res.success(enrollmentService.getEnrollmentsForCourseOffering(offeringId, enrollmentStatus));
+        return Res.success(enrollmentService.getEnrollmentsForCourseOffering(offeringId, filter));
     }
 
     @PostMapping("/{offeringId}/enrollments")

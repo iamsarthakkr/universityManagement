@@ -1,5 +1,8 @@
 package com.sarthak.universityManagement.enrollment;
 
+import java.util.Set;
+import com.sarthak.universityManagement.enrollment.dto.EnrollmentResponse;
+import com.sarthak.universityManagement.enrollment.dto.EnrollmentFilter;
 import com.sarthak.universityManagement.courseOffering.types.EnrollDenial;
 import com.sarthak.universityManagement.courseOffering.types.CourseOfferingAction;
 import com.sarthak.universityManagement.common.exceptions.BadRequestException;
@@ -130,7 +133,7 @@ public class EnrollmentServiceIntegrationTests extends IntegrationTests {
         void shouldOfferEnrollOnOfferingNotYetRequested() {
             var offering = courseOfferingScenarioBuilder.build().courseOffering();
 
-            assertEquals(List.of(CourseOfferingAction.ENROLL), courseOfferingService.getCourseOfferingById(offering.getId()).allowedActions());
+            assertEquals(List.of(CourseOfferingAction.ENROLL), courseOfferingService.getCourseOffering(offering.getId()).allowedActions());
         }
 
         // ENROLL reflects the offering's rules only; the duplicate is rejected on create (see the test above)
@@ -141,7 +144,7 @@ public class EnrollmentServiceIntegrationTests extends IntegrationTests {
 
             enrollmentService.createEnrollment(student.getId(), offering.getId());
 
-            assertEquals(List.of(CourseOfferingAction.ENROLL), courseOfferingService.getCourseOfferingById(offering.getId()).allowedActions());
+            assertEquals(List.of(CourseOfferingAction.ENROLL), courseOfferingService.getCourseOffering(offering.getId()).allowedActions());
         }
 
         @Test
@@ -323,6 +326,132 @@ public class EnrollmentServiceIntegrationTests extends IntegrationTests {
             var savedOffering = courseOfferingService.getCourseOfferingEntity(enrollmentScenario.courseOffering().getId());
             assertEquals(EnrollmentStatus.PENDING, savedEnrollment.status());
             assertEquals(5, savedOffering.getEnrolled());
+        }
+    }
+
+    @Nested
+    class MyEnrollments {
+        private static final int FIRST_YEAR = 2026;
+        private static final int NEXT_YEAR = 2027;
+
+        @AfterEach
+        void tearDown() {
+            TestAuthentication.clear();
+        }
+
+        private EnrollmentScenario enroll(int studentNumber, int courseNumber, int year, EnrollmentStatus status) {
+            return enrollmentScenarioSeeder
+                .builder()
+                .enrollmentStatus(status)
+                .student(s -> s.studentNumber(studentNumber))
+                .offering(o -> o.courseNumber(courseNumber).semester(s -> s.semesterNumber(year)))
+                .build();
+        }
+
+        private List<Integer> myEnrollmentIds(EnrollmentFilter filter) {
+            return enrollmentService.getEnrollmentsForStudent(filter).stream().map(EnrollmentResponse::id).toList();
+        }
+
+        @Test
+        void shouldReturnEveryOwnEnrollmentWhenFilterIsEmpty() {
+            var first = enroll(1, 1, FIRST_YEAR, EnrollmentStatus.PENDING);
+            var second = enroll(1, 2, NEXT_YEAR, EnrollmentStatus.ENROLLED);
+            TestAuthentication.asStudent(first.student());
+
+            assertEquals(Set.of(first.enrollment().getId(), second.enrollment().getId()),
+                Set.copyOf(myEnrollmentIds(new EnrollmentFilter(null, null))));
+        }
+
+        @Test
+        void shouldNeverReturnAnotherStudentsEnrollments() {
+            var mine = enroll(1, 1, FIRST_YEAR, EnrollmentStatus.PENDING);
+            enroll(2, 2, FIRST_YEAR, EnrollmentStatus.PENDING);
+            TestAuthentication.asStudent(mine.student());
+
+            var filter = new EnrollmentFilter(mine.semester().getId(), EnrollmentStatus.PENDING);
+
+            assertEquals(List.of(mine.enrollment().getId()), myEnrollmentIds(filter));
+        }
+
+        @Test
+        void shouldFilterBySemester() {
+            var thisYear = enroll(1, 1, FIRST_YEAR, EnrollmentStatus.PENDING);
+            enroll(1, 2, NEXT_YEAR, EnrollmentStatus.PENDING);
+            TestAuthentication.asStudent(thisYear.student());
+
+            assertEquals(List.of(thisYear.enrollment().getId()),
+                myEnrollmentIds(new EnrollmentFilter(thisYear.semester().getId(), null)));
+        }
+
+        @Test
+        void shouldFilterByStatus() {
+            var pending = enroll(1, 1, FIRST_YEAR, EnrollmentStatus.PENDING);
+            enroll(1, 2, FIRST_YEAR, EnrollmentStatus.ENROLLED);
+            TestAuthentication.asStudent(pending.student());
+
+            assertEquals(List.of(pending.enrollment().getId()),
+                myEnrollmentIds(new EnrollmentFilter(null, EnrollmentStatus.PENDING)));
+        }
+
+        @Test
+        void shouldCombineFiltersWithAnd() {
+            var match = enroll(1, 1, FIRST_YEAR, EnrollmentStatus.PENDING);
+            enroll(1, 2, FIRST_YEAR, EnrollmentStatus.ENROLLED);
+            enroll(1, 3, NEXT_YEAR, EnrollmentStatus.PENDING);
+            TestAuthentication.asStudent(match.student());
+
+            assertEquals(List.of(match.enrollment().getId()),
+                myEnrollmentIds(new EnrollmentFilter(match.semester().getId(), EnrollmentStatus.PENDING)));
+        }
+
+        @Test
+        void shouldOrderNewestSemesterFirst() {
+            var newer = enroll(1, 1, NEXT_YEAR, EnrollmentStatus.PENDING);
+            var older = enroll(1, 2, FIRST_YEAR, EnrollmentStatus.PENDING);
+            TestAuthentication.asStudent(newer.student());
+
+            assertEquals(List.of(newer.enrollment().getId(), older.enrollment().getId()),
+                myEnrollmentIds(new EnrollmentFilter(null, null)));
+        }
+    }
+
+    @Nested
+    class Roster {
+
+        @AfterEach
+        void tearDown() {
+            TestAuthentication.clear();
+        }
+
+        @Test
+        void shouldFilterRosterByStatus() {
+            var pending = enrollmentScenarioSeeder.builder()
+                .enrollmentStatus(EnrollmentStatus.PENDING)
+                .student(s -> s.studentNumber(1))
+                .build();
+            enrollmentScenarioSeeder.builder()
+                .enrollmentStatus(EnrollmentStatus.ENROLLED)
+                .student(s -> s.studentNumber(2))
+                .build();
+            TestAuthentication.asAdmin();
+
+            var ids = enrollmentService
+                .getEnrollmentsForCourseOffering(pending.courseOffering().getId(), new EnrollmentFilter(null, EnrollmentStatus.PENDING))
+                .stream().map(EnrollmentResponse::id).toList();
+
+            assertEquals(List.of(pending.enrollment().getId()), ids);
+        }
+
+        @Test
+        void shouldIgnoreSemesterIdOnRoster() {
+            var scenario = enrollmentScenarioSeeder.builder().student(s -> s.studentNumber(1)).build();
+            TestAuthentication.asAdmin();
+
+            var ids = enrollmentService
+                .getEnrollmentsForCourseOffering(scenario.courseOffering().getId(), new EnrollmentFilter(Integer.MAX_VALUE, null))
+                .stream().map(EnrollmentResponse::id).toList();
+
+            assertEquals(List.of(scenario.enrollment().getId()), ids);
         }
     }
 }

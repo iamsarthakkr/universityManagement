@@ -9,6 +9,7 @@ import com.sarthak.universityManagement.courseOffering.CourseOfferingRepo;
 import com.sarthak.universityManagement.courseOffering.CourseOfferingService;
 import com.sarthak.universityManagement.department.DepartmentRepo;
 import com.sarthak.universityManagement.enrollment.types.EnrollmentAction;
+import com.sarthak.universityManagement.enrollment.dto.EnrollmentFilter;
 import com.sarthak.universityManagement.enrollment.types.EnrollmentStatus;
 import com.sarthak.universityManagement.instructor.InstructorRepo;
 import com.sarthak.universityManagement.semester.SemesterRepo;
@@ -158,7 +159,7 @@ public class EnrollmentConcurrencyTests extends MySqlTestContainer {
         TestAuthentication.asInstructor(instructor);
 
         var approvedCount = 0;
-        var enrollments = enrollmentService.getEnrollmentsForCourseOffering(offering.getId(), null);
+        var enrollments = enrollmentService.getEnrollmentsForCourseOffering(offering.getId(), new EnrollmentFilter(null, null));
         for (var enrollment : enrollments) {
             if(enrollment.status().equals(EnrollmentStatus.ENROLLED)) approvedCount++;
         }

@@ -3,6 +3,7 @@ package com.sarthak.universityManagement.enrollment;
 import com.sarthak.universityManagement.common.exceptions.ForbiddenException;
 import com.sarthak.universityManagement.common.types.Role;
 import com.sarthak.universityManagement.config.IntegrationTests;
+import com.sarthak.universityManagement.enrollment.dto.EnrollmentFilter;
 import com.sarthak.universityManagement.enrollment.dto.EnrollmentResponse;
 import com.sarthak.universityManagement.enrollment.types.EnrollmentAction;
 import com.sarthak.universityManagement.enrollment.types.EnrollmentStatus;
@@ -23,6 +24,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 
 import java.time.Clock;
@@ -61,6 +63,8 @@ public class EnrollmentAuthorizationTest extends IntegrationTests {
             case OTHER_STUDENT -> TestAuthentication.asStudent(other.student());
         }
     }
+
+    private static final EnrollmentFilter NO_FILTER = new EnrollmentFilter(null, null);
 
     @AfterEach
     void tearDown() {
@@ -284,21 +288,21 @@ public class EnrollmentAuthorizationTest extends IntegrationTests {
 
             switch (outcome) {
                 case ALLOWED -> {
-                    var resp = enrollmentService.getEnrollmentsForCourseOffering(offeringId, null);
+                    var resp = enrollmentService.getEnrollmentsForCourseOffering(offeringId, NO_FILTER);
                     assertEquals(List.of(target.enrollment().getId()), resp.stream().map(EnrollmentResponse::id).toList());
                 }
                 case ACCESS_DENIED -> assertThrows(AuthorizationDeniedException.class,
-                    () -> enrollmentService.getEnrollmentsForCourseOffering(offeringId, null));
+                    () -> enrollmentService.getEnrollmentsForCourseOffering(offeringId, NO_FILTER));
             }
         }
     }
 
     @Nested
-    class StudentEnrollmentsReadAuthorization {
+    class MyEnrollmentsReadAuthorization {
         static Stream<Arguments> cases() {
             return Stream.of(
                 Arguments.arguments(TestActor.OWNING_STUDENT, Outcome.ALLOWED),
-                Arguments.arguments(TestActor.OTHER_STUDENT, Outcome.ACCESS_DENIED),
+                Arguments.arguments(TestActor.OTHER_STUDENT, Outcome.ALLOWED),
                 Arguments.arguments(TestActor.OFFERING_INSTRUCTOR, Outcome.ACCESS_DENIED),
                 Arguments.arguments(TestActor.OTHER_INSTRUCTOR, Outcome.ACCESS_DENIED),
                 Arguments.arguments(TestActor.ADMIN, Outcome.ACCESS_DENIED)
@@ -307,21 +311,28 @@ public class EnrollmentAuthorizationTest extends IntegrationTests {
 
         @ParameterizedTest(name = "{0} -> {1}")
         @MethodSource("cases")
-        void shouldEnforceStudentEnrollmentsReadAuthorization(TestActor actor, Outcome outcome) {
+        void shouldEnforceMyEnrollmentsReadAuthorization(TestActor actor, Outcome outcome) {
             var target = seedTarget();
             var other = seedOther();
-            var studentId = target.student().getId();
 
             authenticateAs(actor, target, other);
 
             switch (outcome) {
                 case ALLOWED -> {
-                    var resp = enrollmentService.getEnrollmentsForStudent(studentId, null, null);
-                    assertEquals(List.of(target.enrollment().getId()), resp.stream().map(EnrollmentResponse::id).toList());
+                    var own = actor == TestActor.OWNING_STUDENT ? target : other;
+                    var resp = enrollmentService.getEnrollmentsForStudent(NO_FILTER);
+                    assertEquals(List.of(own.enrollment().getId()), resp.stream().map(EnrollmentResponse::id).toList());
                 }
                 case ACCESS_DENIED -> assertThrows(AuthorizationDeniedException.class,
-                    () -> enrollmentService.getEnrollmentsForStudent(studentId, null, null));
+                    () -> enrollmentService.getEnrollmentsForStudent(NO_FILTER));
             }
+        }
+
+        @Test
+        void anonymousShouldBeRejected() {
+            TestAuthentication.clear();
+
+            assertThrows(AuthenticationCredentialsNotFoundException.class, () -> enrollmentService.getEnrollmentsForStudent(NO_FILTER));
         }
     }
 

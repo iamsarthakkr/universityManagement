@@ -1,6 +1,5 @@
 package com.sarthak.universityManagement.enrollment.types;
 
-import java.util.Arrays;
 
 public enum EnrollmentAction {
     APPROVE(EnrollmentStatus.ENROLLED),
