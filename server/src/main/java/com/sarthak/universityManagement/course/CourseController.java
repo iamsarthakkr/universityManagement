@@ -5,6 +5,7 @@ import com.sarthak.universityManagement.common.rest.Res;
 import com.sarthak.universityManagement.common.rest.SuccessCode;
 import com.sarthak.universityManagement.course.dto.CourseRequest;
 import com.sarthak.universityManagement.course.dto.CourseResponse;
+import com.sarthak.universityManagement.course.dto.CourseFilter;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -27,19 +28,21 @@ public class CourseController {
         this.courseService = courseService;
     }
 
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<CourseResponse>>> getCourses(
+        CourseFilter filter
+    ) {
+        return Res.success(courseService.getCourses(filter));
+    }
+
     @PostMapping
     public ResponseEntity<ApiResponse<CourseResponse>> createNewCourse(@Valid @RequestBody CourseRequest courseRequest) {
         return Res.success(SuccessCode.CREATED, courseService.createCourse(courseRequest));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<CourseResponse>> getCourseById(@PathVariable Integer id) {
-        return Res.success(courseService.getCourseById(id));
-    }
-
-    @GetMapping
-    public ResponseEntity<ApiResponse<List<CourseResponse>>> getCourses() {
-        return Res.success(courseService.getCourses());
+    public ResponseEntity<ApiResponse<CourseResponse>> getCourse(@PathVariable Integer id) {
+        return Res.success(courseService.getCourse(id));
     }
 
 }

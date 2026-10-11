@@ -1,6 +1,7 @@
 package com.sarthak.universityManagement.course;
 
 import com.sarthak.universityManagement.config.IntegrationTests;
+import com.sarthak.universityManagement.course.dto.CourseFilter;
 import com.sarthak.universityManagement.testUtils.fixtures.CourseFixtures;
 import com.sarthak.universityManagement.testUtils.security.AuthOutcome;
 import com.sarthak.universityManagement.testUtils.security.RoleActor;
@@ -66,7 +67,7 @@ public class CourseServiceAuthorizationTests extends IntegrationTests {
     @Nested
     class ReadAuthorization {
 
-        // The course list and course details carry no @PreAuthorize: route security decides who reaches them
+        // The course list and course details carry no @PreAuthorize and are public routes, so even anonymous visitors can read them
         @ParameterizedTest
         @EnumSource(RoleActor.class)
         void shouldAllowEveryoneToReadCourses(RoleActor actor) {
@@ -74,7 +75,7 @@ public class CourseServiceAuthorizationTests extends IntegrationTests {
             actor.authenticate();
 
             assertEquals(course.getId(), courseService.getCourseById(course.getId()).id());
-            assertEquals(1, courseService.getCourses().size());
+            assertEquals(1, courseService.getCourses(new CourseFilter(null)).size());
         }
     }
 }

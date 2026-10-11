@@ -5,6 +5,7 @@ import com.sarthak.universityManagement.common.exceptions.ResourceNotFoundExcept
 import com.sarthak.universityManagement.config.IntegrationTests;
 import com.sarthak.universityManagement.course.dto.CourseRequest;
 import com.sarthak.universityManagement.course.dto.CourseResponse;
+import com.sarthak.universityManagement.course.dto.CourseFilter;
 import com.sarthak.universityManagement.testUtils.security.TestAuthentication;
 import com.sarthak.universityManagement.testUtils.fixtures.CourseFixtures;
 import com.sarthak.universityManagement.testUtils.fixtures.DepartmentFixtures;
@@ -20,6 +21,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -80,7 +83,7 @@ public class CourseServiceIntegrationTests extends IntegrationTests {
 
         @Test
         void shouldThrowWhenCourseDoesNotExist() {
-            assertThrows(ResourceNotFoundException.class, () -> courseService.getCourseById(Integer.MAX_VALUE));
+            assertThrows(ResourceNotFoundException.class, () -> courseService.getCourse(Integer.MAX_VALUE));
         }
 
         @Test
@@ -94,9 +97,11 @@ public class CourseServiceIntegrationTests extends IntegrationTests {
 
     @Nested
     class ListTests {
+        private static final CourseFilter NO_FILTER = new CourseFilter(null);
+
         @Test
         void shouldReturnEmptyListWhenNoCoursesExist() {
-            assertTrue(courseService.getCourses().isEmpty());
+            assertTrue(courseService.getCourses(NO_FILTER).isEmpty());
         }
 
         @Test
@@ -108,12 +113,44 @@ public class CourseServiceIntegrationTests extends IntegrationTests {
             courseSeeder.save(CourseFixtures.course(cs).code("CS101").build());
             courseSeeder.save(CourseFixtures.course(cs).code("CS100").build());
 
-            List<CourseResponse> courses = courseService.getCourses();
+            List<CourseResponse> courses = courseService.getCourses(NO_FILTER);
 
             assertEquals(List.of("CS100", "CS101", "MT101"), courses.stream().map(CourseResponse::code).toList());
             // Each course carries its department, so clients can group without another request
             assertEquals(List.of("Computer Science", "Computer Science", "Mathematics"),
                 courses.stream().map(c -> c.department().name()).toList());
+        }
+
+        // A null filter value means "don't filter", not "match courses with no department"
+        @Test
+        void shouldReturnCoursesFromEveryDepartmentWhenFilterIsEmpty() {
+            var maths = departmentSeeder.saveDefault("maths");
+            var cs = departmentSeeder.saveDefault("cse");
+
+            courseSeeder.save(CourseFixtures.course(maths).code("MT101").build());
+            courseSeeder.save(CourseFixtures.course(cs).code("CS101").build());
+
+            List<CourseResponse> courses = courseService.getCourses(NO_FILTER);
+
+            assertEquals(2, courses.size());
+            assertEquals(
+                Set.of(maths.getId(), cs.getId()),
+                courses.stream().map(c -> c.department().id()).collect(Collectors.toSet())
+            );
+        }
+
+        @Test
+        void shouldReturnOnlyCoursesOfFilteredDepartment() {
+            var maths = departmentSeeder.saveDefault("maths");
+            var cs = departmentSeeder.saveDefault("cse");
+
+            courseSeeder.save(CourseFixtures.course(maths).code("MT101").build());
+            courseSeeder.save(CourseFixtures.course(cs).code("CS101").build());
+
+            List<CourseResponse> courses = courseService.getCourses(new CourseFilter(cs.getId()));
+
+            assertEquals(List.of("CS101"), courses.stream().map(CourseResponse::code).toList());
+            assertEquals(cs.getId(), courses.getFirst().department().id());
         }
     }
 

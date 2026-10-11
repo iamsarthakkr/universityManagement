@@ -72,11 +72,30 @@ public class CourseRepoTests extends RepoTests {
         courseRepo.saveAndFlush(CourseFixtures.course(cs).code("CS200").build());
         courseRepo.saveAndFlush(CourseFixtures.course(cs).code("CS100").build());
 
-        var codes = courseRepo.findAllByOrderByDepartmentNameAscCodeAsc()
-            .stream()
-            .map(CourseEntity::getCode)
-            .toList();
+        assertEquals(List.of("CS100", "CS200", "MT101"), codes(courseRepo.search((Integer) null)));
+    }
 
-        assertEquals(List.of("CS100", "CS200", "MT101"), codes);
+    @Test
+    void shouldFilterByDepartment() {
+        var maths = departmentSeeder.saveDefault("maths");
+        var cs = departmentSeeder.saveDefault("cse");
+
+        courseRepo.saveAndFlush(CourseFixtures.course(maths).code("MT101").build());
+        courseRepo.saveAndFlush(CourseFixtures.course(cs).code("CS200").build());
+        courseRepo.saveAndFlush(CourseFixtures.course(cs).code("CS100").build());
+
+        assertEquals(List.of("CS100", "CS200"), codes(courseRepo.search(cs.getId())));
+        assertEquals(List.of("MT101"), codes(courseRepo.search(maths.getId())));
+    }
+
+    @Test
+    void shouldReturnNothingForUnknownDepartment() {
+        courseRepo.saveAndFlush(CourseFixtures.course(departmentSeeder.saveDefault("cse")).code("CS100").build());
+
+        assertTrue(courseRepo.search(Integer.MAX_VALUE).isEmpty());
+    }
+
+    private static List<String> codes(List<CourseEntity> courses) {
+        return courses.stream().map(CourseEntity::getCode).toList();
     }
 }
