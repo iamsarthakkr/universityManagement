@@ -199,7 +199,7 @@ public class EnrollmentAuthorizationTest extends IntegrationTests {
                 case ALLOWED -> {
                     var resp = enrollmentService.performAction(target.enrollment().getId(), scenario.action());
                     assertNotNull(resp);
-                    assertEquals(scenario.action.getTargetStatus(), resp.enrollmentStatus());
+                    assertEquals(scenario.action.getTargetStatus(), resp.status());
                 }
                 case NOT_ALLOWED -> {
                     assertThrows(ForbiddenException.class, () -> enrollmentService.performAction(target.enrollment().getId(), scenario.action()));

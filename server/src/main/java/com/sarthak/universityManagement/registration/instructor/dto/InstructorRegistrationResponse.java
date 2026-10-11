@@ -1,10 +1,12 @@
 package com.sarthak.universityManagement.registration.instructor.dto;
 
-import com.sarthak.universityManagement.common.types.RegistrationStatus;
+import com.sarthak.universityManagement.registration.types.RegistrationAction;
+import com.sarthak.universityManagement.registration.types.RegistrationStatus;
 import com.sarthak.universityManagement.department.dto.DepartmentResponse;
 import lombok.Builder;
 
-import java.time.LocalDate;
+import java.time.Instant;
+import java.util.List;
 
 @Builder
 public record InstructorRegistrationResponse(
@@ -13,8 +15,9 @@ public record InstructorRegistrationResponse(
     String firstName,
     String lastName,
     String email,
-    LocalDate submittedAt,
+    Instant createdAt,
+    Instant reviewedAt,
     RegistrationStatus status,
-    DepartmentResponse department
-) {
-}
+    DepartmentResponse department,
+    List<RegistrationAction> allowedActions
+) { }

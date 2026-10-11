@@ -2,6 +2,7 @@ package com.sarthak.universityManagement.enrollment;
 
 import com.sarthak.universityManagement.common.exceptions.BadRequestException;
 import com.sarthak.universityManagement.common.exceptions.ResourceNotFoundException;
+import com.sarthak.universityManagement.courseOffering.CourseOfferingActionPolicy;
 import com.sarthak.universityManagement.courseOffering.CourseOfferingEntity;
 import com.sarthak.universityManagement.courseOffering.CourseOfferingService;
 import com.sarthak.universityManagement.enrollment.dto.EnrollmentResponse;
@@ -114,10 +115,9 @@ public class EnrollmentService {
         if(enrollmentRepo.existsByStudentIdAndCourseOfferingId(student.getId(), courseOffering.getId())) {
             throw new BadRequestException("Enrollment already exists for student in the course offering");
         }
-        var semester = courseOffering.getSemester();
-        if(!semester.isRegistrationOpen(LocalDate.now(clock))) {
-            throw new BadRequestException("Registration is not open");
-        }
+        CourseOfferingActionPolicy
+            .validateEnroll(courseOffering, currentUserService.getCurrentUserRole(), LocalDate.now(clock))
+            .ifPresent(denial -> { throw denial.toException(courseOffering.getId()); });
     }
 
     private EnrollmentEntity getEnrollmentOrThrow(Integer enrollmentId) {

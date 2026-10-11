@@ -1,6 +1,6 @@
 package com.sarthak.universityManagement.registration.student;
 
-import com.sarthak.universityManagement.common.types.RegistrationStatus;
+import com.sarthak.universityManagement.registration.types.RegistrationStatus;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 

@@ -4,11 +4,12 @@ import com.sarthak.universityManagement.auth.AuthorizationExpressions;
 import com.sarthak.universityManagement.department.DepartmentEntity;
 import com.sarthak.universityManagement.department.DepartmentService;
 import com.sarthak.universityManagement.instructor.InstructorService;
+import com.sarthak.universityManagement.registration.RegistrationActionPolicy;
 import com.sarthak.universityManagement.registration.instructor.dto.InstructorRegistrationRequest;
 import com.sarthak.universityManagement.registration.instructor.dto.InstructorRegistrationResponse;
 import com.sarthak.universityManagement.user.CurrentUserService;
 import com.sarthak.universityManagement.user.UserEntity;
-import com.sarthak.universityManagement.common.types.RegistrationStatus;
+import com.sarthak.universityManagement.registration.types.RegistrationStatus;
 import com.sarthak.universityManagement.common.exceptions.ConflictException;
 import com.sarthak.universityManagement.common.exceptions.ResourceNotFoundException;
 import com.sarthak.universityManagement.user.UserService;
@@ -19,6 +20,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.util.List;
 
@@ -32,6 +34,7 @@ public class InstructorRegistrationService {
     private final InstructorService instructorService;
     private final CurrentUserService currentUserService;
     private final DepartmentService departmentService;
+    private final Clock clock;
     
     @Transactional
     public InstructorRegistrationResponse createRegistration(InstructorRegistrationRequest instructorRegistrationRequest) {
@@ -44,9 +47,8 @@ public class InstructorRegistrationService {
         toSave.setPassword(passwordEncoder.encode(instructorRegistrationRequest.password()));
         toSave.setRegistrationStatus(RegistrationStatus.PENDING);
         toSave.setDepartment(department);
-        
-        InstructorRegistrationEntity saved = instructorRegistrationRepo.save(toSave);
-        return InstructorRegistrationMapper.toResponse(saved);
+
+        return InstructorRegistrationMapper.toResponse(instructorRegistrationRepo.save(toSave), List.of());
     }
     
     @Transactional(readOnly = true)
@@ -55,7 +57,7 @@ public class InstructorRegistrationService {
         return instructorRegistrationRepo
             .findByRegistrationStatus(status)
             .stream()
-            .map(InstructorRegistrationMapper::toResponse)
+            .map(this::toResponse)
             .toList();
     }
     
@@ -72,8 +74,8 @@ public class InstructorRegistrationService {
         
         // approve registration
         updateRegistration(registration, RegistrationStatus.APPROVED);
-        
-        return InstructorRegistrationMapper.toResponse(registration);
+
+        return toResponse(registration);
     }
     
     @Transactional
@@ -81,12 +83,19 @@ public class InstructorRegistrationService {
     public InstructorRegistrationResponse rejectRegistration(int registrationId) {
         InstructorRegistrationEntity registration = getPendingRegistrationOrThrow(registrationId);
         updateRegistration(registration, RegistrationStatus.REJECTED);
-        return InstructorRegistrationMapper.toResponse(registration);
+        return toResponse(registration);
     }
-    
+
+    /* ------------------------------------------------------ helpers ------------------------------------------------ */
+
+    private InstructorRegistrationResponse toResponse(InstructorRegistrationEntity registration) {
+        var actions = RegistrationActionPolicy.allowedActions(registration.getRegistrationStatus(), currentUserService.getCurrentUserRole());
+        return InstructorRegistrationMapper.toResponse(registration, actions);
+    }
+
     private void updateRegistration(InstructorRegistrationEntity registration, RegistrationStatus status) {
         registration.setRegistrationStatus(status);
-        registration.setReviewedAt(Instant.now());
+        registration.setReviewedAt(Instant.now(clock));
         registration.setReviewedBy(currentUserService.getCurrentUser());
     }
     
@@ -101,5 +110,5 @@ public class InstructorRegistrationService {
         }
         return registration;
     }
-    
+
 }

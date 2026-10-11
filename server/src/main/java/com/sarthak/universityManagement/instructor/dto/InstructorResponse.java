@@ -8,6 +8,6 @@ public record InstructorResponse(
         Integer id,
         String firstName,
         String lastName,
+        String email,
         DepartmentResponse department
-) {
-}
+) { }

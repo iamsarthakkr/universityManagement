@@ -5,7 +5,7 @@ import com.sarthak.universityManagement.semester.types.SemesterTerm;
 import lombok.Builder;
 
 @Builder
-public record SemesterSummaryResponse(
+public record SemesterSummary(
     Integer id,
     SemesterTerm term,
     Integer year,

@@ -27,7 +27,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.Clock;
-import java.time.LocalDate;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -194,13 +194,18 @@ public class CourseOfferingIntegrationTests extends IntegrationTests {
     class Retrieval {
 
         @Test
+        @WithAdmin
         void shouldReturnCorrectResponse() {
             var offering = courseOfferingSeeder.saveDefault(course, semester, "A");
 
             var ret = courseOfferingService.getCourseOfferingById(offering.getId());
-            assertNotNull(ret);
-            assertEquals(CourseOfferingMapper.toResponse(offering, LocalDate.now(clock)), ret);
 
+            assertEquals(offering.getId(), ret.id());
+            assertEquals(offering.getSection(), ret.section());
+            assertEquals(offering.getCapacity() - offering.getEnrolled(), ret.seatsAvailable());
+            assertEquals(course.getCode(), ret.course().code());
+            assertEquals(semester.getId(), ret.semester().id());
+            assertEquals(List.of(), ret.allowedActions());
         }
 
         @Test

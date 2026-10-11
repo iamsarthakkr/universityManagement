@@ -6,7 +6,6 @@ import com.sarthak.universityManagement.semester.types.SemesterTerm;
 import lombok.Builder;
 
 import java.time.LocalDate;
-import java.time.Year;
 import java.util.List;
 
 @Builder
@@ -19,6 +18,7 @@ public record SemesterResponse(
     LocalDate registrationEndDate,
     LocalDate startDate,
     LocalDate endDate,
+    List<SemesterAction> allowedActions,
     boolean isRegistrationOpen,
-    List<SemesterAction> allowedActions
+    boolean acceptsOfferings
 ) {}

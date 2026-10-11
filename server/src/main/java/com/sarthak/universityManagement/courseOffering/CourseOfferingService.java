@@ -67,20 +67,21 @@ public class CourseOfferingService {
             throw new ConflictException("course offering already exists");
         }
 
-        var entity = CourseOfferingMapper.toEntity(courseOfferingRequest);
-        entity.setCourse(course);
-        entity.setInstructor(instructor);
-        entity.setSemester(semester);
-        return CourseOfferingMapper.toResponse(courseOfferingRepo.save(entity), LocalDate.now(clock));
+        var toSave = CourseOfferingMapper.toEntity(courseOfferingRequest);
+        toSave.setCourse(course);
+        toSave.setInstructor(instructor);
+        toSave.setSemester(semester);
+
+        return toResponse(courseOfferingRepo.save(toSave));
     }
 
     @Transactional(readOnly = true)
     public CourseOfferingResponse getCourseOfferingById(Integer offeringId) {
-        var entity = courseOfferingRepo
+        var offering = courseOfferingRepo
             .findById(offeringId)
             .orElseThrow(() -> new ResourceNotFoundException("Offering not found with id " + offeringId));
 
-        return CourseOfferingMapper.toResponse(entity,  LocalDate.now(clock));
+        return toResponse(offering);
     }
 
     public CourseOfferingEntity getCourseOfferingEntity(Integer offeringId) {
@@ -104,8 +105,17 @@ public class CourseOfferingService {
         return courseOfferingRepo
             .findManagedOfferings(semesterId, instructorUserId)
             .stream()
-            .map(c -> CourseOfferingMapper.toResponse(c, LocalDate.now(clock)))
+            .map(this::toResponse)
             .toList();
+    }
+
+    /* ------------------------------------------------------ helpers ------------------------------------------------ */
+
+    private CourseOfferingResponse toResponse(CourseOfferingEntity offering) {
+        var actorRole = currentUserService.getCurrentUserRole();
+        var actions = CourseOfferingActionPolicy.allowedActions(offering, actorRole, LocalDate.now(clock));
+
+        return CourseOfferingMapper.toResponse(offering, LocalDate.now(clock), actions);
     }
 
 }

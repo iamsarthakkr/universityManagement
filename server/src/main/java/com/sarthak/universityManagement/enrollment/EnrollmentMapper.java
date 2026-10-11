@@ -6,16 +6,15 @@ import com.sarthak.universityManagement.enrollment.types.EnrollmentAction;
 import com.sarthak.universityManagement.student.StudentMapper;
 
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.List;
 
 public final class EnrollmentMapper {
     public static EnrollmentResponse toResponse(EnrollmentEntity enrollmentEntity, LocalDate today, List<EnrollmentAction> allowedActions) {
         return EnrollmentResponse.builder()
             .id(enrollmentEntity.getId())
-            .enrollmentStatus(enrollmentEntity.getStatus())
-            .student(StudentMapper.toResponse(enrollmentEntity.getStudent()))
-            .courseOffering(CourseOfferingMapper.toResponse(enrollmentEntity.getCourseOffering(), today))
+            .status(enrollmentEntity.getStatus())
+            .student(StudentMapper.toSummary(enrollmentEntity.getStudent()))
+            .courseOffering(CourseOfferingMapper.toSummary(enrollmentEntity.getCourseOffering(), today))
             .allowedActions(allowedActions)
             .createdAt(enrollmentEntity.getCreatedAt())
             .updatedAt(enrollmentEntity.getUpdatedAt())

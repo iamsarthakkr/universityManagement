@@ -1,7 +1,7 @@
 // java
 package com.sarthak.universityManagement.registration.instructor;
 
-import com.sarthak.universityManagement.common.types.RegistrationStatus;
+import com.sarthak.universityManagement.registration.types.RegistrationStatus;
 import com.sarthak.universityManagement.common.types.Role;
 import com.sarthak.universityManagement.config.IntegrationTests;
 import com.sarthak.universityManagement.registration.instructor.dto.InstructorRegistrationResponse;

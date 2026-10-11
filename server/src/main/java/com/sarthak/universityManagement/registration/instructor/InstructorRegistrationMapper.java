@@ -4,11 +4,11 @@ import com.sarthak.universityManagement.department.DepartmentMapper;
 import com.sarthak.universityManagement.instructor.dto.CreateInstructorCommand;
 import com.sarthak.universityManagement.registration.instructor.dto.InstructorRegistrationRequest;
 import com.sarthak.universityManagement.registration.instructor.dto.InstructorRegistrationResponse;
+import com.sarthak.universityManagement.registration.types.RegistrationAction;
 import com.sarthak.universityManagement.user.dto.CreateUserCommand;
 import com.sarthak.universityManagement.common.types.Role;
-import jakarta.persistence.EntityManager;
 
-import java.time.ZoneId;
+import java.util.List;
 
 public class InstructorRegistrationMapper {
     public static InstructorRegistrationEntity toEntity(InstructorRegistrationRequest request) {
@@ -21,37 +21,38 @@ public class InstructorRegistrationMapper {
             .build();
     }
     
-    public static InstructorRegistrationResponse toResponse(InstructorRegistrationEntity entity) {
+    public static InstructorRegistrationResponse toResponse(InstructorRegistrationEntity instructorRegistration, List<RegistrationAction> allowedActions) {
         return InstructorRegistrationResponse
             .builder()
-            .id(entity.getId())
-            .username(entity.getUsername())
-            .firstName(entity.getFirstName())
-            .lastName(entity.getLastName())
-            .email(entity.getEmail())
-            .department(DepartmentMapper.toResponse(entity.getDepartment()))
-            .submittedAt(entity.getCreatedAt().atZone(ZoneId.systemDefault()).toLocalDate())
-            .status(entity.getRegistrationStatus())
+            .id(instructorRegistration.getId())
+            .username(instructorRegistration.getUsername())
+            .firstName(instructorRegistration.getFirstName())
+            .lastName(instructorRegistration.getLastName())
+            .email(instructorRegistration.getEmail())
+            .department(DepartmentMapper.toResponse(instructorRegistration.getDepartment()))
+            .createdAt(instructorRegistration.getCreatedAt())
+            .reviewedAt(instructorRegistration.getReviewedAt())
+            .status(instructorRegistration.getRegistrationStatus())
+            .allowedActions(allowedActions)
             .build();
     }
     
-    public static CreateUserCommand toCreateUserCommand(InstructorRegistrationEntity entity) {
+    public static CreateUserCommand toCreateUserCommand(InstructorRegistrationEntity instructorRegistration) {
         return CreateUserCommand
             .builder()
-            .username(entity.getUsername())
-            .hashedPassword(entity.getPassword())
-            .email(entity.getEmail())
+            .username(instructorRegistration.getUsername())
+            .hashedPassword(instructorRegistration.getPassword())
+            .email(instructorRegistration.getEmail())
             .role(Role.INSTRUCTOR)
             .build();
     }
-    
-    
-    public static CreateInstructorCommand toCreateInstructorCommand(InstructorRegistrationEntity entity) {
+
+    public static CreateInstructorCommand toCreateInstructorCommand(InstructorRegistrationEntity instructorRegistration) {
         return CreateInstructorCommand
             .builder()
-            .firstName(entity.getFirstName())
-            .lastName(entity.getLastName())
-            .department(entity.getDepartment())
+            .firstName(instructorRegistration.getFirstName())
+            .lastName(instructorRegistration.getLastName())
+            .department(instructorRegistration.getDepartment())
             .build();
     }
     

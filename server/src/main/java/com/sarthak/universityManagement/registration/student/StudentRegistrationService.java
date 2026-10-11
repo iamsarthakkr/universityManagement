@@ -3,12 +3,13 @@ package com.sarthak.universityManagement.registration.student;
 import com.sarthak.universityManagement.auth.AuthorizationExpressions;
 import com.sarthak.universityManagement.department.DepartmentEntity;
 import com.sarthak.universityManagement.department.DepartmentService;
+import com.sarthak.universityManagement.registration.RegistrationActionPolicy;
 import com.sarthak.universityManagement.registration.student.dto.StudentRegistrationRequest;
 import com.sarthak.universityManagement.registration.student.dto.StudentRegistrationResponse;
 import com.sarthak.universityManagement.student.StudentService;
 import com.sarthak.universityManagement.user.CurrentUserService;
 import com.sarthak.universityManagement.user.UserEntity;
-import com.sarthak.universityManagement.common.types.RegistrationStatus;
+import com.sarthak.universityManagement.registration.types.RegistrationStatus;
 import com.sarthak.universityManagement.common.exceptions.ConflictException;
 import com.sarthak.universityManagement.common.exceptions.ResourceNotFoundException;
 import com.sarthak.universityManagement.user.UserService;
@@ -19,6 +20,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.util.List;
 
@@ -27,12 +29,13 @@ import java.util.List;
 public class StudentRegistrationService {
     private final RegistrationValidator registrationValidator;
     private final StudentRegistrationRepo studentRegistrationRepo;
+    private final PasswordEncoder passwordEncoder;
     private final UserService userService;
     private final StudentService studentService;
-    private final PasswordEncoder passwordEncoder;
     private final CurrentUserService currentUserService;
     private final DepartmentService departmentService;
-    
+    private final Clock clock;
+
     @Transactional
     public StudentRegistrationResponse createRegistration(StudentRegistrationRequest studentRegistrationRequest) {
         registrationValidator.validateUserNameAvailable(studentRegistrationRequest.username());
@@ -43,9 +46,8 @@ public class StudentRegistrationService {
         toSave.setPassword(passwordEncoder.encode(studentRegistrationRequest.password()));
         toSave.setRegistrationStatus(RegistrationStatus.PENDING);
         toSave.setDepartment(department);
-        
-        StudentRegistrationEntity saved = studentRegistrationRepo.save(toSave);
-        return StudentRegistrationMapper.toResponse(saved);
+
+        return StudentRegistrationMapper.toResponse(studentRegistrationRepo.save(toSave), List.of());
     }
     
     
@@ -55,7 +57,7 @@ public class StudentRegistrationService {
         return studentRegistrationRepo
             .findByRegistrationStatus(status)
             .stream()
-            .map(StudentRegistrationMapper::toResponse)
+            .map(this::toResponse)
             .toList();
     }
     
@@ -72,7 +74,7 @@ public class StudentRegistrationService {
         
         // approve registration
         updateRegistration(registration, RegistrationStatus.APPROVED);
-        return StudentRegistrationMapper.toResponse(registration);
+        return toResponse(registration);
     }
     
     @Transactional
@@ -80,16 +82,23 @@ public class StudentRegistrationService {
     public StudentRegistrationResponse rejectRegistration(int registrationId) {
         StudentRegistrationEntity registration = getPendingRegistrationOrThrow(registrationId);
         updateRegistration(registration, RegistrationStatus.REJECTED);
-        return StudentRegistrationMapper.toResponse(registration);
+        return toResponse(registration);
     }
     
+    /* ------------------------------------------------------ helpers ------------------------------------------------ */
+
+    private StudentRegistrationResponse toResponse(StudentRegistrationEntity studentRegistration) {
+        var actions = RegistrationActionPolicy.allowedActions(studentRegistration.getRegistrationStatus(), currentUserService.getCurrentUserRole());
+
+        return StudentRegistrationMapper.toResponse(studentRegistration, actions);
+    }
+
     private void updateRegistration(StudentRegistrationEntity registration, RegistrationStatus status) {
         registration.setRegistrationStatus(status);
-        registration.setReviewedAt(Instant.now());
+        registration.setReviewedAt(Instant.now(clock));
         registration.setReviewedBy(currentUserService.getCurrentUser());
     }
-    
-    
+
     private StudentRegistrationEntity getPendingRegistrationOrThrow(int registrationId) {
         StudentRegistrationEntity registration = studentRegistrationRepo
             .findById(registrationId)
@@ -101,5 +110,5 @@ public class StudentRegistrationService {
         }
         return registration;
     }
-    
+
 }

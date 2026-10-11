@@ -68,6 +68,8 @@ public class CourseOfferingEntity extends BaseEntity {
 
     public boolean canEnroll() { return enrolled < capacity; }
 
+    public int seatsAvailable() { return capacity - enrolled; }
+
     public void enroll() {
         if(!canEnroll()) {
             throw new ConflictException("Insufficient capacity for offering " + id);

@@ -83,4 +83,8 @@ public class SemesterEntity extends BaseEntity {
         return !(this.status == SemesterStatus.CANCELLED || status == SemesterStatus.COMPLETED);
     }
 
+    public boolean acceptsOfferings() {
+        return status == SemesterStatus.PLANNED;
+    }
+
 }

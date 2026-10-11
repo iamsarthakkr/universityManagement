@@ -1,18 +1,22 @@
 package com.sarthak.universityManagement.courseOffering.dto;
 
-import com.sarthak.universityManagement.course.dto.CourseResponse;
-import com.sarthak.universityManagement.instructor.dto.InstructorResponse;
-import com.sarthak.universityManagement.semester.dto.SemesterSummaryResponse;
+import com.sarthak.universityManagement.course.dto.CourseSummary;
+import com.sarthak.universityManagement.courseOffering.types.CourseOfferingAction;
+import com.sarthak.universityManagement.instructor.dto.InstructorSummary;
+import com.sarthak.universityManagement.semester.dto.SemesterSummary;
 import lombok.Builder;
+
+import java.util.List;
 
 @Builder
 public record CourseOfferingResponse(
-    int id,
-    CourseResponse course,
-    InstructorResponse instructor,
-    SemesterSummaryResponse semester,
+    Integer id,
+    CourseSummary course,
+    InstructorSummary instructor,
+    SemesterSummary semester,
     String section,
-    int capacity,
-    int enrolled
-) {
-}
+    Integer capacity,
+    Integer enrolled,
+    Integer seatsAvailable,
+    List<CourseOfferingAction> allowedActions
+) { }

@@ -2,7 +2,7 @@ package com.sarthak.universityManagement.admin;
 
 import com.sarthak.universityManagement.common.rest.ApiResponse;
 import com.sarthak.universityManagement.common.rest.Res;
-import com.sarthak.universityManagement.common.types.RegistrationStatus;
+import com.sarthak.universityManagement.registration.types.RegistrationStatus;
 import com.sarthak.universityManagement.registration.instructor.InstructorRegistrationService;
 import com.sarthak.universityManagement.registration.instructor.dto.InstructorRegistrationResponse;
 import lombok.RequiredArgsConstructor;

@@ -1,8 +1,10 @@
 package com.sarthak.universityManagement.registration.student;
 
+import java.util.List;
+import com.sarthak.universityManagement.registration.types.RegistrationAction;
 import com.sarthak.universityManagement.common.exceptions.ConflictException;
 import com.sarthak.universityManagement.common.exceptions.ResourceNotFoundException;
-import com.sarthak.universityManagement.common.types.RegistrationStatus;
+import com.sarthak.universityManagement.registration.types.RegistrationStatus;
 import com.sarthak.universityManagement.config.IntegrationTests;
 import com.sarthak.universityManagement.student.StudentRepo;
 import com.sarthak.universityManagement.testUtils.security.TestAuthentication;
@@ -171,5 +173,26 @@ public class StudentRegistrationAdminServiceIntegrationTests extends Integration
         
         assertEquals(saved.getFirstName(), student.getFirstName());
         assertEquals(saved.getLastName(), student.getLastName());
+    }
+
+    @Test
+    void shouldOfferApproveAndRejectOnPendingRegistrations() {
+        var saved = studentRegistrationSeeder.saveDefaultStudentRegistration("dep-test");
+
+        var pending = service.getRequests(RegistrationStatus.PENDING);
+
+        assertEquals(1, pending.size());
+        assertEquals(List.of(RegistrationAction.APPROVE, RegistrationAction.REJECT), pending.getFirst().allowedActions());
+    }
+
+    @Test
+    void shouldReturnReviewedRegistrationWithNoFurtherActions() {
+        var saved = studentRegistrationSeeder.saveDefaultStudentRegistration("dep-test");
+
+        var resp = service.approveRegistration(saved.getId());
+
+        assertEquals(RegistrationStatus.APPROVED, resp.status());
+        assertEquals(List.of(), resp.allowedActions());
+        assertNotNull(resp.reviewedAt());
     }
 }

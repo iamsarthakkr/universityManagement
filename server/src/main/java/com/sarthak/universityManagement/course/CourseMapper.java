@@ -2,6 +2,7 @@ package com.sarthak.universityManagement.course;
 
 import com.sarthak.universityManagement.course.dto.CourseRequest;
 import com.sarthak.universityManagement.course.dto.CourseResponse;
+import com.sarthak.universityManagement.course.dto.CourseSummary;
 import com.sarthak.universityManagement.department.DepartmentMapper;
 
 public class CourseMapper {
@@ -23,6 +24,15 @@ public class CourseMapper {
             .code(courseEntity.getCode())
             .title(courseEntity.getTitle())
             .description(courseEntity.getDescription())
+            .credits(courseEntity.getCredits())
+            .build();
+    }
+
+    public static CourseSummary toSummary(CourseEntity courseEntity) {
+        return CourseSummary.builder()
+            .id(courseEntity.getId())
+            .code(courseEntity.getCode())
+            .title(courseEntity.getTitle())
             .credits(courseEntity.getCredits())
             .build();
     }

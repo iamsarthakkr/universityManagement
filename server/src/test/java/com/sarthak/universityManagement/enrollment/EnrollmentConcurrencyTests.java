@@ -160,7 +160,7 @@ public class EnrollmentConcurrencyTests extends MySqlTestContainer {
         var approvedCount = 0;
         var enrollments = enrollmentService.getEnrollmentsForCourseOffering(offering.getId(), null);
         for (var enrollment : enrollments) {
-            if(enrollment.enrollmentStatus().equals(EnrollmentStatus.ENROLLED)) approvedCount++;
+            if(enrollment.status().equals(EnrollmentStatus.ENROLLED)) approvedCount++;
         }
         assertEquals(1, approvedCount);
 

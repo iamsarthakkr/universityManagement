@@ -2,7 +2,7 @@ package com.sarthak.universityManagement.semester;
 
 import com.sarthak.universityManagement.semester.dto.CreateSemesterRequest;
 import com.sarthak.universityManagement.semester.dto.SemesterResponse;
-import com.sarthak.universityManagement.semester.dto.SemesterSummaryResponse;
+import com.sarthak.universityManagement.semester.dto.SemesterSummary;
 import com.sarthak.universityManagement.semester.types.SemesterAction;
 
 import java.time.LocalDate;
@@ -32,11 +32,12 @@ public final class SemesterMapper {
             .endDate(semesterEntity.getEndDate())
             .isRegistrationOpen(semesterEntity.isRegistrationOpen(today))
             .allowedActions(allowedActions)
+            .acceptsOfferings(semesterEntity.acceptsOfferings())
             .build();
     }
 
-    public static SemesterSummaryResponse toSummary(SemesterEntity semesterEntity, LocalDate today) {
-        return SemesterSummaryResponse.builder()
+    public static SemesterSummary toSummary(SemesterEntity semesterEntity, LocalDate today) {
+        return SemesterSummary.builder()
             .id(semesterEntity.getId())
             .status(semesterEntity.getStatus())
             .term(semesterEntity.getTerm())

@@ -1,7 +1,11 @@
 package com.sarthak.universityManagement.registration.student;
 
+import java.util.List;
+import com.sarthak.universityManagement.testUtils.security.TestAuthentication;
+import com.sarthak.universityManagement.testUtils.security.RoleActor;
+import org.junit.jupiter.api.AfterEach;
 import com.sarthak.universityManagement.common.exceptions.ConflictException;
-import com.sarthak.universityManagement.common.types.RegistrationStatus;
+import com.sarthak.universityManagement.registration.types.RegistrationStatus;
 import com.sarthak.universityManagement.config.IntegrationTests;
 import com.sarthak.universityManagement.department.DepartmentEntity;
 import com.sarthak.universityManagement.registration.instructor.InstructorRegistrationEntity;
@@ -141,4 +145,23 @@ public class StudentRegistrationServiceIntegrationTests extends IntegrationTests
         assertEquals("student7", entity.get().getUsername());
     }
 
+
+    @AfterEach
+    void clearAuthentication() {
+        TestAuthentication.clear();
+    }
+
+    // Registration is a public route, so building the response must not need a logged-in user
+    @Test
+    void shouldCreateRegistrationForAnonymousVisitor() {
+        RoleActor.ANONYMOUS.authenticate();
+        var req = studentRegistrationRequestBuilder.username("anonymous1").email("anonymous1@example.com").build();
+
+        var resp = service.createRegistration(req);
+
+        assertEquals(RegistrationStatus.PENDING, resp.status());
+        assertEquals(List.of(), resp.allowedActions());
+        assertNotNull(resp.createdAt());
+        assertNull(resp.reviewedAt());
+    }
 }

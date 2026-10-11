@@ -11,5 +11,4 @@ public record CourseResponse(
     String title,
     String description,
     Integer credits
-) {
-}
+) { }
