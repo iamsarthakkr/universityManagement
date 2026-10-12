@@ -33,6 +33,7 @@ public interface InstructorRegistrationRepo extends JpaRepository<InstructorRegi
         return search(filter.departmentId(), filter.status());
     }
 
-    boolean existsByUsername(String username);
-    boolean existsByEmail(String email);
+    boolean existsByUsernameAndRegistrationStatus(String username, RegistrationStatus status);
+
+    boolean existsByEmailAndRegistrationStatus(String email, RegistrationStatus status);
 }

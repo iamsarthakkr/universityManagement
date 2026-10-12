@@ -58,8 +58,7 @@ public class InstructorRegistrationService {
 
     @Transactional
     public InstructorRegistrationResponse createRegistration(InstructorRegistrationRequest instructorRegistrationRequest) {
-        registrationValidator.validateUserNameAvailable(instructorRegistrationRequest.username());
-        registrationValidator.validateEmailAvailable(instructorRegistrationRequest.email());
+        registrationValidator.validateCredentialsAvailable(instructorRegistrationRequest.username(), instructorRegistrationRequest.email());
 
         DepartmentEntity department = departmentService.getDepartmentById(instructorRegistrationRequest.departmentId());
         InstructorRegistrationEntity toSave = InstructorRegistrationMapper.toEntity(instructorRegistrationRequest);

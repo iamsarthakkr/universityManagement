@@ -15,7 +15,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -27,11 +26,7 @@ import java.time.Instant;
 @Builder
 @Entity
 @Table(
-    name = "instructor_registration",
-    uniqueConstraints = {
-        @UniqueConstraint(name = "unique_instructor_registration_username", columnNames = { "username" }),
-        @UniqueConstraint(name = "unique_instructor_registration_email", columnNames = { "email" })
-    }
+    name = "instructor_registration"
 )
 @Getter
 @Setter

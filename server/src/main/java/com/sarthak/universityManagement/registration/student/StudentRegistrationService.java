@@ -60,8 +60,7 @@ public class StudentRegistrationService {
 
     @Transactional
     public StudentRegistrationResponse createRegistration(StudentRegistrationRequest studentRegistrationRequest) {
-        registrationValidator.validateUserNameAvailable(studentRegistrationRequest.username());
-        registrationValidator.validateEmailAvailable(studentRegistrationRequest.email());
+        registrationValidator.validateCredentialsAvailable(studentRegistrationRequest.username(), studentRegistrationRequest.email());
 
         DepartmentEntity department = departmentService.getDepartmentById(studentRegistrationRequest.departmentId());
 
