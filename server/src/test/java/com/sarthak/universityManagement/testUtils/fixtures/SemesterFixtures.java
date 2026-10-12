@@ -6,8 +6,6 @@ import com.sarthak.universityManagement.semester.types.SemesterStatus;
 import com.sarthak.universityManagement.semester.types.SemesterTerm;
 
 import java.time.LocalDate;
-import java.time.Year;
-import java.util.Date;
 
 public final class SemesterFixtures {
     public static SemesterEntity.SemesterEntityBuilder semester() {

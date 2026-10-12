@@ -2,7 +2,6 @@ package com.sarthak.universityManagement.testUtils.scenario.courseOffering;
 
 import com.sarthak.universityManagement.courseOffering.CourseOfferingEntity;
 import com.sarthak.universityManagement.testUtils.scenario.course.CourseScenarioSeeder;
-import com.sarthak.universityManagement.testUtils.scenario.department.DepartmentScenarioSeeder;
 import com.sarthak.universityManagement.testUtils.scenario.instructor.InstructorScenarioSeeder;
 import com.sarthak.universityManagement.testUtils.scenario.semester.SemesterScenarioSeeder;
 import com.sarthak.universityManagement.testUtils.seeders.CourseOfferingSeeder;

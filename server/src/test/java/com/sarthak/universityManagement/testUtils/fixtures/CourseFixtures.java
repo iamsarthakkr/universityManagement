@@ -3,7 +3,6 @@ package com.sarthak.universityManagement.testUtils.fixtures;
 import com.sarthak.universityManagement.course.CourseEntity;
 import com.sarthak.universityManagement.course.dto.CourseRequest;
 import com.sarthak.universityManagement.department.DepartmentEntity;
-import com.sarthak.universityManagement.instructor.InstructorEntity;
 
 public class CourseFixtures {
 
