@@ -40,14 +40,15 @@ public class EnrollmentActionPolicy {
         }
 
         var offering = enrollment.getCourseOffering();
+        var semesterOpen = offering.getSemester().allowsEnrollment();
         return switch (action) {
             case APPROVE ->
-                !offering.getSemester().allowsEnrollment() ? Optional.of(EnrollmentDenial.SEMESTER_CLOSED) :
+                !semesterOpen ? Optional.of(EnrollmentDenial.SEMESTER_CLOSED) :
                 !offering.canEnroll() ? Optional.of(EnrollmentDenial.OFFERING_FULL) :
                 Optional.empty();
-            case REJECT,
-                 CANCEL,
-                 DROP -> Optional.empty();
+            case CANCEL,
+                 DROP -> !semesterOpen ? Optional.of(EnrollmentDenial.SEMESTER_CLOSED) : Optional.empty();
+            case REJECT -> Optional.empty();
         };
     }
 

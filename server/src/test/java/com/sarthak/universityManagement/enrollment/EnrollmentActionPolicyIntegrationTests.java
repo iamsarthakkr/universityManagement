@@ -147,21 +147,25 @@ public class EnrollmentActionPolicyIntegrationTests extends IntegrationTests {
 
     @Nested
     class ClosedSemester {
-        // A closed semester blocks new approvals only; pending requests can still be rejected or cancelled
+        // A closed semester freezes the student's side (no cancel, no drop) and blocks approval; reviewers can still reject
         static Stream<Arguments> cases() {
             return Stream.of(
                 Arguments.arguments(TestActor.ADMIN, EnrollmentStatus.PENDING, SemesterStatus.COMPLETED, List.of(EnrollmentAction.REJECT)),
                 Arguments.arguments(TestActor.ADMIN, EnrollmentStatus.PENDING, SemesterStatus.CANCELLED, List.of(EnrollmentAction.REJECT)),
                 Arguments.arguments(TestActor.OFFERING_INSTRUCTOR, EnrollmentStatus.PENDING, SemesterStatus.COMPLETED, List.of(EnrollmentAction.REJECT)),
                 Arguments.arguments(TestActor.OFFERING_INSTRUCTOR, EnrollmentStatus.PENDING, SemesterStatus.CANCELLED, List.of(EnrollmentAction.REJECT)),
-                Arguments.arguments(TestActor.OWNING_STUDENT, EnrollmentStatus.PENDING, SemesterStatus.COMPLETED, List.of(EnrollmentAction.CANCEL)),
-                Arguments.arguments(TestActor.OWNING_STUDENT, EnrollmentStatus.ENROLLED, SemesterStatus.COMPLETED, List.of(EnrollmentAction.DROP))
+                Arguments.arguments(TestActor.OWNING_STUDENT, EnrollmentStatus.PENDING, SemesterStatus.COMPLETED, List.of()),
+                Arguments.arguments(TestActor.OWNING_STUDENT, EnrollmentStatus.PENDING, SemesterStatus.CANCELLED, List.of()),
+                Arguments.arguments(TestActor.OWNING_STUDENT, EnrollmentStatus.ENROLLED, SemesterStatus.COMPLETED, List.of()),
+                Arguments.arguments(TestActor.OWNING_STUDENT, EnrollmentStatus.ENROLLED, SemesterStatus.CANCELLED, List.of()),
+                Arguments.arguments(TestActor.OWNING_STUDENT, EnrollmentStatus.PENDING, SemesterStatus.ACTIVE, List.of(EnrollmentAction.CANCEL)),
+                Arguments.arguments(TestActor.OWNING_STUDENT, EnrollmentStatus.ENROLLED, SemesterStatus.ACTIVE, List.of(EnrollmentAction.DROP))
             );
         }
 
         @ParameterizedTest(name = "{0} on {1} in {2} semester -> {3}")
         @MethodSource("cases")
-        void shouldOnlyBlockApprovalWhenSemesterClosed(TestActor actor, EnrollmentStatus from, SemesterStatus semesterStatus, List<EnrollmentAction> expectedAllowedActions) {
+        void shouldOnlyAllowRejectionOnceSemesterClosed(TestActor actor, EnrollmentStatus from, SemesterStatus semesterStatus, List<EnrollmentAction> expectedAllowedActions) {
             var target = seedTarget(from, SEATS_AVAILABLE, semesterStatus);
             var other = seedOther();
 
@@ -188,6 +192,9 @@ public class EnrollmentActionPolicyIntegrationTests extends IntegrationTests {
                 Arguments.arguments(TestActor.OWNING_STUDENT, EnrollmentAction.DROP, EnrollmentStatus.PENDING, SEATS_AVAILABLE, SemesterStatus.PLANNED, Optional.of(EnrollmentDenial.INVALID_TRANSITION)),
 
                 Arguments.arguments(TestActor.ADMIN, EnrollmentAction.APPROVE, EnrollmentStatus.PENDING, OFFERING_FULL, SemesterStatus.COMPLETED, Optional.of(EnrollmentDenial.SEMESTER_CLOSED)),
+                Arguments.arguments(TestActor.OWNING_STUDENT, EnrollmentAction.DROP, EnrollmentStatus.ENROLLED, SEATS_AVAILABLE, SemesterStatus.COMPLETED, Optional.of(EnrollmentDenial.SEMESTER_CLOSED)),
+                Arguments.arguments(TestActor.OWNING_STUDENT, EnrollmentAction.CANCEL, EnrollmentStatus.PENDING, SEATS_AVAILABLE, SemesterStatus.CANCELLED, Optional.of(EnrollmentDenial.SEMESTER_CLOSED)),
+                Arguments.arguments(TestActor.ADMIN, EnrollmentAction.REJECT, EnrollmentStatus.PENDING, SEATS_AVAILABLE, SemesterStatus.COMPLETED, Optional.empty()),
                 Arguments.arguments(TestActor.ADMIN, EnrollmentAction.APPROVE, EnrollmentStatus.PENDING, OFFERING_FULL, SemesterStatus.PLANNED, Optional.of(EnrollmentDenial.OFFERING_FULL))
             );
         }
