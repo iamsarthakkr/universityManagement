@@ -59,7 +59,7 @@ public class SemesterService {
     @Transactional(readOnly = true)
     public List<SemesterResponse> getSemesters() {
         return semesterRepo
-            .findAllByOrderByYearAscTermDesc()
+            .findAllByOrderByYearAscTermAsc()
             .stream()
             .map(this::getSemesterResponse)
             .toList();

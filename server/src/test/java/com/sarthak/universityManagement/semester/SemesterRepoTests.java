@@ -63,18 +63,18 @@ public class SemesterRepoTests extends RepoTests {
     }
 
     @Test
-    void shouldOrderByYearAscendingThenTermDescending() {
+    void shouldOrderByYearThenSummerBeforeWinter() {
         // Saved out of order so the assertion can only pass through the query's ORDER BY
         semesterRepo.saveAndFlush(SemesterFixtures.semester().term(SemesterTerm.SUMMER).year(2027).build());
         semesterRepo.saveAndFlush(SemesterFixtures.semester().term(SemesterTerm.SUMMER).year(2026).build());
         semesterRepo.saveAndFlush(SemesterFixtures.semester().term(SemesterTerm.WINTER).year(2027).build());
         semesterRepo.saveAndFlush(SemesterFixtures.semester().term(SemesterTerm.WINTER).year(2026).build());
 
-        var ordered = semesterRepo.findAllByOrderByYearAscTermDesc()
+        var ordered = semesterRepo.findAllByOrderByYearAscTermAsc()
             .stream()
             .map(s -> s.getTerm() + " " + s.getYear())
             .toList();
 
-        assertEquals(List.of("WINTER 2026", "SUMMER 2026", "WINTER 2027", "SUMMER 2027"), ordered);
+        assertEquals(List.of("SUMMER 2026", "WINTER 2026", "SUMMER 2027", "WINTER 2027"), ordered);
     }
 }

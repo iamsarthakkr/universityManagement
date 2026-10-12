@@ -14,7 +14,7 @@ public interface SemesterRepo extends JpaRepository<SemesterEntity, Integer> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<SemesterEntity> findForUpdateById(int semesterId);
 
-    List<SemesterEntity> findAllByOrderByYearAscTermDesc();
+    List<SemesterEntity> findAllByOrderByYearAscTermAsc();
 
     Optional<SemesterEntity> findByTermAndYear(SemesterTerm term, Integer year);
 
