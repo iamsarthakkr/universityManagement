@@ -60,7 +60,6 @@ public class InstructorRegistrationService {
     public InstructorRegistrationResponse createRegistration(InstructorRegistrationRequest instructorRegistrationRequest) {
         registrationValidator.validateUserNameAvailable(instructorRegistrationRequest.username());
         registrationValidator.validateEmailAvailable(instructorRegistrationRequest.email());
-        registrationValidator.validateDepartmentAvailable(instructorRegistrationRequest.departmentId());
 
         DepartmentEntity department = departmentService.getDepartmentById(instructorRegistrationRequest.departmentId());
         InstructorRegistrationEntity toSave = InstructorRegistrationMapper.toEntity(instructorRegistrationRequest);

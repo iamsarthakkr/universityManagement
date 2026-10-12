@@ -1,7 +1,6 @@
 package com.sarthak.universityManagement.registration.validators;
 
 import com.sarthak.universityManagement.common.exceptions.ConflictException;
-import com.sarthak.universityManagement.department.DepartmentService;
 import com.sarthak.universityManagement.registration.instructor.InstructorRegistrationRepo;
 import com.sarthak.universityManagement.registration.student.StudentRegistrationRepo;
 import com.sarthak.universityManagement.user.UserRepo;
@@ -13,7 +12,6 @@ import org.springframework.stereotype.Component;
 public class RegistrationValidator {
     private final StudentRegistrationRepo studentRegistrationRepo;
     private final InstructorRegistrationRepo instructorRegistrationRepo;
-    private final DepartmentService departmentService;
     private final UserRepo userRepo;
     
     public void validateEmailAvailable(String email) {
@@ -44,10 +42,5 @@ public class RegistrationValidator {
         }
     }
 
-    public void validateDepartmentAvailable(Integer departmentId) {
-        if(!departmentService.existsById(departmentId)) {
-            throw new ConflictException("Department with id " + departmentId + " does not exist");
-        }
-    }
     
 }
