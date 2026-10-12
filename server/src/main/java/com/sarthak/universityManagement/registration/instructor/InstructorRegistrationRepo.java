@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface InstructorRegistrationRepo extends JpaRepository<InstructorRegistrationEntity, Integer> {
-    @EntityGraph(attributePaths = "department")
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<InstructorRegistrationEntity> findForUpdateById(Integer id);
 

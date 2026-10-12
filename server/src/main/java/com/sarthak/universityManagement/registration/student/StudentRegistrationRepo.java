@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface StudentRegistrationRepo extends JpaRepository<StudentRegistrationEntity, Integer> {
-    @EntityGraph(attributePaths = "department")
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<StudentRegistrationEntity> findForUpdateById(Integer id);
 
