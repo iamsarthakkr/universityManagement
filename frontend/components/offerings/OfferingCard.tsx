@@ -10,7 +10,7 @@ export function OfferingCard({ offering }: { offering: CourseOffering }) {
         <Link
             to={`/dashboard/offerings/${offering.id}`}
             aria-label={`${offering.course.code} section ${offering.section}`}
-            className="group flex flex-col gap-4 rounded-2xl border border-border bg-surface p-5 shadow-soft transition-colors hover:border-brand/40 hover:bg-brand-soft/40"
+            className="group flex w-full flex-col gap-4 rounded-2xl border border-border bg-surface p-5 shadow-soft transition-colors hover:border-brand/40 hover:bg-brand-soft/40"
         >
             <div className="flex items-start justify-between gap-3">
                 <div>

@@ -81,6 +81,10 @@ export const routes: RouteObject[] = [
                             { index: true, lazy: lazyPage(() => import('@/pages/dashboard/student/page')) },
                             { path: 'courses', lazy: lazyPage(() => import('@/pages/dashboard/student/courses/page')) },
                             {
+                                path: 'offerings',
+                                lazy: lazyPage(() => import('@/pages/dashboard/student/offerings/page')),
+                            },
+                            {
                                 path: 'enrollments',
                                 lazy: lazyPage(() => import('@/pages/dashboard/student/enrollments/page')),
                             },

@@ -39,6 +39,7 @@ describe('getSidebarNav', () => {
         expect(urls(getSidebarNav('STUDENT'))).toEqual([
             '/dashboard/student',
             '/dashboard/courses',
+            '/dashboard/student/offerings',
             '/dashboard/student/courses',
             '/dashboard/student/enrollments',
         ]);
