@@ -13,7 +13,7 @@ public enum EnrollDenial {
     public RuntimeException toException(Integer offeringId) {
         return switch (this) {
             case NOT_A_STUDENT -> new ForbiddenException("You are not permitted to enroll on the offering with id " + offeringId);
-            case ALREADY_REQUESTED -> new ConflictException("You are already requested on the offering with id " + offeringId);
+            case ALREADY_REQUESTED -> new ConflictException("You have already requested to enroll in the offering with id " + offeringId);
             case OFFERING_FULL -> new ConflictException("Course offering is full");
             case REGISTRATION_CLOSED -> new BadRequestException("Semester no longer allows enrollments");
         };

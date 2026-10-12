@@ -3,7 +3,6 @@ package com.sarthak.universityManagement.enrollment;
 import java.util.Set;
 import com.sarthak.universityManagement.enrollment.dto.EnrollmentResponse;
 import com.sarthak.universityManagement.enrollment.dto.EnrollmentFilter;
-import com.sarthak.universityManagement.courseOffering.types.EnrollDenial;
 import com.sarthak.universityManagement.courseOffering.types.CourseOfferingAction;
 import com.sarthak.universityManagement.common.exceptions.BadRequestException;
 import com.sarthak.universityManagement.common.exceptions.ConflictException;
@@ -125,7 +124,7 @@ public class EnrollmentServiceIntegrationTests extends IntegrationTests {
             enrollmentService.createEnrollment(student.getId(), offering.getId());
 
             var ex = assertThrows(ConflictException.class, () -> enrollmentService.createEnrollment(student.getId(), offering.getId()));
-            assertEquals(EnrollDenial.ALREADY_REQUESTED.toException(offering.getId()).getMessage(), ex.getMessage());
+            assertEquals("You have already requested to enroll in the offering with id " + offering.getId(), ex.getMessage());
             assertEquals(1, enrollmentRepo.count());
         }
 
