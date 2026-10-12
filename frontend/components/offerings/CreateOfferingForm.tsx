@@ -15,7 +15,7 @@ import { idParam } from '@/hooks/useFilterParams';
 import { fullName } from '@/lib/format';
 import { unwrap } from '@/lib/query';
 import { queryKeys } from '@/lib/queryKeys';
-import { formatSemesterName } from '@/lib/semester';
+import { formatSemesterName, newestFirst } from '@/lib/semester';
 import { useApi } from '@/stores/apiStore';
 import { CreateCourseOfferingRequest } from '@/types/offering';
 import { Semester } from '@/types/semester';
@@ -30,9 +30,7 @@ type FormValues = {
 };
 
 function acceptingNewestFirst(semesters: Semester[]) {
-    return semesters
-        .filter((semester) => semester.acceptsOfferings)
-        .sort((a, b) => b.startDate.localeCompare(a.startDate));
+    return newestFirst(semesters.filter((semester) => semester.acceptsOfferings));
 }
 
 function dependentPlaceholder(query: { isPending: boolean; isError: boolean }, ready: boolean, noun: string) {
@@ -97,8 +95,15 @@ export function CreateOfferingForm() {
         },
     });
 
+    // Disabled selects skip the browser's `required` check, so a choice still loading would otherwise post id 0.
+    const isComplete = semesterId > 0 && values.courseId > 0 && values.instructorId > 0;
+
     const handleSubmit = (event: React.SubmitEvent<HTMLFormElement>) => {
         event.preventDefault();
+        if (!isComplete) {
+            toast.error('Choose a semester, course and instructor first.');
+            return;
+        }
         createOffering.mutate({
             semesterId,
             courseId: values.courseId,
@@ -256,7 +261,11 @@ export function CreateOfferingForm() {
                         </FormSection>
 
                         <div className="flex justify-end">
-                            <Button type="submit" disabled={createOffering.isPending} className="min-w-36">
+                            <Button
+                                type="submit"
+                                disabled={!isComplete || createOffering.isPending}
+                                className="min-w-36"
+                            >
                                 {createOffering.isPending ? 'Creating...' : 'Create offering'}
                             </Button>
                         </div>

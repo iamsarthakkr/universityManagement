@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useMutationState, useQuery, useQueryClient } from '@tanstack/react-query';
 import React from 'react';
 import { toast } from 'sonner';
 
@@ -79,7 +79,9 @@ export const RegistrationsView = ({ kind }: { kind: RegistrationKind }) => {
     });
     const items = registrationsQuery.data ?? [];
 
+    const mutationKey = ['registrations', kind, 'action'];
     const registrationAction = useMutation({
+        mutationKey,
         mutationFn: ({ id, action }: { id: number; action: RegistrationAction }) =>
             unwrap(registrationApi.performAction({ registrationId: id, action })),
         onSuccess: (_, { action }) => {
@@ -97,7 +99,10 @@ export const RegistrationsView = ({ kind }: { kind: RegistrationKind }) => {
         },
     });
 
-    const pendingId = registrationAction.isPending ? (registrationAction.variables?.id ?? null) : null;
+    const pendingIds = useMutationState({
+        filters: { mutationKey, status: 'pending' },
+        select: (mutation) => (mutation.state.variables as { id: number }).id,
+    });
     const { mutate: runAction } = registrationAction;
     const onAction = React.useCallback(
         (id: number, action: RegistrationAction) => runAction({ id, action }),
@@ -132,7 +137,7 @@ export const RegistrationsView = ({ kind }: { kind: RegistrationKind }) => {
 
             <SectionCard className="overflow-hidden p-0">
                 <QueryState query={registrationsQuery} isEmpty={items.length === 0} emptyMessage={emptyMessage}>
-                    <RegistrationsTable kind={kind} items={items} pendingId={pendingId} onAction={onAction} />
+                    <RegistrationsTable kind={kind} items={items} pendingIds={pendingIds} onAction={onAction} />
                 </QueryState>
             </SectionCard>
         </div>

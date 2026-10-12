@@ -30,7 +30,7 @@ const STATUS_OPTIONS = [
 export function MyEnrollmentsView() {
     const api = useApi();
     const [filters, setFilters] = useFilterParams(FILTERS);
-    const { onAction, pendingId } = useEnrollmentAction();
+    const { onAction, pendingIds } = useEnrollmentAction();
 
     const enrollmentsQuery = useQuery({
         queryKey: queryKeys.enrollments.mine(filters),
@@ -63,7 +63,7 @@ export function MyEnrollmentsView() {
                         isFiltered ? 'No enrollments match these filters.' : 'You have not requested any courses yet.'
                     }
                 >
-                    <EnrollmentsTable enrollments={enrollments} pendingId={pendingId} onAction={onAction} />
+                    <EnrollmentsTable enrollments={enrollments} pendingIds={pendingIds} onAction={onAction} />
                 </QueryState>
             </SectionCard>
         </div>

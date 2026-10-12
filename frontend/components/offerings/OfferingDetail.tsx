@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { ArrowLeftIcon } from 'lucide-react';
-import { ReactNode } from 'react';
 import { Link } from 'react-router';
 
+import { DetailItem } from '@/components/common/DetailItem';
 import { PageHeader } from '@/components/common/PageHeader';
 import { QueryState } from '@/components/common/QueryState';
 import { SectionCard } from '@/components/common/SectionCard';
@@ -13,7 +13,7 @@ import { SemesterStatusBadge } from '@/components/semesters/SemesterStatusBadge'
 import { Button } from '@/components/ui/base/button';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { enumParam, useFilterParams } from '@/hooks/useFilterParams';
-import { fullName } from '@/lib/format';
+import { formatCredits, fullName } from '@/lib/format';
 import { unwrap } from '@/lib/query';
 import { queryKeys } from '@/lib/queryKeys';
 import { formatSemesterName } from '@/lib/semester';
@@ -40,38 +40,29 @@ const EMPTY_MESSAGE: Record<EnrollmentStatus | 'ALL', string> = {
     ALL: 'No enrollment requests yet.',
 };
 
-function Detail({ label, children }: { label: string; children: ReactNode }) {
-    return (
-        <div className="flex flex-col gap-1">
-            <dt className="text-xs font-medium uppercase tracking-wide text-text-muted">{label}</dt>
-            <dd className="text-sm text-text">{children}</dd>
-        </div>
-    );
-}
-
 function OfferingSummaryCard({ offering }: { offering: CourseOffering }) {
     return (
         <SectionCard>
             <dl className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                <Detail label="Semester">
+                <DetailItem label="Semester">
                     <div className="flex flex-col items-start gap-1">
                         {formatSemesterName(offering.semester)}
                         <SemesterStatusBadge status={offering.semester.status} />
                     </div>
-                </Detail>
-                <Detail label="Registration">
+                </DetailItem>
+                <DetailItem label="Registration">
                     <StatusBadge tone={offering.semester.isRegistrationOpen ? 'success' : 'neutral'}>
                         {offering.semester.isRegistrationOpen ? 'Open now' : 'Closed'}
                     </StatusBadge>
-                </Detail>
-                <Detail label="Instructor">{fullName(offering.instructor)}</Detail>
-                <Detail label="Seats">
+                </DetailItem>
+                <DetailItem label="Instructor">{fullName(offering.instructor)}</DetailItem>
+                <DetailItem label="Seats">
                     <OfferingSeats
                         enrolled={offering.enrolled}
                         capacity={offering.capacity}
                         seatsAvailable={offering.seatsAvailable}
                     />
-                </Detail>
+                </DetailItem>
             </dl>
         </SectionCard>
     );
@@ -80,7 +71,7 @@ function OfferingSummaryCard({ offering }: { offering: CourseOffering }) {
 function Roster({ offeringId }: { offeringId: number }) {
     const api = useApi();
     const [filters, setFilters] = useFilterParams(FILTERS);
-    const { onAction, pendingId } = useEnrollmentAction();
+    const { onAction, pendingIds } = useEnrollmentAction();
 
     const rosterQuery = useQuery({
         queryKey: queryKeys.offerings.enrollments(offeringId, filters.status),
@@ -104,7 +95,7 @@ function Roster({ offeringId }: { offeringId: number }) {
                 isEmpty={enrollments.length === 0}
                 emptyMessage={EMPTY_MESSAGE[filters.status ?? 'ALL']}
             >
-                <RosterTable enrollments={enrollments} pendingId={pendingId} onAction={onAction} />
+                <RosterTable enrollments={enrollments} pendingIds={pendingIds} onAction={onAction} />
             </QueryState>
         </SectionCard>
     );
@@ -144,7 +135,7 @@ export function OfferingDetail({ offeringId }: { offeringId: number }) {
                 title={offering ? `${offering.course.code} · ${offering.course.title}` : 'Course offering'}
                 description={
                     offering
-                        ? `Section ${offering.section} · ${offering.course.credits} credits`
+                        ? `Section ${offering.section} · ${formatCredits(offering.course.credits)}`
                         : 'Offering details and its students.'
                 }
             />

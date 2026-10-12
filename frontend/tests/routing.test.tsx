@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -91,6 +91,26 @@ describe('routing and guards', () => {
 
         await screen.findByRole('heading', { name: 'Instructor dashboard' });
         expect(router.state.location.pathname).toBe('/dashboard/instructor');
+    });
+
+    it.each([
+        [
+            '/dashboard/admin/student-registrations/approved',
+            '/dashboard/admin/student-registrations',
+            '?status=APPROVED',
+        ],
+        [
+            '/dashboard/admin/instructor-registrations/rejected',
+            '/dashboard/admin/instructor-registrations',
+            '?status=REJECTED',
+        ],
+        ['/dashboard/admin/student-registrations/foo', '/dashboard/admin/student-registrations', ''],
+    ])('redirects the old registration link %s', async (from, pathname, search) => {
+        loggedInAs('ADMIN');
+        const router = renderApp(from);
+
+        await waitFor(() => expect(router.state.location.pathname).toBe(pathname));
+        expect(router.state.location.search).toBe(search);
     });
 
     it('shows pending registrations for an unknown status', async () => {

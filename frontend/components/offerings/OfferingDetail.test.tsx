@@ -88,6 +88,35 @@ describe('OfferingDetail', () => {
         expect(screen.getByText('ENROLLED')).toBeInTheDocument();
     });
 
+    it('keeps every row with a request in flight disabled', async () => {
+        const second = enrollment({
+            id: 7,
+            student: { id: 9, firstName: 'Cleo', lastName: null },
+            allowedActions: [EnrollmentAction.APPROVE],
+        });
+        let releaseFirst: () => void = () => {};
+        as('INSTRUCTOR', {
+            'GET /course-offerings/9': jsonOk(offering()),
+            'GET /course-offerings/9/enrollments': jsonOk([PENDING, second]),
+            'POST /enrollments/5/approve': () =>
+                new Promise((resolve) => (releaseFirst = () => resolve(jsonOk(PENDING)))),
+            'POST /enrollments/7/approve': () => new Promise(() => {}),
+        });
+        renderApp('/dashboard/offerings/9');
+
+        await userEvent.click(await screen.findByRole('button', { name: 'Actions for Ana Gomez' }));
+        await userEvent.click(await screen.findByRole('menuitem', { name: 'Approve' }));
+        await userEvent.click(screen.getByRole('button', { name: 'Actions for Cleo' }));
+        await userEvent.click(await screen.findByRole('menuitem', { name: 'Approve' }));
+
+        await waitFor(() => expect(screen.getByRole('button', { name: 'Actions for Cleo' })).toBeDisabled());
+        expect(screen.getByRole('button', { name: 'Actions for Ana Gomez' })).toBeDisabled();
+
+        releaseFirst();
+        await waitFor(() => expect(screen.getByRole('button', { name: 'Actions for Ana Gomez' })).toBeEnabled());
+        expect(screen.getByRole('button', { name: 'Actions for Cleo' })).toBeDisabled();
+    });
+
     it('asks before rejecting', async () => {
         const { requests } = as('ADMIN', {
             'GET /course-offerings/9': jsonOk(offering()),

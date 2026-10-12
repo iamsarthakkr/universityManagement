@@ -5,6 +5,10 @@ export function formatSemesterName(semester: Pick<Semester, 'term' | 'year'>) {
     return `${term} ${semester.year}`;
 }
 
+export function newestFirst<S extends Pick<Semester, 'startDate'>>(semesters: S[]) {
+    return [...semesters].sort((a, b) => b.startDate.localeCompare(a.startDate));
+}
+
 export type SemesterGroup<T> = {
     semester: SemesterSummary;
     items: T[];

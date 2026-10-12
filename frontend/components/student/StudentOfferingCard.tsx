@@ -1,7 +1,7 @@
 import { EnrollmentStatusBadge } from '@/components/enrollments/EnrollmentStatusBadge';
 import { OfferingSeats } from '@/components/offerings/OfferingSeats';
 import { Button } from '@/components/ui/base/button';
-import { fullName } from '@/lib/format';
+import { formatCredits, fullName } from '@/lib/format';
 import { EnrollmentStatus } from '@/types/enrollment';
 import { CourseOffering, OfferingAction } from '@/types/offering';
 
@@ -28,7 +28,7 @@ export function StudentOfferingCard({ offering, myStatus, isRequesting, disabled
                     </p>
                     <h3 className="mt-0.5 font-semibold text-text">{offering.course.title}</h3>
                     <p className="mt-1 text-sm text-text-muted">
-                        {fullName(offering.instructor)} · {offering.course.credits} credits
+                        {fullName(offering.instructor)} · {formatCredits(offering.course.credits)}
                     </p>
                 </div>
                 {myStatus && <EnrollmentStatusBadge status={myStatus} />}

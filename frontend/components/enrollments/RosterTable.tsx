@@ -8,11 +8,11 @@ import { EnrollmentStatusBadge } from './EnrollmentStatusBadge';
 
 type Props = {
     enrollments: Enrollment[];
-    pendingId: number | null;
+    pendingIds: number[];
     onAction: (enrollmentId: number, action: EnrollmentAction) => void;
 };
 
-export function RosterTable({ enrollments, pendingId, onAction }: Props) {
+export function RosterTable({ enrollments, pendingIds, onAction }: Props) {
     const hasActions = enrollments.some((enrollment) => enrollment.allowedActions.length > 0);
 
     return (
@@ -43,7 +43,7 @@ export function RosterTable({ enrollments, pendingId, onAction }: Props) {
                                         actions={enrollment.allowedActions}
                                         config={ENROLLMENT_ACTIONS}
                                         subject={student}
-                                        disabled={pendingId === enrollment.id}
+                                        disabled={pendingIds.includes(enrollment.id)}
                                         onAction={(action) => onAction(enrollment.id, action)}
                                     />
                                 </TableCell>

@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useMutationState, useQueryClient } from '@tanstack/react-query';
 import React from 'react';
 import { toast } from 'sonner';
 
@@ -6,6 +6,8 @@ import { unwrap } from '@/lib/query';
 import { queryKeys } from '@/lib/queryKeys';
 import { useApi } from '@/stores/apiStore';
 import { Semester, SemesterAction, SemesterActionRequest } from '@/types/semester';
+
+const MUTATION_KEY = ['semesters', 'action'];
 
 const ACTION_SUCCESS: Record<SemesterAction, string> = {
     [SemesterAction.ACTIVATE]: 'Semester activated.',
@@ -18,6 +20,7 @@ export function useSemesterAction() {
     const queryClient = useQueryClient();
 
     const semesterAction = useMutation({
+        mutationKey: MUTATION_KEY,
         mutationFn: (request: SemesterActionRequest) => unwrap(api.semesters.performAction(request)),
         onSuccess: (_, { action }) => {
             toast.success(ACTION_SUCCESS[action]);
@@ -38,7 +41,10 @@ export function useSemesterAction() {
         (semester: Semester, action: SemesterAction) => mutate({ semesterId: semester.id, action }),
         [mutate],
     );
-    const pendingId = semesterAction.isPending ? (semesterAction.variables?.semesterId ?? null) : null;
+    const pendingIds = useMutationState({
+        filters: { mutationKey: MUTATION_KEY, status: 'pending' },
+        select: (mutation) => (mutation.state.variables as SemesterActionRequest).semesterId,
+    });
 
-    return { onAction, pendingId };
+    return { onAction, pendingIds };
 }

@@ -10,11 +10,11 @@ import { SemesterStatusBadge } from './SemesterStatusBadge';
 
 type Props = {
     semesters: Semester[];
-    pendingId: number | null;
+    pendingIds: number[];
     onAction: (semester: Semester, action: SemesterAction) => void;
 };
 
-export function SemestersTable({ semesters, pendingId, onAction }: Props) {
+export function SemestersTable({ semesters, pendingIds, onAction }: Props) {
     const hasActions = semesters.some((semester) => semester.allowedActions.length > 0);
 
     return (
@@ -55,7 +55,7 @@ export function SemestersTable({ semesters, pendingId, onAction }: Props) {
                                     actions={semester.allowedActions}
                                     config={SEMESTER_ACTIONS}
                                     subject={formatSemesterName(semester)}
-                                    disabled={pendingId === semester.id}
+                                    disabled={pendingIds.includes(semester.id)}
                                     onAction={(action) => onAction(semester, action)}
                                 />
                             </TableCell>

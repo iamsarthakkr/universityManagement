@@ -29,6 +29,23 @@ describe('FilterSelect', () => {
     });
 });
 
+describe('FilterSelect with a value that is not an option', () => {
+    it('says the filter was not found instead of showing "All"', () => {
+        renderWithProviders(
+            <FilterSelect label="Number" value={9} options={[{ value: 1, label: 'One' }]} onChange={vi.fn()} />,
+        );
+
+        expect(screen.getByLabelText('Number')).toHaveValue('9');
+        expect(screen.getByRole('option', { name: 'Not found' })).toBeInTheDocument();
+    });
+
+    it('says it is loading while the options are not there yet', () => {
+        renderWithProviders(<FilterSelect label="Number" value={9} options={[]} onChange={vi.fn()} disabled />);
+
+        expect(screen.getByRole('option', { name: 'Loading…' })).toBeInTheDocument();
+    });
+});
+
 describe('DepartmentFilter', () => {
     it('lists the departments loaded at startup', async () => {
         useAppStore.setState({ staticData: { departments: [CS, PHYSICS] } });

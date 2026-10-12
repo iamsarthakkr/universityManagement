@@ -22,7 +22,7 @@ Vitest + jsdom + Testing Library, configured in the `test` block of `vite.config
 
 - Unit/component tests sit next to the code as `*.test.ts(x)`. App-level tests (routing, guards, startup) live in `tests/`.
 - `tests/setup.ts` stubs `matchMedia` (live `matches`; `setPrefersDark()` to switch), `ResizeObserver` and pointer APIs for Radix, and resets localStorage, the app store, the query cache and the 401 handler between tests.
-- Mock the network, not the modules: `mockFetch({ 'GET /path': jsonOk(body), 'POST /path': jsonError(400, 'msg') })` from `tests/mockFetch.ts` stubs global `fetch` and returns the recorded requests (method, path, headers, parsed body). Unmocked routes fail like a network error. This keeps `http.ts`, `unwrap`, the stores and React Query in the path under test.
+- Mock the network, not the modules: `mockFetch({ 'GET /path': jsonOk(body), 'POST /path': jsonError(400, 'msg') })` from `tests/mockFetch.ts` stubs global `fetch` and returns the recorded requests (method, path, headers, parsed body). Unmocked routes fail like a network error. A handler can return a promise to hold a request open (e.g. to assert a row stays disabled while its action is in flight). This keeps `http.ts`, `unwrap`, the stores and React Query in the path under test.
 - `tests/fixtures.ts` has one builder per server response (`me(role)`, `semester()`, `offering()`, `enrollment()`, `studentRegistration(id, status)`, …). Each returns a valid default; override only the fields a test is about. Don't hand-write nested response objects in tests.
 - `tests/render.tsx`: `renderWithProviders(ui, { path })` (query client + tooltip provider + memory router) for components; `renderApp(path)` mounts the real `routes` from `router.tsx` for end-to-end flows. Only `renderApp` includes the toaster, so use it (logged in via `setToken` + a `GET /me` mock) when asserting toast messages.
 - Use 4xx errors when testing query error states — 5xx/network errors retry once with a delay.
@@ -70,7 +70,7 @@ Zustand holds **client** state (user, app state, theme, static data loaded at st
 - Retries: 4xx never retry; network errors and 5xx retry once.
 - `lib/queryKeys.ts` — every query key lives here; never write keys inline. Keys are hierarchical so a prefix invalidates a whole group (e.g. `queryKeys.registrations.byKind(kind)` refreshes all statuses after approve/reject).
 - Mutations invalidate what they change in `onSuccess` and return the invalidation promise, so `isPending` stays true until fresh data is in (used to keep rows/buttons disabled).
-- Shared action hooks own the mutation, toasts and invalidation for a resource: `useSemesterAction`, `useEnrollmentAction`. Reuse them rather than writing another mutation for the same action. What each change invalidates:
+- Shared action hooks own the mutation, toasts and invalidation for a resource: `useSemesterAction`, `useEnrollmentAction`. Reuse them rather than writing another mutation for the same action. They give a mutation a `mutationKey` and return `pendingIds` from `useMutationState`, so every row with a request in flight stays disabled, not only the latest one. What each change invalidates:
 
   | Change | Invalidates |
   | --- | --- |
@@ -125,7 +125,8 @@ Role access is declared in `router.tsx` with `<RoleGuard roles={[...]} />` (`com
 - `components/dashboard/` — sidebar/nav components
 - `components/common/` — shared building blocks:
   - `ActionMenu` renders a list of server `allowedActions` from a per-resource config (`SEMESTER_ACTIONS`, `ENROLLMENT_ACTIONS`, `REGISTRATION_ACTIONS`). Set `confirm` on an action to ask first (it uses `ConfirmDialog`). The menu button is named "Actions for {subject}".
-  - `QueryState` handles loading (skeleton), error (server message + retry) and empty states around query content.
+  - `QueryState` handles loading (skeleton), error (server message + retry) and empty states around query content. For a secondary query whose failure shouldn't replace the page, show `InlineError` (message + retry) instead of hiding the failure.
+  - `DetailItem` is the label/value pair used in summary cards.
   - `filters/` (`FilterBar`, `FilterSelect`, `DepartmentFilter`, `SemesterFilter`, `InstructorFilter`) and `StatusTabs` for list filters.
 - `components/semesters/SemesterSections` lays out cards grouped by semester (with `groupBySemester` from `lib/semester.ts`, which keeps the server's order).
 - Feature components: `admin/`, `auth/`, `courses/`, `enrollments/`, `instructor/`, `offerings/`, `profile/`, `registration/`, `semesters/`, `student/`

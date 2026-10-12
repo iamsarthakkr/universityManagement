@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { BookOpenIcon, ClipboardListIcon, LibraryIcon, PlusCircleIcon } from 'lucide-react';
 import { Link } from 'react-router';
 
+import { InlineError } from '@/components/common/InlineError';
 import { PageHeader } from '@/components/common/PageHeader';
 import { QueryState } from '@/components/common/QueryState';
 import { QuickLink, QuickLinks } from '@/components/common/QuickLinks';
@@ -88,6 +89,12 @@ export function StudentHome() {
             <PageHeader title="Student dashboard" description="Your courses and enrollments in one place." />
 
             {openSemesters.length > 0 && <RegistrationBanner semesters={openSemesters} />}
+            {semestersQuery.isError && (
+                <InlineError
+                    message={`Couldn't check whether registration is open: ${semestersQuery.error.message}`}
+                    onRetry={() => semestersQuery.refetch()}
+                />
+            )}
 
             <QueryState query={enrollmentsQuery} isEmpty={false} emptyMessage="">
                 <div className="grid gap-4 sm:grid-cols-2">

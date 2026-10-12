@@ -116,6 +116,14 @@ describe('BrowseOfferingsView', () => {
         ).toEqual(['semesterId=2&departmentId=1']);
     });
 
+    it('says when the student’s own requests could not be loaded', async () => {
+        asStudent({ 'GET /me/enrollments': jsonError(403, 'Access denied') });
+        renderApp('/dashboard/student/offerings');
+
+        expect(await screen.findByRole('article', { name: 'CS101 section A' })).toBeInTheDocument();
+        expect(await screen.findByRole('alert')).toHaveTextContent("Your existing requests couldn't be loaded");
+    });
+
     it('says when nothing is open for registration', async () => {
         asStudent({ 'GET /course-offerings': jsonOk([PAST_OFFERING]) });
         renderApp('/dashboard/student/offerings');

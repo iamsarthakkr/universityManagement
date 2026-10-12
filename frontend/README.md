@@ -59,4 +59,6 @@ The production image (`Dockerfile` + `nginx.conf`) and how it's deployed are des
   course's offerings.
 - **Pending requests per offering:** instructors can't see "3 requests waiting" on the dashboard without one roster
   call per offering; a `pendingCount` on the offering response would cover it.
+- **Dashboard counts:** the admin dashboard loads the full pending-registration and offering lists to show their
+  lengths; a count or summary endpoint would avoid that as data grows.
 - **No pagination:** every list loads in full, which is fine at demo scale.

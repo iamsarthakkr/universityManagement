@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { DepartmentFilter } from '@/components/common/filters/DepartmentFilter';
 import { FilterBar } from '@/components/common/filters/FilterBar';
 import { SemesterFilter } from '@/components/common/filters/SemesterFilter';
+import { InlineError } from '@/components/common/InlineError';
 import { PageHeader } from '@/components/common/PageHeader';
 import { QueryState } from '@/components/common/QueryState';
 import { StatusTab, StatusTabs } from '@/components/common/StatusTabs';
@@ -93,6 +94,12 @@ export function BrowseOfferingsView() {
                     onChange={(next) => setFilters({ view: next })}
                 />
             </div>
+            {enrollmentsQuery.isError && (
+                <InlineError
+                    message={`Your existing requests couldn't be loaded, so cards don't show their status: ${enrollmentsQuery.error.message}`}
+                    onRetry={() => enrollmentsQuery.refetch()}
+                />
+            )}
             <QueryState query={offeringsQuery} isEmpty={offerings.length === 0} emptyMessage={emptyMessage}>
                 <SemesterSections
                     groups={groups}

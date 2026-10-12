@@ -10,6 +10,10 @@ export function fullName({ firstName, lastName }: Named) {
     return lastName ? `${firstName} ${lastName}` : firstName;
 }
 
+export function formatCredits(credits: number) {
+    return `${credits} ${credits === 1 ? 'credit' : 'credits'}`;
+}
+
 export function formatOffering({
     course,
     section,

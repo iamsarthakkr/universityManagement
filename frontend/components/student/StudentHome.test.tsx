@@ -1,4 +1,5 @@
 import { screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 
 import { setToken } from '@/lib/session';
@@ -40,6 +41,27 @@ describe('StudentHome', () => {
 
         await screen.findByText('Courses enrolled');
         expect(screen.queryByRole('region', { name: 'Registration open' })).not.toBeInTheDocument();
+    });
+
+    it('says when it could not check registration dates, and retries', async () => {
+        let attempts = 0;
+        asStudent({
+            'GET /semesters': () => {
+                attempts += 1;
+                return attempts === 1
+                    ? jsonError(403, 'Access denied')
+                    : jsonOk([semester({ isRegistrationOpen: true })]);
+            },
+            'GET /me/enrollments': jsonOk([]),
+        });
+        renderApp('/dashboard/student');
+
+        expect(await screen.findByRole('alert')).toHaveTextContent(
+            "Couldn't check whether registration is open: Access denied",
+        );
+        await userEvent.click(screen.getByRole('button', { name: 'Try again' }));
+
+        expect(await screen.findByRole('region', { name: 'Registration open' })).toBeInTheDocument();
     });
 
     it('keeps the quick links when enrollments fail to load', async () => {

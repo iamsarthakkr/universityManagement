@@ -1,6 +1,7 @@
 import { ComponentType } from 'react';
 import { createBrowserRouter, Navigate, RouteObject } from 'react-router';
 
+import { LegacyStatusRedirect } from '@/components/admin/registrations/LegacyStatusRedirect';
 import { DashboardHomeRedirect, RoleGuard } from '@/components/auth/RoleGuard';
 import { LoadingOverlay } from '@/components/common/AppStateOverlay';
 import AuthLayout from '@/pages/auth/AuthLayout';
@@ -47,6 +48,14 @@ export const routes: RouteObject[] = [
                             {
                                 path: 'student-registrations',
                                 lazy: lazyPage(() => import('@/pages/dashboard/admin/student-registrations/page')),
+                            },
+                            {
+                                path: 'student-registrations/:status',
+                                element: <LegacyStatusRedirect kind="student" />,
+                            },
+                            {
+                                path: 'instructor-registrations/:status',
+                                element: <LegacyStatusRedirect kind="instructor" />,
                             },
                             {
                                 path: 'instructor-registrations',

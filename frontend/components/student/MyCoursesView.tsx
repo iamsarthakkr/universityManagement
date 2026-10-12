@@ -5,7 +5,7 @@ import { PageHeader } from '@/components/common/PageHeader';
 import { QueryState } from '@/components/common/QueryState';
 import { SemesterSections } from '@/components/semesters/SemesterSections';
 import { Button } from '@/components/ui/base/button';
-import { fullName } from '@/lib/format';
+import { formatCredits, fullName } from '@/lib/format';
 import { unwrap } from '@/lib/query';
 import { queryKeys } from '@/lib/queryKeys';
 import { groupBySemester } from '@/lib/semester';
@@ -26,7 +26,7 @@ function CourseCard({ enrollment }: { enrollment: Enrollment }) {
             </p>
             <h3 className="font-semibold text-text">{course.title}</h3>
             <p className="text-sm text-text-muted">
-                {fullName(instructor)} · {course.credits} credits
+                {fullName(instructor)} · {formatCredits(course.credits)}
             </p>
         </article>
     );
@@ -60,8 +60,9 @@ export function MyCoursesView() {
                         renderItem={(enrollment) => <CourseCard enrollment={enrollment} />}
                         renderMeta={(group) => (
                             <span className="text-sm text-text-muted">
-                                {group.items.reduce((total, item) => total + item.courseOffering.course.credits, 0)}{' '}
-                                credits
+                                {formatCredits(
+                                    group.items.reduce((total, item) => total + item.courseOffering.course.credits, 0),
+                                )}
                             </span>
                         )}
                     />

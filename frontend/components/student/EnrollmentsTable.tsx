@@ -9,11 +9,11 @@ import { Enrollment, EnrollmentAction } from '@/types/enrollment';
 
 type Props = {
     enrollments: Enrollment[];
-    pendingId: number | null;
+    pendingIds: number[];
     onAction: (enrollmentId: number, action: EnrollmentAction) => void;
 };
 
-export function EnrollmentsTable({ enrollments, pendingId, onAction }: Props) {
+export function EnrollmentsTable({ enrollments, pendingIds, onAction }: Props) {
     const hasActions = enrollments.some((enrollment) => enrollment.allowedActions.length > 0);
 
     return (
@@ -53,7 +53,7 @@ export function EnrollmentsTable({ enrollments, pendingId, onAction }: Props) {
                                         actions={enrollment.allowedActions}
                                         config={ENROLLMENT_ACTIONS}
                                         subject={course.code}
-                                        disabled={pendingId === enrollment.id}
+                                        disabled={pendingIds.includes(enrollment.id)}
                                         onAction={(action) => onAction(enrollment.id, action)}
                                     />
                                 </TableCell>

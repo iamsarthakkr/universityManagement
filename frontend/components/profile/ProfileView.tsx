@@ -1,20 +1,10 @@
-import { ReactNode } from 'react';
-
+import { DetailItem } from '@/components/common/DetailItem';
 import { PageHeader } from '@/components/common/PageHeader';
 import { SectionCard } from '@/components/common/SectionCard';
 import { fullName } from '@/lib/format';
 import { useAppStore } from '@/stores/appStore';
 
 const ROLE_LABEL = { ADMIN: 'Administrator', INSTRUCTOR: 'Instructor', STUDENT: 'Student' } as const;
-
-function Detail({ label, children }: { label: string; children: ReactNode }) {
-    return (
-        <div className="flex flex-col gap-1">
-            <dt className="text-xs font-medium uppercase tracking-wide text-text-muted">{label}</dt>
-            <dd className="text-sm text-text">{children}</dd>
-        </div>
-    );
-}
 
 export function ProfileView() {
     const user = useAppStore((state) => state.user);
@@ -30,11 +20,11 @@ export function ProfileView() {
             <PageHeader title="Profile" description="Your account details." />
             <SectionCard>
                 <dl className="grid gap-6 sm:grid-cols-2">
-                    {profile && <Detail label="Name">{fullName(profile)}</Detail>}
-                    <Detail label="Role">{ROLE_LABEL[user.role]}</Detail>
-                    <Detail label="Username">{user.username}</Detail>
-                    <Detail label="Email">{user.email}</Detail>
-                    {profile && <Detail label="Department">{profile.department.name}</Detail>}
+                    {profile && <DetailItem label="Name">{fullName(profile)}</DetailItem>}
+                    <DetailItem label="Role">{ROLE_LABEL[user.role]}</DetailItem>
+                    <DetailItem label="Username">{user.username}</DetailItem>
+                    <DetailItem label="Email">{user.email}</DetailItem>
+                    {profile && <DetailItem label="Department">{profile.department.name}</DetailItem>}
                 </dl>
             </SectionCard>
         </div>

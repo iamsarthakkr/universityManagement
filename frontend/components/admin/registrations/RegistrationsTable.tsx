@@ -8,12 +8,12 @@ import { REGISTRATION_ACTIONS, Status } from './common';
 interface Props {
     kind: RegistrationKind;
     items: RegistrationResponse[];
-    pendingId: number | null;
+    pendingIds: number[];
     onAction: (id: number, action: RegistrationAction) => void;
 }
 
 export const RegistrationsTable = (props: Props) => {
-    const { kind, items, pendingId, onAction } = props;
+    const { kind, items, pendingIds, onAction } = props;
     const showDateOfBirth = kind === 'student';
     const showReviewed = items.some((item) => item.reviewedAt !== null);
     const hasActions = items.some((item) => item.allowedActions.length > 0);
@@ -60,7 +60,7 @@ export const RegistrationsTable = (props: Props) => {
                                     actions={item.allowedActions}
                                     config={REGISTRATION_ACTIONS}
                                     subject={item.username}
-                                    disabled={pendingId === item.id}
+                                    disabled={pendingIds.includes(item.id)}
                                     onAction={(action) => onAction(item.id, action)}
                                 />
                             </TableCell>

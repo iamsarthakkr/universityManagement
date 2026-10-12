@@ -2,6 +2,7 @@ import { ChevronDownIcon, ChevronUpIcon } from 'lucide-react';
 import React from 'react';
 
 import { Button } from '@/components/ui/base/button';
+import { formatCredits } from '@/lib/format';
 import { Course } from '@/types/course';
 
 export function CourseCard({ course }: { course: Course }) {
@@ -12,7 +13,7 @@ export function CourseCard({ course }: { course: Course }) {
             <div className="flex items-start justify-between gap-4">
                 <div>
                     <span className="text-xs font-semibold uppercase tracking-wide text-text-muted">
-                        {`${course.code} · ${course.credits} ${course.credits === 1 ? 'credit' : 'credits'}`}
+                        {`${course.code} · ${formatCredits(course.credits)}`}
                     </span>
                     <h4 className="mt-0.5 font-semibold text-text">{course.title}</h4>
                 </div>

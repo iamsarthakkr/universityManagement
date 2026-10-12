@@ -22,6 +22,10 @@ export function FilterSelect<T extends string | number>(props: Props<T>) {
         onChange(options.find((option) => String(option.value) === raw)?.value);
     };
 
+    // A filter from the URL that isn't among the options is still applied by the server, so name it instead of
+    // letting the select fall back to "All".
+    const isUnlisted = value !== undefined && !options.some((option) => option.value === value);
+
     return (
         <label className="flex flex-col gap-1 text-xs font-medium text-text-muted sm:w-52">
             {label}
@@ -32,6 +36,7 @@ export function FilterSelect<T extends string | number>(props: Props<T>) {
                 className="text-text"
             >
                 <option value="">{allLabel}</option>
+                {isUnlisted && <option value={String(value)}>{disabled ? 'Loading…' : 'Not found'}</option>}
                 {options.map((option) => (
                     <option key={option.value} value={option.value}>
                         {option.label}

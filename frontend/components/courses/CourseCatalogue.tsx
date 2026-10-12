@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { PlusIcon, SearchIcon } from 'lucide-react';
+import React from 'react';
 import { Link } from 'react-router';
 
 import { DepartmentFilter } from '@/components/common/filters/DepartmentFilter';
@@ -49,7 +50,9 @@ export function CourseCatalogue() {
     const isAdmin = useAppStore((state) => state.user?.role === 'ADMIN');
     const [filters, setFilters] = useFilterParams(FILTERS);
     const serverFilter = { departmentId: filters.departmentId };
-    const search = filters.q?.trim().toLowerCase() ?? '';
+    // The box owns its text so typing never waits on a navigation; the URL follows for sharing and refresh.
+    const [searchText, setSearchText] = React.useState(filters.q ?? '');
+    const search = searchText.trim().toLowerCase();
 
     const coursesQuery = useQuery({
         queryKey: queryKeys.courses.list(serverFilter),
@@ -85,8 +88,11 @@ export function CourseCatalogue() {
                             type="search"
                             placeholder="Code or title"
                             className="pl-8 text-text"
-                            value={filters.q ?? ''}
-                            onChange={(event) => setFilters({ q: textParam(event.target.value) })}
+                            value={searchText}
+                            onChange={(event) => {
+                                setSearchText(event.target.value);
+                                setFilters({ q: textParam(event.target.value) });
+                            }}
                         />
                     </div>
                 </label>

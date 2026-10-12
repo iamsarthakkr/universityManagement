@@ -8,14 +8,10 @@ import { SectionCard } from '@/components/common/SectionCard';
 import { Button } from '@/components/ui/base/button';
 import { unwrap } from '@/lib/query';
 import { queryKeys } from '@/lib/queryKeys';
+import { newestFirst } from '@/lib/semester';
 import { useApi } from '@/stores/apiStore';
-import { Semester } from '@/types/semester';
 import { SemestersTable } from './SemestersTable';
 import { useSemesterAction } from './useSemesterAction';
-
-function newestFirst(semesters: Semester[]) {
-    return [...semesters].sort((a, b) => b.startDate.localeCompare(a.startDate));
-}
 
 export function SemestersView() {
     const api = useApi();
@@ -27,7 +23,7 @@ export function SemestersView() {
     });
     const semesters = semestersQuery.data ?? [];
 
-    const { onAction, pendingId } = useSemesterAction();
+    const { onAction, pendingIds } = useSemesterAction();
 
     return (
         <div className="space-y-6">
@@ -43,7 +39,7 @@ export function SemestersView() {
 
             <SectionCard className="overflow-hidden p-0">
                 <QueryState query={semestersQuery} isEmpty={semesters.length === 0} emptyMessage="No semesters yet.">
-                    <SemestersTable semesters={semesters} pendingId={pendingId} onAction={onAction} />
+                    <SemestersTable semesters={semesters} pendingIds={pendingIds} onAction={onAction} />
                 </QueryState>
             </SectionCard>
         </div>

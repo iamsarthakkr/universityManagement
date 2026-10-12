@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useMutationState, useQueryClient } from '@tanstack/react-query';
 import React from 'react';
 import { toast } from 'sonner';
 
@@ -6,6 +6,8 @@ import { unwrap } from '@/lib/query';
 import { queryKeys } from '@/lib/queryKeys';
 import { useApi } from '@/stores/apiStore';
 import { EnrollmentAction, EnrollmentActionRequest } from '@/types/enrollment';
+
+const MUTATION_KEY = ['enrollments', 'action'];
 
 const ACTION_SUCCESS: Record<EnrollmentAction, string> = {
     [EnrollmentAction.APPROVE]: 'Enrollment approved.',
@@ -19,6 +21,7 @@ export function useEnrollmentAction() {
     const queryClient = useQueryClient();
 
     const enrollmentAction = useMutation({
+        mutationKey: MUTATION_KEY,
         mutationFn: (request: EnrollmentActionRequest) => unwrap(api.enrollments.performAction(request)),
         onSuccess: (_, { action }) => {
             toast.success(ACTION_SUCCESS[action]);
@@ -38,7 +41,11 @@ export function useEnrollmentAction() {
         (enrollmentId: number, action: EnrollmentAction) => mutate({ enrollmentId, action }),
         [mutate],
     );
-    const pendingId = enrollmentAction.isPending ? (enrollmentAction.variables?.enrollmentId ?? null) : null;
+    // Every in-flight row stays disabled, not only the latest one.
+    const pendingIds = useMutationState({
+        filters: { mutationKey: MUTATION_KEY, status: 'pending' },
+        select: (mutation) => (mutation.state.variables as EnrollmentActionRequest).enrollmentId,
+    });
 
-    return { onAction, pendingId };
+    return { onAction, pendingIds };
 }

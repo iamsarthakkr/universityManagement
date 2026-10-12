@@ -2,15 +2,13 @@ import { useQuery } from '@tanstack/react-query';
 
 import { unwrap } from '@/lib/query';
 import { queryKeys } from '@/lib/queryKeys';
-import { formatSemesterName } from '@/lib/semester';
+import { formatSemesterName, newestFirst } from '@/lib/semester';
 import { useApi } from '@/stores/apiStore';
 import { Semester } from '@/types/semester';
 import { FilterSelect } from './FilterSelect';
 
 function toOptions(semesters: Semester[]) {
-    return [...semesters]
-        .sort((a, b) => b.startDate.localeCompare(a.startDate))
-        .map((semester) => ({ value: semester.id, label: formatSemesterName(semester) }));
+    return newestFirst(semesters).map((semester) => ({ value: semester.id, label: formatSemesterName(semester) }));
 }
 
 type Props = {

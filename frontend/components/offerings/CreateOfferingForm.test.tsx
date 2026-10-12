@@ -103,6 +103,20 @@ describe('CreateOfferingForm', () => {
         });
     });
 
+    it('keeps "Create offering" disabled until semester, course and instructor are chosen', async () => {
+        asAdmin({ 'GET /courses': jsonError(500, 'Server error') });
+        renderApp('/dashboard/admin/offerings/new');
+
+        await waitFor(() => expect(screen.getByLabelText('Semester')).toBeEnabled());
+        await userEvent.selectOptions(screen.getByLabelText('Semester'), 'Winter 2026');
+        await userEvent.selectOptions(screen.getByLabelText('Department'), 'Computer Science');
+        await waitFor(() => expect(screen.getByLabelText('Instructor')).toBeEnabled());
+        await userEvent.selectOptions(screen.getByLabelText('Instructor'), 'Kavya Sen');
+
+        expect(screen.getByLabelText('Course')).toBeDisabled();
+        expect(screen.getByRole('button', { name: 'Create offering' })).toBeDisabled();
+    });
+
     it('preselects the semester from the link', async () => {
         asAdmin();
         renderApp('/dashboard/admin/offerings/new?semesterId=2');

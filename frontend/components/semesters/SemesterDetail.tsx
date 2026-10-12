@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { ArrowLeftIcon, PlusIcon } from 'lucide-react';
-import { ReactNode } from 'react';
 import { Link } from 'react-router';
 
 import { ActionMenu } from '@/components/common/ActionMenu';
+import { DetailItem } from '@/components/common/DetailItem';
 import { PageHeader } from '@/components/common/PageHeader';
 import { QueryState } from '@/components/common/QueryState';
 import { SectionCard } from '@/components/common/SectionCard';
@@ -20,36 +20,29 @@ import { SEMESTER_ACTIONS } from './semesterActions';
 import { SemesterStatusBadge } from './SemesterStatusBadge';
 import { useSemesterAction } from './useSemesterAction';
 
-function Detail({ label, children }: { label: string; children: ReactNode }) {
-    return (
-        <div className="flex flex-col gap-1">
-            <dt className="text-xs font-medium uppercase tracking-wide text-text-muted">{label}</dt>
-            <dd className="text-sm text-text">{children}</dd>
-        </div>
-    );
-}
-
 function SemesterSummaryCard({ semester }: { semester: Semester }) {
     return (
         <SectionCard>
             <dl className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                <Detail label="Status">
+                <DetailItem label="Status">
                     <SemesterStatusBadge status={semester.status} />
-                </Detail>
-                <Detail label="Registration window">
+                </DetailItem>
+                <DetailItem label="Registration window">
                     <div className="flex flex-col items-start gap-1">
                         {formatIsoDateRange(semester.registrationStartDate, semester.registrationEndDate)}
                         <StatusBadge tone={semester.isRegistrationOpen ? 'success' : 'neutral'}>
                             {semester.isRegistrationOpen ? 'Open now' : 'Closed'}
                         </StatusBadge>
                     </div>
-                </Detail>
-                <Detail label="Teaching period">{formatIsoDateRange(semester.startDate, semester.endDate)}</Detail>
-                <Detail label="New offerings">
+                </DetailItem>
+                <DetailItem label="Teaching period">
+                    {formatIsoDateRange(semester.startDate, semester.endDate)}
+                </DetailItem>
+                <DetailItem label="New offerings">
                     <StatusBadge tone={semester.acceptsOfferings ? 'info' : 'neutral'}>
                         {semester.acceptsOfferings ? 'Accepted' : 'Not accepted'}
                     </StatusBadge>
-                </Detail>
+                </DetailItem>
             </dl>
         </SectionCard>
     );
@@ -94,7 +87,7 @@ export function SemesterDetail({ semesterId }: { semesterId: number }) {
         queryKey: queryKeys.semesters.detail(semesterId),
         queryFn: () => unwrap(api.semesters.getSemester(semesterId)),
     });
-    const { onAction, pendingId } = useSemesterAction();
+    const { onAction, pendingIds } = useSemesterAction();
     const semester = semesterQuery.data;
     const name = semester ? formatSemesterName(semester) : 'Semester';
 
@@ -114,7 +107,7 @@ export function SemesterDetail({ semesterId }: { semesterId: number }) {
                         actions={semester.allowedActions}
                         config={SEMESTER_ACTIONS}
                         subject={name}
-                        disabled={pendingId === semester.id}
+                        disabled={pendingIds.includes(semester.id)}
                         onAction={(action) => onAction(semester, action)}
                     />
                 )}
