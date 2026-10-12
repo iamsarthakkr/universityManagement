@@ -1,8 +1,6 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { PlusIcon } from 'lucide-react';
-import React from 'react';
 import { Link } from 'react-router';
-import { toast } from 'sonner';
 
 import { PageHeader } from '@/components/common/PageHeader';
 import { QueryState } from '@/components/common/QueryState';
@@ -11,14 +9,9 @@ import { Button } from '@/components/ui/base/button';
 import { unwrap } from '@/lib/query';
 import { queryKeys } from '@/lib/queryKeys';
 import { useApi } from '@/stores/apiStore';
-import { Semester, SemesterAction, SemesterActionRequest } from '@/types/semester';
+import { Semester } from '@/types/semester';
 import { SemestersTable } from './SemestersTable';
-
-const ACTION_SUCCESS: Record<SemesterAction, string> = {
-    [SemesterAction.ACTIVATE]: 'Semester activated.',
-    [SemesterAction.COMPLETE]: 'Semester marked as completed.',
-    [SemesterAction.CANCEL]: 'Semester cancelled.',
-};
+import { useSemesterAction } from './useSemesterAction';
 
 function newestFirst(semesters: Semester[]) {
     return [...semesters].sort((a, b) => b.startDate.localeCompare(a.startDate));
@@ -26,7 +19,6 @@ function newestFirst(semesters: Semester[]) {
 
 export function SemestersView() {
     const api = useApi();
-    const queryClient = useQueryClient();
 
     const semestersQuery = useQuery({
         queryKey: queryKeys.semesters.list,
@@ -35,29 +27,7 @@ export function SemestersView() {
     });
     const semesters = semestersQuery.data ?? [];
 
-    const semesterAction = useMutation({
-        mutationFn: (request: SemesterActionRequest) => unwrap(api.semesters.performAction(request)),
-        onSuccess: (_, { action }) => {
-            toast.success(ACTION_SUCCESS[action]);
-            // Offerings and enrollments embed the semester's status, so they are stale too.
-            return Promise.all([
-                queryClient.invalidateQueries({ queryKey: queryKeys.semesters.all }),
-                queryClient.invalidateQueries({ queryKey: queryKeys.offerings.all }),
-                queryClient.invalidateQueries({ queryKey: queryKeys.enrollments.all }),
-            ]);
-        },
-        onError: (error) => {
-            toast.error('Failed to update semester', { description: error.message });
-        },
-    });
-
-    const { mutate: runAction } = semesterAction;
-    const onAction = React.useCallback(
-        (semester: Semester, action: SemesterAction) => runAction({ semesterId: semester.id, action }),
-        [runAction],
-    );
-
-    const pendingId = semesterAction.isPending ? (semesterAction.variables?.semesterId ?? null) : null;
+    const { onAction, pendingId } = useSemesterAction();
 
     return (
         <div className="space-y-6">

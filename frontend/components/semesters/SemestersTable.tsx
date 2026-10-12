@@ -1,3 +1,5 @@
+import { Link } from 'react-router';
+
 import { ActionMenu } from '@/components/common/ActionMenu';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/base/table';
 import { formatIsoDateRange } from '@/lib/date';
@@ -30,7 +32,14 @@ export function SemestersTable({ semesters, pendingId, onAction }: Props) {
             <TableBody>
                 {semesters.map((semester) => (
                     <TableRow key={semester.id}>
-                        <TableCell className="text-center font-semibold">{formatSemesterName(semester)}</TableCell>
+                        <TableCell className="text-center font-semibold">
+                            <Link
+                                to={`/dashboard/admin/semesters/${semester.id}`}
+                                className="text-brand underline-offset-4 hover:underline"
+                            >
+                                {formatSemesterName(semester)}
+                            </Link>
+                        </TableCell>
                         <TableCell className="text-center">
                             <SemesterStatusBadge status={semester.status} />
                         </TableCell>

@@ -1,4 +1,4 @@
-import { BookOpenIcon, CalendarRangeIcon, PlusCircleIcon, ShieldCheckIcon, UsersIcon } from 'lucide-react';
+import { BookOpenIcon, CalendarRangeIcon, LayersIcon, PlusCircleIcon, ShieldCheckIcon, UsersIcon } from 'lucide-react';
 
 import { PageHeader } from '@/components/common/PageHeader';
 import { QuickLink, QuickLinks } from '@/components/common/QuickLinks';
@@ -23,6 +23,12 @@ const ADMIN_LINKS: QuickLink[] = [
         icon: CalendarRangeIcon,
     },
     {
+        title: 'Course offerings',
+        description: 'Schedule courses in a semester with instructors and seats.',
+        url: '/dashboard/admin/offerings',
+        icon: LayersIcon,
+    },
+    {
         title: 'Create course',
         description: 'Add a new course to the catalogue.',
         url: '/dashboard/courses/new',
@@ -41,7 +47,7 @@ export default function AdminDashboardPage() {
         <>
             <PageHeader
                 title="Admin dashboard"
-                description="Review registration requests, plan semesters and manage the course catalogue."
+                description="Review registration requests, plan semesters, schedule offerings and manage the course catalogue."
             />
             <QuickLinks links={ADMIN_LINKS} />
         </>

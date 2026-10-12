@@ -50,6 +50,16 @@ describe('SemestersView', () => {
         expect(within(rows[0]).getByText('1 Nov 2026 – 31 Mar 2027')).toBeInTheDocument();
     });
 
+    it('links each semester to its detail page', async () => {
+        asAdmin({ 'GET /semesters': jsonOk([semester()]) });
+        renderApp('/dashboard/admin/semesters');
+
+        expect(await screen.findByRole('link', { name: 'Winter 2026' })).toHaveAttribute(
+            'href',
+            '/dashboard/admin/semesters/1',
+        );
+    });
+
     it('offers only the transitions the server allows', async () => {
         asAdmin({ 'GET /semesters': jsonOk([semester(), SUMMER_2026]) });
         renderApp('/dashboard/admin/semesters');

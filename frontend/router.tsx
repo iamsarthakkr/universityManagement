@@ -60,6 +60,18 @@ export const routes: RouteObject[] = [
                                 path: 'semesters/new',
                                 lazy: lazyPage(() => import('@/pages/dashboard/admin/semesters/new/page')),
                             },
+                            {
+                                path: 'semesters/:semesterId',
+                                lazy: lazyPage(() => import('@/pages/dashboard/admin/semesters/detail/page')),
+                            },
+                            {
+                                path: 'offerings',
+                                lazy: lazyPage(() => import('@/pages/dashboard/admin/offerings/page')),
+                            },
+                            {
+                                path: 'offerings/new',
+                                lazy: lazyPage(() => import('@/pages/dashboard/admin/offerings/new/page')),
+                            },
                         ],
                     },
                     {
