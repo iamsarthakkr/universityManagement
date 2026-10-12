@@ -6,6 +6,7 @@ import com.sarthak.universityManagement.common.rest.Res;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.TypeMismatchException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -14,6 +15,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.validation.FieldError;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -101,7 +103,7 @@ public class GlobalExceptionHandler {
         Map<String, String> errors = new LinkedHashMap<>();
         ex.getBindingResult()
             .getFieldErrors()
-            .forEach(error -> errors.putIfAbsent(error.getField(), error.getDefaultMessage()));
+            .forEach(error -> errors.putIfAbsent(error.getField(), fieldErrorMessage(error)));
 
         LOG.warn("Validation failed: {}", errors);
         return Res.error(ErrorCode.VALIDATION_FAILED, "Some fields are invalid", errors);
@@ -109,11 +111,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ApiErrorResponse<Void>> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
-        var message = "Invalid value '" + ex.getValue() + "' for '" + ex.getName() + "'";
-        var requiredType = ex.getRequiredType();
-        if (requiredType != null && requiredType.isEnum()) {
-            message += ". Allowed values: " + allowedValues(requiredType);
-        }
+        var message = invalidValueMessage(ex.getValue(), ex.getName(), ex.getRequiredType());
 
         LOG.warn("Type mismatch: {}", message);
         return Res.error(ErrorCode.BAD_REQUEST, message);
@@ -162,6 +160,25 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiErrorResponse<Void>> handleUnexpected(Exception ex) {
         LOG.error("Unexpected error", ex);
         return Res.error(ErrorCode.INTERNAL_SERVER_ERROR, "Something went wrong. Please try again later");
+    }
+
+    private static String fieldErrorMessage(FieldError error) {
+        if (!error.isBindingFailure()) {
+            return error.getDefaultMessage();
+        }
+        if (error.contains(TypeMismatchException.class)) {
+            var mismatch = error.unwrap(TypeMismatchException.class);
+            return invalidValueMessage(mismatch.getValue(), error.getField(), mismatch.getRequiredType());
+        }
+        return invalidValueMessage(error.getRejectedValue(), error.getField(), null);
+    }
+
+    private static String invalidValueMessage(Object value, String name, Class<?> requiredType) {
+        var message = "Invalid value '" + value + "' for '" + name + "'";
+        if (requiredType != null && requiredType.isEnum()) {
+            message += ". Allowed values: " + allowedValues(requiredType);
+        }
+        return message;
     }
 
     private static String allowedValues(Class<?> enumType) {

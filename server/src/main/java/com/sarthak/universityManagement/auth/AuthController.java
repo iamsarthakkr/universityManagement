@@ -4,6 +4,7 @@ import com.sarthak.universityManagement.auth.dto.LoginRequest;
 import com.sarthak.universityManagement.auth.dto.LoginResponse;
 import com.sarthak.universityManagement.common.rest.ApiResponse;
 import com.sarthak.universityManagement.common.rest.Res;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,7 +20,7 @@ public class AuthController {
     
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<LoginResponse>> login(
-        @RequestBody LoginRequest loginRequest
+        @Valid @RequestBody LoginRequest loginRequest
     ) {
         return Res.success("Login successful", authService.login(loginRequest));
     }
