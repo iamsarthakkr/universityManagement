@@ -97,6 +97,13 @@ export const routes: RouteObject[] = [
                             },
                         ],
                     },
+                    {
+                        path: 'offerings/:offeringId',
+                        element: <RoleGuard roles={['ADMIN', 'INSTRUCTOR']} />,
+                        children: [
+                            { index: true, lazy: lazyPage(() => import('@/pages/dashboard/offerings/detail/page')) },
+                        ],
+                    },
                     { path: 'courses', lazy: lazyPage(() => import('@/pages/dashboard/courses/page')) },
                     {
                         path: 'courses/new',

@@ -1,3 +1,5 @@
+import { Link } from 'react-router';
+
 import { SemesterStatusBadge } from '@/components/semesters/SemesterStatusBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/base/table';
 import { fullName } from '@/lib/format';
@@ -26,7 +28,12 @@ export function OfferingsTable({ offerings, showSemester = true }: Props) {
                 {offerings.map((offering) => (
                     <TableRow key={offering.id}>
                         <TableCell>
-                            <div className="font-semibold text-text">{offering.course.code}</div>
+                            <Link
+                                to={`/dashboard/offerings/${offering.id}`}
+                                className="font-semibold text-brand underline-offset-4 hover:underline"
+                            >
+                                {offering.course.code}
+                            </Link>
                             <div className="text-xs text-text-muted">{offering.course.title}</div>
                         </TableCell>
                         <TableCell className="text-center">{offering.section}</TableCell>

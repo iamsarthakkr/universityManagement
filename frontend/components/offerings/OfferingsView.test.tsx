@@ -44,6 +44,7 @@ describe('OfferingsView', () => {
         expect(within(row).getByText('ACTIVE')).toBeInTheDocument();
         expect(within(row).getByText('Kavya Sen')).toBeInTheDocument();
         expect(within(row).getByText('18 seats left')).toBeInTheDocument();
+        expect(within(row).getByRole('link', { name: 'CS101' })).toHaveAttribute('href', '/dashboard/offerings/9');
     });
 
     it('reads filters from the URL and sends them to the server', async () => {
