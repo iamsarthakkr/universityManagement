@@ -12,7 +12,6 @@ import com.sarthak.universityManagement.testUtils.fixtures.DepartmentFixtures;
 import com.sarthak.universityManagement.testUtils.fixtures.UserFixtures;
 import com.sarthak.universityManagement.testUtils.seeders.CourseSeeder;
 import com.sarthak.universityManagement.testUtils.seeders.DepartmentSeeder;
-import com.sarthak.universityManagement.testUtils.seeders.InstructorSeeder;
 import com.sarthak.universityManagement.testUtils.seeders.UserSeeder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,8 +33,6 @@ public class CourseServiceIntegrationTests extends IntegrationTests {
     private CourseRepo courseRepo;
     @Autowired
     private UserSeeder userSeeder;
-    @Autowired
-    private InstructorSeeder instructorSeeder;
     @Autowired
     private DepartmentSeeder departmentSeeder;
     @Autowired
