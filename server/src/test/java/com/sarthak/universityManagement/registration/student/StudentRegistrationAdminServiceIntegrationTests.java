@@ -4,6 +4,7 @@ import com.sarthak.universityManagement.common.exceptions.ConflictException;
 import com.sarthak.universityManagement.common.exceptions.ResourceNotFoundException;
 import com.sarthak.universityManagement.common.types.Role;
 import com.sarthak.universityManagement.config.IntegrationTests;
+import com.sarthak.universityManagement.config.MutableTestClock;
 import com.sarthak.universityManagement.department.DepartmentEntity;
 import com.sarthak.universityManagement.registration.dto.RegistrationFilter;
 import com.sarthak.universityManagement.registration.student.dto.StudentRegistrationResponse;
@@ -26,9 +27,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
 
-import java.sql.Timestamp;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.List;
@@ -56,7 +55,7 @@ public class StudentRegistrationAdminServiceIntegrationTests extends Integration
     @Autowired
     private UserSeeder userSeeder;
     @Autowired
-    private JdbcTemplate jdbcTemplate;
+    private MutableTestClock testClock;
     @Autowired
     private Clock clock;
 
@@ -255,23 +254,16 @@ public class StudentRegistrationAdminServiceIntegrationTests extends Integration
         @Test
         void shouldListOldestRequestFirst() {
             var otherDepartment = departmentSeeder.saveDefault("other-dep");
+            testClock.setTo(Instant.parse("2026-01-03T00:00:00Z"));
             var newest = savePending();
+            testClock.setTo(Instant.parse("2026-01-01T00:00:00Z"));
             var oldest = saveRegistration(otherDepartment, RegistrationStatus.PENDING);
+            testClock.setTo(Instant.parse("2026-01-02T00:00:00Z"));
             var middle = savePending();
-            setCreatedAt(newest, "2026-01-03T00:00:00Z");
-            setCreatedAt(oldest, "2026-01-01T00:00:00Z");
-            setCreatedAt(middle, "2026-01-02T00:00:00Z");
 
             var ids = service.getRequests(NO_FILTER).stream().map(StudentRegistrationResponse::id).toList();
 
             assertEquals(List.of(oldest.getId(), middle.getId(), newest.getId()), ids);
-        }
-
-        private void setCreatedAt(StudentRegistrationEntity registration, String instant) {
-            jdbcTemplate.update(
-                "UPDATE student_registration SET createdAt = ? WHERE id = ?",
-                Timestamp.from(Instant.parse(instant)), registration.getId()
-            );
         }
     }
 }

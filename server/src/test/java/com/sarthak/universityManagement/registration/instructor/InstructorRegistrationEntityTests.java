@@ -8,11 +8,15 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 
+import java.time.Clock;
 import java.time.Instant;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class InstructorRegistrationEntityTests extends RepoTests {
+    @Autowired
+    private Clock clock;
+
 
     @Autowired
     private InstructorRegistrationRepo repo;
@@ -108,21 +112,21 @@ class InstructorRegistrationEntityTests extends RepoTests {
     }
 
     @Test
-    void shouldPopulateCreatedAtBeforeNow() {
+    void shouldPopulateCreatedAtFromClock() {
         var entity = instructorRegistrationBuilder.username("audit1").email("audit1@example.com").build();
         var saved = repo.saveAndFlush(entity);
         Instant createdInstant = saved.getCreatedAt();
         assertNotNull(createdInstant, "createdAt should be populated by auditing");
-        assertTrue(createdInstant.isBefore(Instant.now()));
+        assertEquals(Instant.now(clock), createdInstant);
     }
 
     @Test
-    void shouldPopulateUpdatedAtBeforeNow() {
+    void shouldPopulateUpdatedAtFromClock() {
         var entity = instructorRegistrationBuilder.username("audit2").email("audit2@example.com").build();
         var saved = repo.saveAndFlush(entity);
         Instant updatedInstant = saved.getUpdatedAt();
         assertNotNull(updatedInstant, "updatedAt should be populated by auditing");
-        assertTrue(updatedInstant.isBefore(Instant.now()));
+        assertEquals(Instant.now(clock), updatedInstant);
     }
 
     @Test

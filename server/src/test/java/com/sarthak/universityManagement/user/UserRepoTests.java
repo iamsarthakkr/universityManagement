@@ -7,11 +7,15 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 
+import java.time.Clock;
 import java.time.Instant;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class UserRepoTests extends RepoTests {
+    @Autowired
+    private Clock clock;
+
     
     @Autowired
     private UserRepo userRepo;
@@ -118,25 +122,23 @@ class UserRepoTests extends RepoTests {
     }
     
     @Test
-    void shouldPopulateCreatedAtBeforeNow() {
+    void shouldPopulateCreatedAtFromClock() {
         UserEntity user = user("audit1", "audit1@example.com", Role.STUDENT);
         UserEntity saved = userRepo.saveAndFlush(user);
         
         Instant createdInstant = saved.getCreatedAt();
         assertNotNull(createdInstant, "createdAt should be populated by auditing");
-        Instant now = Instant.now();
-        assertTrue(createdInstant.isBefore(now), "createdAt should be at or before current instant");
+        assertEquals(Instant.now(clock), createdInstant);
     }
     
     @Test
-    void shouldPopulateUpdatedAtBeforeNow() {
+    void shouldPopulateUpdatedAtFromClock() {
         UserEntity user = user("audit2", "audit2@example.com", Role.STUDENT);
         UserEntity saved = userRepo.saveAndFlush(user);
         
         Instant updatedInstant = saved.getUpdatedAt();
         assertNotNull(updatedInstant, "updatedAt should be populated by auditing");
-        Instant now = Instant.now();
-        assertTrue(updatedInstant.isBefore(now), "updatedAt should be at or before current instant");
+        assertEquals(Instant.now(clock), updatedInstant);
     }
     
 }
