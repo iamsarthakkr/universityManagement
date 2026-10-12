@@ -8,11 +8,12 @@ import { CourseCard } from './CourseCard';
 type Props = {
     department: Department;
     courses: Course[];
+    defaultOpen?: boolean;
 };
 
-export function DepartmentGroup({ department, courses }: Props) {
+export function DepartmentGroup({ department, courses, defaultOpen = false }: Props) {
     return (
-        <Collapsible>
+        <Collapsible defaultOpen={defaultOpen}>
             <CollapsibleTrigger className="flex w-full items-center justify-between py-2 text-left">
                 <div className="flex items-center gap-3">
                     <h3 className="font-semibold text-text">{department.name}</h3>

@@ -12,7 +12,8 @@ import { APP_VERSION } from '@/lib/appVersion';
 import { fullName } from '@/lib/format';
 import { Me } from '@/types/auth';
 import { Callback } from '@/types/common';
-import { ChevronsUpDownIcon, LogOutIcon } from 'lucide-react';
+import { ChevronsUpDownIcon, LogOutIcon, UserIcon } from 'lucide-react';
+import { Link } from 'react-router';
 
 interface Props {
     user: Me;
@@ -72,6 +73,12 @@ export function NavUser({ user, onLogout }: Props) {
                             </div>
                         </DropdownMenuLabel>
                         <DropdownMenuSeparator />
+                        <DropdownMenuItem asChild>
+                            <Link to="/dashboard/profile">
+                                <UserIcon />
+                                Profile
+                            </Link>
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={onLogout}>
                             <LogOutIcon />
                             Log out

@@ -1,8 +1,10 @@
 import {
     BookOpenIcon,
-    CalendarRangeIcon,
-    LayersIcon,
+    ClipboardListIcon,
+    GraduationCapIcon,
     LayoutDashboardIcon,
+    LibraryIcon,
+    PlusCircleIcon,
     ShieldCheckIcon,
     UsersIcon,
 } from 'lucide-react';
@@ -25,21 +27,13 @@ const SIDEBAR_NAV: SidebarNavEntry[] = [
         ],
     },
     {
-        title: 'Semesters',
-        icon: CalendarRangeIcon,
+        title: 'Academic',
+        icon: GraduationCapIcon,
         roles: ['ADMIN'],
         items: [
-            { title: 'All Semesters', url: '/dashboard/admin/semesters' },
-            { title: 'Create Semester', url: '/dashboard/admin/semesters/new' },
-        ],
-    },
-    {
-        title: 'Course Offerings',
-        icon: LayersIcon,
-        roles: ['ADMIN'],
-        items: [
-            { title: 'All Offerings', url: '/dashboard/admin/offerings' },
-            { title: 'Create Offering', url: '/dashboard/admin/offerings/new' },
+            { title: 'Semesters', url: '/dashboard/admin/semesters' },
+            { title: 'Course Offerings', url: '/dashboard/admin/offerings' },
+            { title: 'Course Catalogue', url: '/dashboard/courses' },
         ],
     },
     {
@@ -51,19 +45,11 @@ const SIDEBAR_NAV: SidebarNavEntry[] = [
             { title: 'Instructors', url: '/dashboard/admin/instructors' },
         ],
     },
-    {
-        title: 'Courses',
-        icon: BookOpenIcon,
-        roles: ['ADMIN', 'INSTRUCTOR', 'STUDENT'],
-        items: [
-            { title: 'Catalogue', url: '/dashboard/courses' },
-            { title: 'Create Course', url: '/dashboard/courses/new', roles: ['ADMIN'] },
-            { title: 'My Offerings', url: '/dashboard/instructor/courses', roles: ['INSTRUCTOR'] },
-            { title: 'Enroll in Courses', url: '/dashboard/student/offerings', roles: ['STUDENT'] },
-            { title: 'My Courses', url: '/dashboard/student/courses', roles: ['STUDENT'] },
-            { title: 'Enrollments', url: '/dashboard/student/enrollments', roles: ['STUDENT'] },
-        ],
-    },
+    { title: 'My Offerings', icon: LibraryIcon, url: '/dashboard/instructor/courses', roles: ['INSTRUCTOR'] },
+    { title: 'Enroll in Courses', icon: PlusCircleIcon, url: '/dashboard/student/offerings', roles: ['STUDENT'] },
+    { title: 'My Courses', icon: LibraryIcon, url: '/dashboard/student/courses', roles: ['STUDENT'] },
+    { title: 'Enrollments', icon: ClipboardListIcon, url: '/dashboard/student/enrollments', roles: ['STUDENT'] },
+    { title: 'Course Catalogue', icon: BookOpenIcon, url: '/dashboard/courses', roles: ['INSTRUCTOR', 'STUDENT'] },
 ];
 
 export function getSidebarNav(role: Role): SidebarNavEntry[] {

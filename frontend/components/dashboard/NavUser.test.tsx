@@ -1,21 +1,19 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
 import { SidebarProvider } from '@/components/ui/base/sidebar';
-import { TooltipProvider } from '@/components/ui/base/tooltip';
 import { me } from '@/tests/fixtures';
+import { renderWithProviders } from '@/tests/render';
 import { Me } from '@/types/auth';
 import packageJson from '../../package.json';
 import { NavUser } from './NavUser';
 
 function renderNavUser(user: Me) {
-    render(
-        <TooltipProvider>
-            <SidebarProvider>
-                <NavUser user={user} onLogout={vi.fn()} />
-            </SidebarProvider>
-        </TooltipProvider>,
+    renderWithProviders(
+        <SidebarProvider>
+            <NavUser user={user} onLogout={vi.fn()} />
+        </SidebarProvider>,
     );
 }
 

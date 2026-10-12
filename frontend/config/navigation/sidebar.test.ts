@@ -9,37 +9,34 @@ function urls(entries: SidebarNavEntry[]) {
 }
 
 describe('getSidebarNav', () => {
-    it('gives admins registrations, semesters, offerings, the catalogue and course creation', () => {
+    it('gives admins registrations, academic pages and people', () => {
         expect(urls(getSidebarNav('ADMIN'))).toEqual([
             '/dashboard/admin',
             '/dashboard/admin/student-registrations',
             '/dashboard/admin/instructor-registrations',
             '/dashboard/admin/semesters',
-            '/dashboard/admin/semesters/new',
             '/dashboard/admin/offerings',
-            '/dashboard/admin/offerings/new',
+            '/dashboard/courses',
             '/dashboard/admin/students',
             '/dashboard/admin/instructors',
-            '/dashboard/courses',
-            '/dashboard/courses/new',
         ]);
     });
 
-    it('gives instructors their courses and the catalogue only', () => {
+    it('gives instructors their offerings and the catalogue only', () => {
         expect(urls(getSidebarNav('INSTRUCTOR'))).toEqual([
             '/dashboard/instructor',
-            '/dashboard/courses',
             '/dashboard/instructor/courses',
+            '/dashboard/courses',
         ]);
     });
 
-    it('gives students their courses, enrollments and the catalogue only', () => {
+    it('gives students enrollment, their courses and the catalogue only', () => {
         expect(urls(getSidebarNav('STUDENT'))).toEqual([
             '/dashboard/student',
-            '/dashboard/courses',
             '/dashboard/student/offerings',
             '/dashboard/student/courses',
             '/dashboard/student/enrollments',
+            '/dashboard/courses',
         ]);
     });
 

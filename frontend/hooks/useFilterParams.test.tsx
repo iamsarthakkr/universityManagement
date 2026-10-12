@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 
 import { renderWithProviders } from '@/tests/render';
 import { EnrollmentStatus } from '@/types/enrollment';
-import { enumParam, idParam, useFilterParams } from './useFilterParams';
+import { enumParam, idParam, textParam, useFilterParams } from './useFilterParams';
 
 const SCHEMA = {
     semesterId: idParam,
@@ -54,5 +54,12 @@ describe('useFilterParams', () => {
         await userEvent.click(screen.getByRole('button', { name: 'Clear status' }));
         expect(filters()).toEqual({ semesterId: 4 });
         expect(search()).toBe('?tab=2&semesterId=4');
+    });
+});
+
+describe('textParam', () => {
+    it('keeps the text as typed and drops blank values', () => {
+        expect(textParam('data ')).toBe('data ');
+        expect(textParam('   ')).toBeUndefined();
     });
 });

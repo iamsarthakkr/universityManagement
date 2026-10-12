@@ -1,5 +1,5 @@
-import React from 'react';
 import { ChevronDownIcon, ChevronUpIcon } from 'lucide-react';
+import React from 'react';
 
 import { Button } from '@/components/ui/base/button';
 import { Course } from '@/types/course';
@@ -11,17 +11,16 @@ export function CourseCard({ course }: { course: Course }) {
         <div className="rounded-2xl border border-border bg-surface-muted p-4">
             <div className="flex items-start justify-between gap-4">
                 <div>
-                    <div className="flex items-center gap-2">
-                        <span className="text-xs font-semibold uppercase tracking-wide text-text-muted">
-                            {course.code}
-                        </span>
-                    </div>
+                    <span className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+                        {`${course.code} · ${course.credits} ${course.credits === 1 ? 'credit' : 'credits'}`}
+                    </span>
                     <h4 className="mt-0.5 font-semibold text-text">{course.title}</h4>
                 </div>
                 <Button
                     variant="ghost"
                     size="sm"
                     className="shrink-0 text-xs text-text-muted"
+                    aria-expanded={expanded}
                     onClick={() => setExpanded((prev) => !prev)}
                 >
                     {expanded ? (
@@ -37,15 +36,7 @@ export function CourseCard({ course }: { course: Course }) {
             </div>
 
             {expanded && (
-                <div className="mt-4 space-y-3 border-t border-border pt-4">
-                    <p className="text-sm text-text-muted">{course.description}</p>
-                    <div className="flex flex-wrap gap-4 text-sm">
-                        <span>
-                            <span className="font-medium text-text">Credits:</span>{' '}
-                            <span className="text-text-muted">{course.credits}</span>
-                        </span>
-                    </div>
-                </div>
+                <p className="mt-4 border-t border-border pt-4 text-sm text-text-muted">{course.description}</p>
             )}
         </div>
     );

@@ -8,6 +8,9 @@ export const idParam: ParamParser<number> = (raw) => {
     return Number.isInteger(value) && value > 0 ? value : undefined;
 };
 
+// Kept as typed, so a search box bound to it doesn't lose the space before the next word.
+export const textParam: ParamParser<string> = (raw) => (raw.trim() ? raw : undefined);
+
 export function enumParam<E extends string>(values: readonly E[]): ParamParser<E> {
     return (raw) => values.find((value) => value === raw.toUpperCase());
 }
