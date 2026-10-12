@@ -1,11 +1,12 @@
 package com.sarthak.universityManagement.enrollment;
 
+import com.sarthak.universityManagement.enrollment.dto.EnrollmentFilter;
 import com.sarthak.universityManagement.config.RepoTests;
 import com.sarthak.universityManagement.courseOffering.CourseOfferingEntity;
 import com.sarthak.universityManagement.student.StudentEntity;
 import com.sarthak.universityManagement.testUtils.fixtures.EnrollmentFixtures;
-import com.sarthak.universityManagement.testUtils.scenerio.courseOffering.CourseOfferingScenarioSeeder;
-import com.sarthak.universityManagement.testUtils.scenerio.enrollment.EnrollmentScenarioSeeder;
+import com.sarthak.universityManagement.testUtils.scenario.courseOffering.CourseOfferingScenarioSeeder;
+import com.sarthak.universityManagement.testUtils.scenario.enrollment.EnrollmentScenarioSeeder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,8 @@ import org.springframework.dao.DataIntegrityViolationException;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class EnrollmentRepoTests extends RepoTests {
+    private static final EnrollmentFilter NO_FILTER = new EnrollmentFilter(null, null);
+
 
     @Autowired
     private EnrollmentRepo enrollmentRepo;
@@ -62,8 +65,8 @@ public class EnrollmentRepoTests extends RepoTests {
 
     @Test
     void shouldFetchEnrollmentsForStudent() {
-        var res1 = enrollmentRepo.findByStudentId(student1.getId());
-        var res2 = enrollmentRepo.findByStudentId(student2.getId());
+        var res1 = enrollmentRepo.searchForStudent(student1.getId(), NO_FILTER);
+        var res2 = enrollmentRepo.searchForStudent(student2.getId(), NO_FILTER);
 
         assertEquals(2, res1.size());
         assertEquals(1, res2.size());
@@ -75,8 +78,8 @@ public class EnrollmentRepoTests extends RepoTests {
 
     @Test
     void shouldFetchEnrollmentsForCourseOffering() {
-        var res1 =  enrollmentRepo.findAllForCourseOfferingWithDetails(courseOffering1.getId(), null);
-        var res2 =  enrollmentRepo.findAllForCourseOfferingWithDetails(courseOffering2.getId(), null);
+        var res1 =  enrollmentRepo.searchForOffering(courseOffering1.getId(), NO_FILTER);
+        var res2 =  enrollmentRepo.searchForOffering(courseOffering2.getId(), NO_FILTER);
 
         assertEquals(2, res1.size());
         assertEquals(1, res2.size());
@@ -105,6 +108,16 @@ public class EnrollmentRepoTests extends RepoTests {
 
         assertFalse(enrollmentRepo.existsByIdAndCourseOffering_Instructor_User_Id(enrollment2.getId(), instructor2.getUser().getId()));
 
+    }
+
+    @Test
+    void shouldDetermineEnrollmentByIdAndStudent() {
+        assertTrue(enrollmentRepo.existsByIdAndStudent_User_Id(enrollment1.getId(), student1.getUser().getId()));
+        assertTrue(enrollmentRepo.existsByIdAndStudent_User_Id(enrollment3.getId(), student1.getUser().getId()));
+        assertTrue(enrollmentRepo.existsByIdAndStudent_User_Id(enrollment2.getId(), student2.getUser().getId()));
+
+        assertFalse(enrollmentRepo.existsByIdAndStudent_User_Id(enrollment2.getId(), student1.getUser().getId()));
+        assertFalse(enrollmentRepo.existsByIdAndStudent_User_Id(enrollment1.getId(), student2.getUser().getId()));
     }
 
     @Test

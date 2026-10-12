@@ -1,9 +1,8 @@
 package com.sarthak.universityManagement.auth.dto;
 
-import com.sarthak.universityManagement.user.dto.UserResponse;
+import com.sarthak.universityManagement.user.dto.MeResponse;
 
 public record LoginResponse(
     String accessToken,
-    UserResponse user
-) {
-}
+    MeResponse user
+) { }

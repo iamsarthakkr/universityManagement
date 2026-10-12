@@ -1,108 +1,98 @@
-// java
 package com.sarthak.universityManagement.registration.instructor;
 
-import com.sarthak.universityManagement.common.types.RegistrationStatus;
 import com.sarthak.universityManagement.common.types.Role;
 import com.sarthak.universityManagement.config.IntegrationTests;
-import com.sarthak.universityManagement.registration.instructor.dto.InstructorRegistrationResponse;
-import com.sarthak.universityManagement.testUtils.TestSecurityUtils;
+import com.sarthak.universityManagement.registration.dto.RegistrationFilter;
+import com.sarthak.universityManagement.registration.types.RegistrationAction;
+import com.sarthak.universityManagement.registration.types.RegistrationStatus;
 import com.sarthak.universityManagement.testUtils.fixtures.UserFixtures;
+import com.sarthak.universityManagement.testUtils.security.AuthOutcome;
+import com.sarthak.universityManagement.testUtils.security.RoleActor;
+import com.sarthak.universityManagement.testUtils.security.TestAuthentication;
 import com.sarthak.universityManagement.testUtils.seeders.InstructorRegistrationSeeder;
 import com.sarthak.universityManagement.testUtils.seeders.UserSeeder;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
-import org.springframework.security.authorization.AuthorizationDeniedException;
 
-import java.util.List;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class InstructorRegistrationServiceAuthorizationTests extends IntegrationTests {
+    private static final RegistrationFilter NO_FILTER = new RegistrationFilter(null, null);
+
     @Autowired
-    private InstructorRegistrationService instructorRegistrationService;
+    private InstructorRegistrationService service;
     @Autowired
-    private InstructorRegistrationSeeder instructorRegistrationSeeder;
+    private InstructorRegistrationRepo registrationRepo;
+    @Autowired
+    private InstructorRegistrationSeeder registrationSeeder;
     @Autowired
     private UserSeeder userSeeder;
 
     @AfterEach
-    void cleanup() {
-        TestSecurityUtils.clearAuthentication();
+    void tearDown() {
+        TestAuthentication.clear();
     }
 
-    private void setupUser(Role role) {
-        var user = userSeeder.saveUser(
-                UserFixtures.user() .username("seeded-user") .email("seeded@abc.com") .role(role) .build()
+    static Stream<Arguments> adminOnly() {
+        return Stream.of(
+            Arguments.of(RoleActor.ADMIN, AuthOutcome.ALLOWED),
+            Arguments.of(RoleActor.INSTRUCTOR, AuthOutcome.ACCESS_DENIED),
+            Arguments.of(RoleActor.STUDENT, AuthOutcome.ACCESS_DENIED),
+            Arguments.of(RoleActor.ANONYMOUS, AuthOutcome.UNAUTHENTICATED)
         );
-        TestSecurityUtils.authenticateAs(user);
     }
 
-    @Test
-    void getPendingRequests_whenAdmin_shouldAllow() {
-        setupUser(Role.ADMIN);
-        List<InstructorRegistrationResponse> response =
-            instructorRegistrationService.getRequests(RegistrationStatus.PENDING);
-        assertNotNull(response);
+    private void authenticate(RoleActor actor) {
+        if(actor == RoleActor.ADMIN) {
+            TestAuthentication.asUser(userSeeder.saveUser(UserFixtures.user().username("admin").email("admin@test.com").role(Role.ADMIN).build()));
+        } else {
+            actor.authenticate();
+        }
     }
-    
-    @Test
-    void getPendingRequests_whenInstructor_shouldDeny() {
-        setupUser(Role.INSTRUCTOR);
-        assertThrows(
-            AuthorizationDeniedException.class,
-            () -> instructorRegistrationService.getRequests(RegistrationStatus.PENDING)
-        );
-    }
-    
-    @Test
-    void getPendingRequests_whenAnonymous_shouldDeny() {
-        assertThrows(
-            AuthenticationCredentialsNotFoundException.class,
-            () -> instructorRegistrationService.getRequests(RegistrationStatus.PENDING)
-        );
-    }
-    
-    @Test
-    void approveRegistration_whenAdmin_shouldAllow() {
-        setupUser(Role.ADMIN);
-        InstructorRegistrationEntity saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("dep-test");
 
-        InstructorRegistrationResponse response =
-            instructorRegistrationService.approveRegistration(saved.getId());
-        assertEquals(RegistrationStatus.APPROVED, response.status());
-    }
-    
-    @Test
-    void rejectRegistration_whenAdmin_shouldAllow() {
-        setupUser(Role.ADMIN);
-        InstructorRegistrationEntity saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("dep-test");
+    @Nested
+    class ListAuthorization {
 
-        InstructorRegistrationResponse response =
-            instructorRegistrationService.rejectRegistration(saved.getId());
-        assertEquals(RegistrationStatus.REJECTED, response.status());
+        @ParameterizedTest(name = "{0} -> {1}")
+        @MethodSource("com.sarthak.universityManagement.registration.instructor.InstructorRegistrationServiceAuthorizationTests#adminOnly")
+        void shouldOnlyLetAdminListRegistrations(RoleActor actor, AuthOutcome outcome) {
+            registrationSeeder.saveDefaultInstructorRegistration("dep-test");
+            authenticate(actor);
+
+            if(outcome == AuthOutcome.ALLOWED) {
+                assertEquals(1, service.getRequests(NO_FILTER).size());
+            } else {
+                assertThrows(outcome.expectedException(), () -> service.getRequests(NO_FILTER));
+            }
+        }
     }
-    
-    @Test
-    void approveRegistration_whenInstructor_shouldDeny() {
-        setupUser(Role.INSTRUCTOR);
-        InstructorRegistrationEntity saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("dep-test");
-        
-        assertThrows(
-            AuthorizationDeniedException.class,
-            () -> instructorRegistrationService.approveRegistration(saved.getId())
-        );
-    }
-    
-    @Test
-    void rejectRegistration_whenInstructor_shouldDeny() {
-        setupUser(Role.INSTRUCTOR);
-        InstructorRegistrationEntity saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("dep-test");
-        
-        assertThrows(
-            AuthorizationDeniedException.class,
-            () -> instructorRegistrationService.rejectRegistration(saved.getId())
-        );
+
+    @Nested
+    class ActionAuthorization {
+
+        static Stream<Arguments> cases() {
+            return adminOnly().flatMap(row -> Stream.of(RegistrationAction.values())
+                .map(action -> Arguments.of(row.get()[0], action, row.get()[1])));
+        }
+
+        @ParameterizedTest(name = "{0} {1} -> {2}")
+        @MethodSource("cases")
+        void shouldOnlyLetAdminReviewRegistrations(RoleActor actor, RegistrationAction action, AuthOutcome outcome) {
+            var saved = registrationSeeder.saveDefaultInstructorRegistration("dep-test");
+            authenticate(actor);
+
+            if(outcome == AuthOutcome.ALLOWED) {
+                assertEquals(action.getTargetStatus(), service.performAction(saved.getId(), action).status());
+            } else {
+                assertThrows(outcome.expectedException(), () -> service.performAction(saved.getId(), action));
+                assertEquals(RegistrationStatus.PENDING, registrationRepo.findById(saved.getId()).orElseThrow().getRegistrationStatus());
+            }
+        }
     }
 }

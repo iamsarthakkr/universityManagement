@@ -1,43 +1,53 @@
 package com.sarthak.universityManagement.courseOffering;
 
 import com.sarthak.universityManagement.auth.AuthorizationExpressions;
-import com.sarthak.universityManagement.common.exceptions.BadRequestException;
+import com.sarthak.universityManagement.common.exceptions.ConflictException;
 import com.sarthak.universityManagement.common.exceptions.ResourceNotFoundException;
 import com.sarthak.universityManagement.course.CourseService;
+import com.sarthak.universityManagement.courseOffering.dto.CourseOfferingFilter;
 import com.sarthak.universityManagement.courseOffering.dto.CourseOfferingResponse;
 import com.sarthak.universityManagement.courseOffering.dto.CreateCourseOfferingRequest;
 import com.sarthak.universityManagement.instructor.InstructorService;
 import com.sarthak.universityManagement.instructor.validators.InstructorValidator;
 import com.sarthak.universityManagement.semester.SemesterService;
 import com.sarthak.universityManagement.semester.validators.SemesterValidator;
+import com.sarthak.universityManagement.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
-@Transactional
 public class CourseOfferingService {
     private final CourseOfferingRepo courseOfferingRepo;
     private final CourseService courseService;
     private final InstructorService instructorService;
     private final SemesterService semesterService;
+    private final CurrentUserService currentUserService;
+    private final Clock clock;
 
     @Autowired
     public CourseOfferingService(
         CourseOfferingRepo courseOfferingRepo,
         CourseService courseService,
         InstructorService instructorService,
-        SemesterService semesterService
+        SemesterService semesterService,
+        CurrentUserService currentUserService,
+        Clock clock
     ) {
         this.courseOfferingRepo = courseOfferingRepo;
         this.courseService = courseService;
         this.instructorService = instructorService;
         this.semesterService = semesterService;
+        this.currentUserService = currentUserService;
+        this.clock = clock;
     }
 
+    @Transactional
     @PreAuthorize(AuthorizationExpressions.ADMIN)
     public CourseOfferingResponse createOffering(CreateCourseOfferingRequest courseOfferingRequest) {
         var courseId = courseOfferingRequest.courseId();
@@ -52,23 +62,24 @@ public class CourseOfferingService {
         SemesterValidator.validateSemesterAllowsOfferings(semester);
         InstructorValidator.validateInstructorForCourse(course, instructor);
         if(courseOfferingRepo.existsByCourseIdAndSemesterIdAndSection(courseId, semesterId, section)) {
-            throw new BadRequestException("course offering already exists");
+            throw new ConflictException("course offering already exists");
         }
 
-        var entity = CourseOfferingMapper.toEntity(courseOfferingRequest);
-        entity.setCourse(course);
-        entity.setInstructor(instructor);
-        entity.setSemester(semester);
-        return CourseOfferingMapper.toResponse(courseOfferingRepo.save(entity));
+        var toSave = CourseOfferingMapper.toEntity(courseOfferingRequest);
+        toSave.setCourse(course);
+        toSave.setInstructor(instructor);
+        toSave.setSemester(semester);
+
+        return toResponse(courseOfferingRepo.save(toSave));
     }
 
     @Transactional(readOnly = true)
-    public CourseOfferingResponse getOffering(Integer offeringId) {
-        var entity = courseOfferingRepo
+    public CourseOfferingResponse getCourseOffering(Integer offeringId) {
+        var offering = courseOfferingRepo
             .findById(offeringId)
             .orElseThrow(() -> new ResourceNotFoundException("Offering not found with id " + offeringId));
 
-        return CourseOfferingMapper.toResponse(entity);
+        return toResponse(offering);
     }
 
     public CourseOfferingEntity getCourseOfferingEntity(Integer offeringId) {
@@ -84,12 +95,34 @@ public class CourseOfferingService {
     }
 
     @Transactional(readOnly = true)
-    public List<CourseOfferingResponse> getOfferingsBySemester(Integer semesterId) {
+    @PreAuthorize(AuthorizationExpressions.ANY_AUTHENTICATED)
+    public List<CourseOfferingResponse> getCourseOfferings(CourseOfferingFilter filter) {
         return courseOfferingRepo
-            .findAllBySemesterId(semesterId)
+            .search(filter)
             .stream()
-            .map(CourseOfferingMapper::toResponse)
+            .map(this::toResponse)
             .toList();
+    }
+
+    @Transactional(readOnly = true)
+    @PreAuthorize(AuthorizationExpressions.INSTRUCTOR)
+    public List<CourseOfferingResponse> getCourseOfferingsForInstructor(CourseOfferingFilter filter) {
+        var currentInstructorId = currentUserService.getCurrentInstructor().getId();
+
+        return courseOfferingRepo
+            .searchForInstructor(currentInstructorId, filter)
+            .stream()
+            .map(this::toResponse)
+            .toList();
+    }
+
+    /* ------------------------------------------------------ helpers ------------------------------------------------ */
+
+    private CourseOfferingResponse toResponse(CourseOfferingEntity offering) {
+        var actorRole = currentUserService.getCurrentUserRole();
+        var actions = CourseOfferingActionPolicy.allowedActions(offering, actorRole, LocalDate.now(clock));
+
+        return CourseOfferingMapper.toResponse(offering, LocalDate.now(clock), actions);
     }
 
 }

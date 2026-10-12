@@ -1,11 +1,12 @@
 package com.sarthak.universityManagement.semester.dto;
 
+import com.sarthak.universityManagement.semester.types.SemesterAction;
 import com.sarthak.universityManagement.semester.types.SemesterStatus;
 import com.sarthak.universityManagement.semester.types.SemesterTerm;
 import lombok.Builder;
 
 import java.time.LocalDate;
-import java.time.Year;
+import java.util.List;
 
 @Builder
 public record SemesterResponse(
@@ -16,5 +17,8 @@ public record SemesterResponse(
     LocalDate registrationStartDate,
     LocalDate registrationEndDate,
     LocalDate startDate,
-    LocalDate endDate
+    LocalDate endDate,
+    List<SemesterAction> allowedActions,
+    boolean isRegistrationOpen,
+    boolean acceptsOfferings
 ) {}

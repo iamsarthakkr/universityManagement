@@ -1,6 +1,5 @@
 package com.sarthak.universityManagement.security;
 
-import com.sarthak.universityManagement.common.exceptions.ResourceNotFoundException;
 import com.sarthak.universityManagement.user.UserEntity;
 import com.sarthak.universityManagement.user.UserRepo;
 import lombok.NonNull;
@@ -20,15 +19,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     public UserDetails loadUserByUsername(@NonNull String username) throws UsernameNotFoundException {
         UserEntity user = userRepo
             .findByUsername(username)
-            .orElseThrow(() -> new ResourceNotFoundException("User not found with username " + username));
-        
-        return UserPrincipal
-            .builder()
-            .userId(user.getId())
-            .username(user.getUsername())
-            .password(user.getPassword())
-            .role(user.getRole())
-            .enabled(user.isActive())
-            .build();
+            .orElseThrow(() -> new UsernameNotFoundException("User not found with username " + username));
+
+        return new UserPrincipal(user);
     }
 }

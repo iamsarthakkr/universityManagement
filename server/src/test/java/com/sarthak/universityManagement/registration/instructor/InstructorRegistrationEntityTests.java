@@ -1,6 +1,7 @@
 package com.sarthak.universityManagement.registration.instructor;
 
 import com.sarthak.universityManagement.config.RepoTests;
+import com.sarthak.universityManagement.registration.types.RegistrationStatus;
 import com.sarthak.universityManagement.testUtils.fixtures.InstructorRegistrationFixtures;
 import com.sarthak.universityManagement.testUtils.seeders.DepartmentSeeder;
 import org.junit.jupiter.api.BeforeEach;
@@ -8,11 +9,15 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 
+import java.time.Clock;
 import java.time.Instant;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class InstructorRegistrationEntityTests extends RepoTests {
+    @Autowired
+    private Clock clock;
+
 
     @Autowired
     private InstructorRegistrationRepo repo;
@@ -37,32 +42,10 @@ class InstructorRegistrationEntityTests extends RepoTests {
     }
 
     @Test
-    void shouldRejectDuplicateUsername() {
-        var first = instructorRegistrationBuilder
-                .username("duplicate")
-                .email("email-2@abc")
-                .build();
-        repo.saveAndFlush(first);
+    void shouldAllowRepeatedUsernameAndEmailAcrossRequests() {
+        repo.saveAndFlush(instructorRegistrationBuilder.username("repeat").email("repeat@example.com").registrationStatus(RegistrationStatus.REJECTED).build());
 
-        var duplicate = instructorRegistrationBuilder
-                .username("duplicate")
-                .email("email-2@abc")
-                .build();
-        assertThrows(DataIntegrityViolationException.class, () -> repo.saveAndFlush(duplicate));
-    }
-
-    @Test
-    void shouldRejectDuplicateEmail() {
-        var first = instructorRegistrationBuilder
-                .username("u-1")
-                .email("dupe@abc")
-                .build();
-        repo.saveAndFlush(first);
-        var duplicate = instructorRegistrationBuilder
-                .username("u-2")
-                .email("dupe@abc")
-                .build();
-        assertThrows(DataIntegrityViolationException.class, () -> repo.saveAndFlush(duplicate));
+        assertDoesNotThrow(() -> repo.saveAndFlush(instructorRegistrationBuilder.username("repeat").email("repeat@example.com").registrationStatus(RegistrationStatus.PENDING).build()));
     }
 
     @Test
@@ -108,38 +91,32 @@ class InstructorRegistrationEntityTests extends RepoTests {
     }
 
     @Test
-    void shouldPopulateCreatedAtBeforeNow() {
+    void shouldPopulateCreatedAtFromClock() {
         var entity = instructorRegistrationBuilder.username("audit1").email("audit1@example.com").build();
         var saved = repo.saveAndFlush(entity);
         Instant createdInstant = saved.getCreatedAt();
         assertNotNull(createdInstant, "createdAt should be populated by auditing");
-        assertTrue(createdInstant.isBefore(Instant.now()));
+        assertEquals(Instant.now(clock), createdInstant);
     }
 
     @Test
-    void shouldPopulateUpdatedAtBeforeNow() {
+    void shouldPopulateUpdatedAtFromClock() {
         var entity = instructorRegistrationBuilder.username("audit2").email("audit2@example.com").build();
         var saved = repo.saveAndFlush(entity);
         Instant updatedInstant = saved.getUpdatedAt();
         assertNotNull(updatedInstant, "updatedAt should be populated by auditing");
-        assertTrue(updatedInstant.isBefore(Instant.now()));
+        assertEquals(Instant.now(clock), updatedInstant);
     }
 
     @Test
-    void shouldReturnTrueWhenUsernameExists() {
-        var entity = instructorRegistrationBuilder.username("uniqueuser").email("uniqueuser@example.com").build();
-        repo.saveAndFlush(entity);
+    void shouldFindUsernameAndEmailOnlyWithMatchingStatus() {
+        repo.saveAndFlush(instructorRegistrationBuilder.username("pending-user").email("pending@example.com").registrationStatus(RegistrationStatus.PENDING).build());
+        repo.saveAndFlush(instructorRegistrationBuilder.username("rejected-user").email("rejected@example.com").registrationStatus(RegistrationStatus.REJECTED).build());
 
-        assertTrue(repo.existsByUsername("uniqueuser"));
-        assertFalse(repo.existsByUsername("notpresent"));
-    }
-
-    @Test
-    void shouldReturnTrueWhenEmailExists() {
-        var entity = instructorRegistrationBuilder.username("emailuser").email("emailuser@example.com").build();
-        repo.saveAndFlush(entity);
-
-        assertTrue(repo.existsByEmail("emailuser@example.com"));
-        assertFalse(repo.existsByEmail("absent@example.com"));
+        assertTrue(repo.existsByUsernameAndRegistrationStatus("pending-user", RegistrationStatus.PENDING));
+        assertTrue(repo.existsByEmailAndRegistrationStatus("pending@example.com", RegistrationStatus.PENDING));
+        assertFalse(repo.existsByUsernameAndRegistrationStatus("rejected-user", RegistrationStatus.PENDING));
+        assertFalse(repo.existsByEmailAndRegistrationStatus("rejected@example.com", RegistrationStatus.PENDING));
+        assertFalse(repo.existsByUsernameAndRegistrationStatus("absent", RegistrationStatus.PENDING));
     }
 }

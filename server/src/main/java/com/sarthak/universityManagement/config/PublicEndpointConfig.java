@@ -15,9 +15,11 @@ public class PublicEndpointConfig {
         return new OrRequestMatcher(
             PathPatternRequestMatcher.pathPattern(HttpMethod.OPTIONS, "/**"),
             PathPatternRequestMatcher.pathPattern("/auth/login"),
-            PathPatternRequestMatcher.pathPattern("/registration/student"),
-            PathPatternRequestMatcher.pathPattern("/registration/instructor"),
+            PathPatternRequestMatcher.pathPattern(HttpMethod.POST, "/student-registrations"),
+            PathPatternRequestMatcher.pathPattern(HttpMethod.POST, "/instructor-registrations"),
             PathPatternRequestMatcher.pathPattern(HttpMethod.GET, "/departments"),
+            PathPatternRequestMatcher.pathPattern(HttpMethod.GET, "/courses"),
+            PathPatternRequestMatcher.pathPattern(HttpMethod.GET, "/courses/{id}"),
             PathPatternRequestMatcher.pathPattern("/actuator/health"),
             PathPatternRequestMatcher.pathPattern("/actuator/info")
         );

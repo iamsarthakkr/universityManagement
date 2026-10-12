@@ -27,9 +27,4 @@ public class DepartmentService {
                 .findById(departmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Department with id: " + departmentId + " not found!"));
     }
-
-    @Transactional(readOnly = true)
-    public boolean existsById(Integer departmentId) {
-        return departmentRepo.existsById(departmentId);
-    }
 }

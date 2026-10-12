@@ -15,7 +15,7 @@ public final class AuthorizationExpressions {
     
     public static final String ADMIN_OR_INSTRUCTOR =
         "hasAnyRole('ADMIN', 'INSTRUCTOR')";
-    
+
     public static final String ANY_AUTHENTICATED =
         "isAuthenticated()";
 }

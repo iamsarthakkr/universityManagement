@@ -1,6 +1,6 @@
 package com.sarthak.universityManagement.testUtils.fixtures;
 
-import com.sarthak.universityManagement.common.types.RegistrationStatus;
+import com.sarthak.universityManagement.registration.types.RegistrationStatus;
 import com.sarthak.universityManagement.department.DepartmentEntity;
 import com.sarthak.universityManagement.registration.instructor.InstructorRegistrationEntity;
 import com.sarthak.universityManagement.registration.instructor.dto.InstructorRegistrationRequest;
