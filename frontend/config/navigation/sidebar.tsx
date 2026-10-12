@@ -60,7 +60,7 @@ const SIDEBAR_NAV: SidebarNavEntry[] = [
         items: [
             { title: 'Catalogue', url: '/dashboard/courses' },
             { title: 'Create Course', url: '/dashboard/courses/new', roles: ['ADMIN'] },
-            { title: 'Assigned Courses', url: '/dashboard/instructor/courses', roles: ['INSTRUCTOR'] },
+            { title: 'My Offerings', url: '/dashboard/instructor/courses', roles: ['INSTRUCTOR'] },
             { title: 'My Courses', url: '/dashboard/student/courses', roles: ['STUDENT'] },
             { title: 'Enrollments', url: '/dashboard/student/enrollments', roles: ['STUDENT'] },
         ],

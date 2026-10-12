@@ -21,6 +21,7 @@ function loggedInAs(role: Role) {
         'GET /courses': jsonOk([]),
         'GET /course-offerings': jsonOk([]),
         'GET /instructors': jsonOk([]),
+        'GET /me/course-offerings': jsonOk([]),
         'GET /semesters': jsonOk([]),
     });
 }
