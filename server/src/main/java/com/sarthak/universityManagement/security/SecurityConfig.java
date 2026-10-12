@@ -1,11 +1,9 @@
 package com.sarthak.universityManagement.security;
 
-import com.sarthak.universityManagement.common.types.Role;
 import com.sarthak.universityManagement.security.jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -46,7 +44,6 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth ->
                 auth
                     .requestMatchers(publicEndpoints).permitAll()
-                    .requestMatchers("/admin/**").hasRole(Role.ADMIN.name())
                     .anyRequest().authenticated()
             )
             .exceptionHandling(ex -> ex
