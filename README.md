@@ -20,6 +20,7 @@ The project goes beyond basic CRUD by modelling real enrollment workflows includ
 - Integration, repository and HTTP-level (MockMvc) testing
 - Concurrency-safe enrollment approval and registration review
 - Database-level duplicate enrollment protection
+- React dashboard for admins, instructors and students that renders only the actions the server allows (see `frontend/README.md`)
 
 ## Domain Model
 
@@ -246,6 +247,8 @@ Reusable test scenario seeders are used to create related domain data such as st
 Concurrency-sensitive operations (enrollment approval, semester transitions, registration review) also have dedicated test coverage.
 
 HTTP-level tests (MockMvc with real JWTs) cover what service tests can't: which routes are public, how tokens are handled, request binding, and the response envelope.
+
+The frontend is tested with Vitest and Testing Library against a mocked `fetch`, so the HTTP client, React Query and the real router stay in the path under test.
 
 ## Project Structure
 

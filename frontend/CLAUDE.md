@@ -23,7 +23,8 @@ Vitest + jsdom + Testing Library, configured in the `test` block of `vite.config
 - Unit/component tests sit next to the code as `*.test.ts(x)`. App-level tests (routing, guards, startup) live in `tests/`.
 - `tests/setup.ts` stubs `matchMedia` (live `matches`; `setPrefersDark()` to switch), `ResizeObserver` and pointer APIs for Radix, and resets localStorage, the app store, the query cache and the 401 handler between tests.
 - Mock the network, not the modules: `mockFetch({ 'GET /path': jsonOk(body), 'POST /path': jsonError(400, 'msg') })` from `tests/mockFetch.ts` stubs global `fetch` and returns the recorded requests (method, path, headers, parsed body). Unmocked routes fail like a network error. This keeps `http.ts`, `unwrap`, the stores and React Query in the path under test.
-- `tests/render.tsx`: `renderWithProviders(ui)` (query client + tooltip provider + memory router) for components; `renderApp(path)` mounts the real `routes` from `router.tsx` for end-to-end flows.
+- `tests/fixtures.ts` has one builder per server response (`me(role)`, `semester()`, `offering()`, `enrollment()`, `studentRegistration(id, status)`, …). Each returns a valid default; override only the fields a test is about. Don't hand-write nested response objects in tests.
+- `tests/render.tsx`: `renderWithProviders(ui, { path })` (query client + tooltip provider + memory router) for components; `renderApp(path)` mounts the real `routes` from `router.tsx` for end-to-end flows. Only `renderApp` includes the toaster, so use it (logged in via `setToken` + a `GET /me` mock) when asserting toast messages.
 - Use 4xx errors when testing query error states — 5xx/network errors retry once with a delay.
 - Coverage (V8) is configured in `vite.config.ts`: app code only (`components/ui/base` shadcn primitives, tests and type-only files are excluded). Thresholds are 90% statements/functions/lines and 80% branches — `npm run test:coverage` fails below them. Reports go to `coverage/` (HTML at `coverage/index.html`, plus `lcov` for CI tools). Raise the thresholds as coverage grows; don't lower them to make a change pass.
 - `tests/routing.test.tsx` opens every sidebar link for every role through the real router, so a new sidebar link must have a working route (and a broken lazy `import()` fails the suite).
@@ -40,7 +41,14 @@ All backend calls go through `lib/http.ts` (`http.get/post/put/patch/delete`), w
 - Returns a typed `RemoteRes<T>` (`{ isSuccess, body, message, errors, timestamp, status }`; `status` 0 = no response). Never throws.
 - Calls the handler registered with `setUnauthorizedHandler` when a request that carried a token gets a 401
 
-The API is structured as a typed interface (`types/IApi.ts`) with implementations in `lib/api/`. Add new API domains by implementing the interface and registering in `lib/api/api.ts`.
+The API is structured as a typed interface (`types/IApi.ts`) with implementations in `lib/api/`. Add new API domains by implementing the interface and registering in `lib/api/api.ts`. The clients mirror the server's resources, not roles (there is no `/admin` prefix):
+- Optional filters go through `withQuery(path, filter)` (`lib/queryString.ts`), which drops unset values. Never build `?a=${b}` by hand. Filter types (`CourseOfferingFilter`, `EnrollmentFilter`, …) match the server's `*Filter` records.
+- State changes are one `performAction({ id, action })` per resource, posting to `/{resource}/{id}/{action}`.
+- The caller's own data uses the `/me` endpoints (`getMyEnrollments`, `getMyOfferings`).
+
+### Business rules stay on the server
+
+The UI never decides a domain rule (status transitions, registration windows, who may act on what, capacity). Responses carry what the current viewer may do: `allowedActions` on semesters, offerings, enrollments and registrations, plus `isRegistrationOpen` / `acceptsOfferings` on semesters. Buttons and menus render exactly those, and refusals show the server's message. If a screen needs a rule the server doesn't expose, raise it as a backend change instead of computing it here. Grouping, sorting and text search for display are fine.
 
 ### State (Zustand)
 
@@ -62,6 +70,15 @@ Zustand holds **client** state (user, app state, theme, static data loaded at st
 - Retries: 4xx never retry; network errors and 5xx retry once.
 - `lib/queryKeys.ts` — every query key lives here; never write keys inline. Keys are hierarchical so a prefix invalidates a whole group (e.g. `queryKeys.registrations.byKind(kind)` refreshes all statuses after approve/reject).
 - Mutations invalidate what they change in `onSuccess` and return the invalidation promise, so `isPending` stays true until fresh data is in (used to keep rows/buttons disabled).
+- Shared action hooks own the mutation, toasts and invalidation for a resource: `useSemesterAction`, `useEnrollmentAction`. Reuse them rather than writing another mutation for the same action. What each change invalidates:
+
+  | Change | Invalidates |
+  | --- | --- |
+  | Registration approve/reject | `registrations.byKind(kind)` and `students`/`instructors` |
+  | Semester action | `semesters`, `offerings`, `enrollments` (summaries embed the semester status) |
+  | Create offering | `offerings` |
+  | Request enrollment / enrollment action | `offerings` (seat counts), `enrollments` |
+- List filters live in the URL: `useFilterParams(SCHEMA)` (`hooks/useFilterParams.ts`) returns typed filters and a setter (`replace` navigation). Build the schema from `idParam`, `enumParam(values)` and `textParam` as a module-level constant; invalid values are dropped, never sent. Put the filter object in the query key (`queryKeys.offerings.list(filters)`).
 - `logout()`/`expireSession()` call `queryClient.clear()` so cached data never leaks to the next user on the same browser.
 - Login and app startup stay in the app store — don't move them to React Query.
 
@@ -84,11 +101,15 @@ pages/
     registration/student/
     registration/instructor/
   dashboard/       # DashboardLayout.tsx - protected area with sidebar layout
-    admin/         # Admin pages + sub-routes for registrations
-    courses/       # Course catalogue + create course
-    student/       # Student pages (courses, enrollments)
-    instructor/    # Instructor pages (courses)
+    admin/         # registrations, semesters (+ detail), offerings (+ new), students, instructors
+    offerings/     # offering detail + class list (admin and instructor)
+    courses/       # course catalogue (all roles) + create course (admin)
+    student/       # browse and request offerings, enrollments, my courses
+    instructor/    # my offerings
+    profile/       # account details (all roles)
 ```
+
+Pages are thin: they read route params and render a feature component from `components/`. Detail pages parse ids with `idParam` and redirect on an invalid one.
 
 Layouts render children via `<Outlet />`. Use `Link`/`useNavigate` from `react-router` (never plain `<a href>` for
 internal links - it reloads the whole app). `/` and unknown paths redirect to `/login`.
@@ -102,7 +123,12 @@ Role access is declared in `router.tsx` with `<RoleGuard roles={[...]} />` (`com
 - `components/ui/base/` — shadcn base components (button, card, input, table, etc.)
 - `components/ui/` — composite UI pieces (e.g. `StatCard`)
 - `components/dashboard/` — sidebar/nav components
-- `components/admin/`, `components/registration/`, `components/auth/` — feature components
-- `config/navigation/sidebar.tsx` — sidebar entries: top-level links (`url`, e.g. the per-role Dashboard) or collapsible groups (`items`), each with `roles`; group links can narrow `roles` further. Use `getSidebarNav(role)`. Only link to routes that exist in `router.tsx`, and keep link roles in sync with the route's `RoleGuard`.
+- `components/common/` — shared building blocks:
+  - `ActionMenu` renders a list of server `allowedActions` from a per-resource config (`SEMESTER_ACTIONS`, `ENROLLMENT_ACTIONS`, `REGISTRATION_ACTIONS`). Set `confirm` on an action to ask first (it uses `ConfirmDialog`). The menu button is named "Actions for {subject}".
+  - `QueryState` handles loading (skeleton), error (server message + retry) and empty states around query content.
+  - `filters/` (`FilterBar`, `FilterSelect`, `DepartmentFilter`, `SemesterFilter`, `InstructorFilter`) and `StatusTabs` for list filters.
+- `components/semesters/SemesterSections` lays out cards grouped by semester (with `groupBySemester` from `lib/semester.ts`, which keeps the server's order).
+- Feature components: `admin/`, `auth/`, `courses/`, `enrollments/`, `instructor/`, `offerings/`, `profile/`, `registration/`, `semesters/`, `student/`
+- `config/navigation/sidebar.tsx` — sidebar entries: top-level links (`url`, e.g. the per-role Dashboard) or collapsible groups (`items`), each with `roles`; group links can narrow `roles` further. Use `getSidebarNav(role)`. Only link to routes that exist in `router.tsx`, and keep link roles in sync with the route's `RoleGuard`. Create pages are reached from their list page's button, not from the sidebar.
 - Toast feedback via `sonner` (`toast.success` / `toast.error`)
 - `lib/cn.ts` — `clsx` + `tailwind-merge` utility for class names
