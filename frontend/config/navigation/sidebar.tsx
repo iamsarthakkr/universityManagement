@@ -16,23 +16,12 @@ const SIDEBAR_NAV: SidebarNavEntry[] = [
     { title: 'Dashboard', icon: LayoutDashboardIcon, url: DASHBOARD_HOME.INSTRUCTOR, roles: ['INSTRUCTOR'] },
     { title: 'Dashboard', icon: LayoutDashboardIcon, url: DASHBOARD_HOME.STUDENT, roles: ['STUDENT'] },
     {
-        title: 'Student Registrations',
-        icon: UsersIcon,
-        roles: ['ADMIN'],
-        items: [
-            { title: 'Pending', url: '/dashboard/admin/student-registrations/pending' },
-            { title: 'Approved', url: '/dashboard/admin/student-registrations/approved' },
-            { title: 'Rejected', url: '/dashboard/admin/student-registrations/rejected' },
-        ],
-    },
-    {
-        title: 'Instructor Registrations',
+        title: 'Registrations',
         icon: ShieldCheckIcon,
         roles: ['ADMIN'],
         items: [
-            { title: 'Pending', url: '/dashboard/admin/instructor-registrations/pending' },
-            { title: 'Approved', url: '/dashboard/admin/instructor-registrations/approved' },
-            { title: 'Rejected', url: '/dashboard/admin/instructor-registrations/rejected' },
+            { title: 'Students', url: '/dashboard/admin/student-registrations' },
+            { title: 'Instructors', url: '/dashboard/admin/instructor-registrations' },
         ],
     },
     {
@@ -51,6 +40,15 @@ const SIDEBAR_NAV: SidebarNavEntry[] = [
         items: [
             { title: 'All Offerings', url: '/dashboard/admin/offerings' },
             { title: 'Create Offering', url: '/dashboard/admin/offerings/new' },
+        ],
+    },
+    {
+        title: 'People',
+        icon: UsersIcon,
+        roles: ['ADMIN'],
+        items: [
+            { title: 'Students', url: '/dashboard/admin/students' },
+            { title: 'Instructors', url: '/dashboard/admin/instructors' },
         ],
     },
     {

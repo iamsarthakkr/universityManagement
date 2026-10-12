@@ -45,11 +45,11 @@ export const routes: RouteObject[] = [
                         children: [
                             { index: true, lazy: lazyPage(() => import('@/pages/dashboard/admin/page')) },
                             {
-                                path: 'student-registrations/:status',
+                                path: 'student-registrations',
                                 lazy: lazyPage(() => import('@/pages/dashboard/admin/student-registrations/page')),
                             },
                             {
-                                path: 'instructor-registrations/:status',
+                                path: 'instructor-registrations',
                                 lazy: lazyPage(() => import('@/pages/dashboard/admin/instructor-registrations/page')),
                             },
                             {
@@ -67,6 +67,14 @@ export const routes: RouteObject[] = [
                             {
                                 path: 'offerings',
                                 lazy: lazyPage(() => import('@/pages/dashboard/admin/offerings/page')),
+                            },
+                            {
+                                path: 'students',
+                                lazy: lazyPage(() => import('@/pages/dashboard/admin/students/page')),
+                            },
+                            {
+                                path: 'instructors',
+                                lazy: lazyPage(() => import('@/pages/dashboard/admin/instructors/page')),
                             },
                             {
                                 path: 'offerings/new',

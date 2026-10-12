@@ -4,12 +4,7 @@ import { Course, CourseFilter, CourseRequest } from './course';
 import { Department } from './department';
 import { Enrollment, EnrollmentActionRequest, EnrollmentFilter, OfferingEnrollmentsQuery } from './enrollment';
 import { Instructor, InstructorFilter } from './instructor';
-import {
-    CourseOffering,
-    CourseOfferingFilter,
-    CreateCourseOfferingRequest,
-    MyCourseOfferingFilter,
-} from './offering';
+import { CourseOffering, CourseOfferingFilter, CreateCourseOfferingRequest, MyCourseOfferingFilter } from './offering';
 import {
     InstructorRegistrationRequest,
     InstructorRegistrationResponse,

@@ -2,13 +2,13 @@ import { CourseFilter } from '@/types/course';
 import { EnrollmentFilter, EnrollmentStatus } from '@/types/enrollment';
 import { InstructorFilter } from '@/types/instructor';
 import { CourseOfferingFilter, MyCourseOfferingFilter } from '@/types/offering';
-import { RegistrationKind, RegistrationStatus } from '@/types/registration';
+import { RegistrationFilter, RegistrationKind } from '@/types/registration';
 import { StudentFilter } from '@/types/student';
 
 export const queryKeys = {
     registrations: {
         byKind: (kind: RegistrationKind) => ['registrations', kind] as const,
-        list: (kind: RegistrationKind, status: RegistrationStatus) => ['registrations', kind, status] as const,
+        list: (kind: RegistrationKind, filter: RegistrationFilter) => ['registrations', kind, filter] as const,
     },
     courses: {
         all: ['courses'] as const,

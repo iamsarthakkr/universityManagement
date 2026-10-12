@@ -18,11 +18,6 @@ export type RegistrationFilter = {
     departmentId?: number;
 };
 
-export function parseRegistrationStatus(value: string | undefined): RegistrationStatus | null {
-    const status = value?.toUpperCase();
-    return Object.values(RegistrationStatus).find((candidate) => candidate === status) ?? null;
-}
-
 type RegistrationResponseBase = {
     id: number;
     username: string;

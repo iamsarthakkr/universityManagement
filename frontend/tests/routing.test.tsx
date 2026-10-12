@@ -21,6 +21,7 @@ function loggedInAs(role: Role) {
         'GET /courses': jsonOk([]),
         'GET /course-offerings': jsonOk([]),
         'GET /instructors': jsonOk([]),
+        'GET /students': jsonOk([]),
         'GET /me/course-offerings': jsonOk([]),
         'GET /me/enrollments': jsonOk([]),
         'GET /semesters': jsonOk([]),
@@ -78,7 +79,7 @@ describe('routing and guards', () => {
 
     it('keeps students out of admin pages', async () => {
         loggedInAs('STUDENT');
-        const router = renderApp('/dashboard/admin/student-registrations/pending');
+        const router = renderApp('/dashboard/admin/student-registrations');
 
         expect(await screen.findByRole('heading', { name: 'Student dashboard' })).toBeInTheDocument();
         expect(router.state.location.pathname).toBe('/dashboard/student');
@@ -92,12 +93,12 @@ describe('routing and guards', () => {
         expect(router.state.location.pathname).toBe('/dashboard/instructor');
     });
 
-    it('redirects an unknown registration status to pending', async () => {
+    it('shows pending registrations for an unknown status', async () => {
         loggedInAs('ADMIN');
-        const router = renderApp('/dashboard/admin/student-registrations/foo');
+        renderApp('/dashboard/admin/student-registrations?status=foo');
 
-        expect(await screen.findByRole('heading', { name: 'Pending student registrations' })).toBeInTheDocument();
-        expect(router.state.location.pathname).toBe('/dashboard/admin/student-registrations/pending');
+        expect(await screen.findByRole('heading', { name: 'Student registrations' })).toBeInTheDocument();
+        expect(screen.getByRole('tab', { name: 'Pending' })).toHaveAttribute('aria-selected', 'true');
     });
 
     it('shows the error overlay when the backend is down and recovers on retry', async () => {

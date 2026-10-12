@@ -2,9 +2,13 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import React from 'react';
 import { toast } from 'sonner';
 
+import { DepartmentFilter } from '@/components/common/filters/DepartmentFilter';
+import { FilterBar } from '@/components/common/filters/FilterBar';
 import { PageHeader } from '@/components/common/PageHeader';
 import { QueryState } from '@/components/common/QueryState';
 import { SectionCard } from '@/components/common/SectionCard';
+import { StatusTab, StatusTabs } from '@/components/common/StatusTabs';
+import { enumParam, idParam, useFilterParams } from '@/hooks/useFilterParams';
 import { unwrap } from '@/lib/query';
 import { queryKeys } from '@/lib/queryKeys';
 import { useApi } from '@/stores/apiStore';
@@ -44,34 +48,34 @@ const ACTION_SUCCESS: Record<RegistrationAction, string> = {
     [RegistrationAction.REJECT]: 'Request rejected successfully!',
 };
 
-const STATUS_LABEL: Record<RegistrationStatus, string> = {
-    [RegistrationStatus.PENDING]: 'Pending',
-    [RegistrationStatus.APPROVED]: 'Approved',
-    [RegistrationStatus.REJECTED]: 'Rejected',
+const FILTERS = {
+    status: enumParam(Object.values(RegistrationStatus)),
+    departmentId: idParam,
 };
 
-type Props = {
-    kind: RegistrationKind;
-    status: RegistrationStatus;
+const STATUS_TABS: StatusTab<RegistrationStatus>[] = [
+    { value: RegistrationStatus.PENDING, label: 'Pending' },
+    { value: RegistrationStatus.APPROVED, label: 'Approved' },
+    { value: RegistrationStatus.REJECTED, label: 'Rejected' },
+];
+
+const KIND_LABEL: Record<RegistrationKind, string> = {
+    student: 'Student',
+    instructor: 'Instructor',
 };
 
-export const RegistrationsView = ({ kind, status }: Props) => {
+export const RegistrationsView = ({ kind }: { kind: RegistrationKind }) => {
     const api = useApi();
     const registrationApi = React.useMemo(() => getRegistrationApi(api, kind), [api, kind]);
-
-    const statusLabel = STATUS_LABEL[status];
-    const title = `${statusLabel} ${kind} registrations`;
-    const description =
-        status === RegistrationStatus.PENDING
-            ? `Review pending ${kind} registration requests.`
-            : `${statusLabel} ${kind} registration requests.`;
-    const emptyMessage = `No ${statusLabel.toLowerCase()} ${kind} registration requests.`;
-
     const queryClient = useQueryClient();
 
+    const [filters, setFilters] = useFilterParams(FILTERS);
+    const status = filters.status ?? RegistrationStatus.PENDING;
+    const filter = { status, departmentId: filters.departmentId };
+
     const registrationsQuery = useQuery({
-        queryKey: queryKeys.registrations.list(kind, status),
-        queryFn: () => unwrap(registrationApi.list({ status })),
+        queryKey: queryKeys.registrations.list(kind, filter),
+        queryFn: () => unwrap(registrationApi.list(filter)),
     });
     const items = registrationsQuery.data ?? [];
 
@@ -80,7 +84,13 @@ export const RegistrationsView = ({ kind, status }: Props) => {
             unwrap(registrationApi.performAction({ registrationId: id, action })),
         onSuccess: (_, { action }) => {
             toast.success(ACTION_SUCCESS[action]);
-            return queryClient.invalidateQueries({ queryKey: queryKeys.registrations.byKind(kind) });
+            // Approving creates the account, so the people lists change too.
+            return Promise.all([
+                queryClient.invalidateQueries({ queryKey: queryKeys.registrations.byKind(kind) }),
+                queryClient.invalidateQueries({
+                    queryKey: kind === 'student' ? queryKeys.students.all : queryKeys.instructors.all,
+                }),
+            ]);
         },
         onError: (error, { action }) => {
             toast.error(`Failed to ${action.toLowerCase()} request`, { description: error.message });
@@ -94,9 +104,31 @@ export const RegistrationsView = ({ kind, status }: Props) => {
         [runAction],
     );
 
+    const emptyMessage = filters.departmentId
+        ? `No ${status.toLowerCase()} ${kind} requests in this department.`
+        : `No ${status.toLowerCase()} ${kind} registration requests.`;
+
     return (
         <div className="space-y-6">
-            <PageHeader title={title} description={description} />
+            <PageHeader
+                title={`${KIND_LABEL[kind]} registrations`}
+                description={`Review ${kind} account requests. Approving one creates the account.`}
+            />
+
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                <StatusTabs
+                    label="Registration status"
+                    tabs={STATUS_TABS}
+                    value={status}
+                    onChange={(next) => setFilters({ status: next })}
+                />
+                <FilterBar>
+                    <DepartmentFilter
+                        value={filters.departmentId}
+                        onChange={(departmentId) => setFilters({ departmentId })}
+                    />
+                </FilterBar>
+            </div>
 
             <SectionCard className="overflow-hidden p-0">
                 <QueryState query={registrationsQuery} isEmpty={items.length === 0} emptyMessage={emptyMessage}>
