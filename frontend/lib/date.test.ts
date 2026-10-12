@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { formatIsoDate, formatIsoDateRange, toLocalIsoDate } from './date';
+import { formatDateTime, formatIsoDate, formatIsoDateRange, toLocalIsoDate } from './date';
 
 describe('toLocalIsoDate', () => {
     it('formats using local time, zero-padded', () => {
@@ -21,5 +21,13 @@ describe('formatIsoDate', () => {
 
     it('formats a range', () => {
         expect(formatIsoDateRange('2026-10-01', '2026-10-15')).toBe('1 Oct 2026 – 15 Oct 2026');
+    });
+});
+
+describe('formatDateTime', () => {
+    it('formats an instant in local time', () => {
+        const instant = new Date(2026, 9, 13, 14, 5).toISOString();
+
+        expect(formatDateTime(instant)).toBe('13 Oct 2026, 14:05');
     });
 });

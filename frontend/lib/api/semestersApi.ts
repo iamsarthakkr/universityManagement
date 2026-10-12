@@ -6,6 +6,6 @@ export const createSemestersApi = (): ISemestersApi => {
         getSemesters: () => http.get('/semesters'),
         getSemester: (id) => http.get(`/semesters/${id}`),
         createSemester: (body) => http.post('/semesters', body),
-        transitionSemester: ({ semesterId, status }) => http.patch(`/semesters/${semesterId}/status`, { status }),
+        performAction: ({ semesterId, action }) => http.post(`/semesters/${semesterId}/${action.toLowerCase()}`),
     };
 };

@@ -5,28 +5,14 @@ import { describe, expect, it } from 'vitest';
 import { setToken } from '@/lib/session';
 import { jsonError, jsonOk, mockFetch } from '@/tests/mockFetch';
 import { renderApp } from '@/tests/render';
-import { Semester, SemesterStatus, SemesterTerm } from '@/types/semester';
-
-function semester(overrides: Partial<Semester> = {}): Semester {
-    return {
-        id: 1,
-        term: SemesterTerm.WINTER,
-        year: 2026,
-        status: SemesterStatus.PLANNED,
-        allowedTransitions: [SemesterStatus.ACTIVE, SemesterStatus.CANCELLED],
-        registrationStartDate: '2026-10-01',
-        registrationEndDate: '2026-10-15',
-        startDate: '2026-11-01',
-        endDate: '2027-03-31',
-        ...overrides,
-    };
-}
+import { me, semester } from '@/tests/fixtures';
+import { SemesterAction, SemesterStatus, SemesterTerm } from '@/types/semester';
 
 const SUMMER_2026 = semester({
     id: 2,
     term: SemesterTerm.SUMMER,
     status: SemesterStatus.COMPLETED,
-    allowedTransitions: [],
+    allowedActions: [],
     registrationStartDate: '2026-03-01',
     registrationEndDate: '2026-03-15',
     startDate: '2026-04-01',
@@ -37,7 +23,7 @@ function asAdmin(routes: Parameters<typeof mockFetch>[0]) {
     setToken('valid');
     return mockFetch({
         'GET /departments': jsonOk([]),
-        'GET /auth/me': jsonOk({ id: 1, username: 'admin', role: 'ADMIN' }),
+        'GET /me': jsonOk(me('ADMIN')),
         ...routes,
     });
 }
@@ -89,12 +75,12 @@ describe('SemestersView', () => {
         let current = semester();
         const { requests } = asAdmin({
             'GET /semesters': () => jsonOk([current]),
-            'PATCH /semesters/1/status': () => {
+            'POST /semesters/1/activate': () => {
                 current = semester({
                     status: SemesterStatus.ACTIVE,
-                    allowedTransitions: [SemesterStatus.COMPLETED, SemesterStatus.CANCELLED],
+                    allowedActions: [SemesterAction.COMPLETE, SemesterAction.CANCEL],
                 });
-                return jsonOk(undefined);
+                return jsonOk(current);
             },
         });
         renderApp('/dashboard/admin/semesters');
@@ -104,16 +90,18 @@ describe('SemestersView', () => {
 
         expect(await screen.findByText('Semester activated.')).toBeInTheDocument();
         expect(await screen.findByText('ACTIVE')).toBeInTheDocument();
-        expect(requests.find((request) => request.method === 'PATCH')?.body).toEqual({ status: 'ACTIVE' });
+        expect(requests.filter((request) => request.method === 'POST').map((request) => request.path)).toEqual([
+            '/semesters/1/activate',
+        ]);
     });
 
     it('asks for confirmation before cancelling', async () => {
         const { requests } = asAdmin({
             'GET /semesters': jsonOk([semester()]),
-            'PATCH /semesters/1/status': jsonOk(undefined),
+            'POST /semesters/1/cancel': jsonOk(semester({ status: SemesterStatus.CANCELLED, allowedActions: [] })),
         });
         renderApp('/dashboard/admin/semesters');
-        const patches = () => requests.filter((request) => request.method === 'PATCH');
+        const posts = () => requests.filter((request) => request.method === 'POST');
 
         await openActions('Winter 2026');
         await userEvent.click(await screen.findByRole('menuitem', { name: 'Cancel semester' }));
@@ -121,20 +109,20 @@ describe('SemestersView', () => {
 
         await userEvent.click(screen.getByRole('button', { name: 'Keep semester' }));
         await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
-        expect(patches()).toHaveLength(0);
+        expect(posts()).toHaveLength(0);
 
         await openActions('Winter 2026');
         await userEvent.click(await screen.findByRole('menuitem', { name: 'Cancel semester' }));
         await userEvent.click(await screen.findByRole('button', { name: 'Cancel semester' }));
 
         expect(await screen.findByText('Semester cancelled.')).toBeInTheDocument();
-        expect(patches().map((request) => request.body)).toEqual([{ status: 'CANCELLED' }]);
+        expect(posts().map((request) => request.path)).toEqual(['/semesters/1/cancel']);
     });
 
     it('shows the server message when a transition is rejected', async () => {
         asAdmin({
             'GET /semesters': jsonOk([semester()]),
-            'PATCH /semesters/1/status': jsonError(400, 'Invalid semester transition: PLANNED -> ACTIVE'),
+            'POST /semesters/1/activate': jsonError(400, 'Invalid semester transition: PLANNED -> ACTIVE'),
         });
         renderApp('/dashboard/admin/semesters');
 

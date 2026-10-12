@@ -17,7 +17,7 @@ describe('StudentRegistrationForm', () => {
 
     it('submits the registration and clears the form', async () => {
         useAppStore.setState({ staticData: { departments: [{ id: 3, name: 'Physics', code: 'PH' }] } });
-        const { requests } = mockFetch({ 'POST /registration/student': jsonOk({ id: 1 }) });
+        const { requests } = mockFetch({ 'POST /student-registrations': jsonOk({ id: 1 }) });
         renderWithProviders(<StudentRegistrationForm />);
 
         await userEvent.type(screen.getByLabelText('Username'), 'ana');

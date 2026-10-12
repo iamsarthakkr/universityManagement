@@ -1,26 +1,33 @@
-import { AuthUser, LoginRequest, LoginResponse } from './auth';
+import { LoginRequest, LoginResponse, Me } from './auth';
 import { RemoteCall, RemoteCallNoArgs } from './common';
-import { CourseCatalogueGroup, CourseRequest, CourseResponse } from './course';
+import { Course, CourseFilter, CourseRequest } from './course';
 import { Department } from './department';
-import { Enrollment, EnrollmentDetail, OfferingEnrollmentsQuery } from './enrollment';
-import { Instructor } from './instructor';
-import { CourseOffering, CreateCourseOfferingRequest } from './offering';
+import { Enrollment, EnrollmentActionRequest, EnrollmentFilter, OfferingEnrollmentsQuery } from './enrollment';
+import { Instructor, InstructorFilter } from './instructor';
+import {
+    CourseOffering,
+    CourseOfferingFilter,
+    CreateCourseOfferingRequest,
+    MyCourseOfferingFilter,
+} from './offering';
 import {
     InstructorRegistrationRequest,
     InstructorRegistrationResponse,
-    RegistrationStatus,
+    RegistrationAction,
+    RegistrationFilter,
     StudentRegistrationRequest,
     StudentRegistrationResponse,
 } from './registration';
-import { CreateSemesterRequest, Semester, SemesterTransitionRequest } from './semester';
+import { CreateSemesterRequest, Semester, SemesterActionRequest } from './semester';
+import { Student, StudentFilter } from './student';
 
 export interface IApi {
     auth: IAuthApi;
     registration: IRegistrationApi;
-    admin: IAdminApi;
     courses: ICoursesApi;
     semesters: ISemestersApi;
     instructors: IInstructorsApi;
+    students: IStudentsApi;
     offerings: IOfferingsApi;
     enrollments: IEnrollmentsApi;
     staticData: IStaticDataApi;
@@ -32,53 +39,52 @@ export interface IStaticDataApi {
 
 export interface IAuthApi {
     login: RemoteCall<LoginRequest, LoginResponse>;
-    me: RemoteCallNoArgs<AuthUser>;
+    me: RemoteCallNoArgs<Me>;
 }
+
+type RegistrationActionCall<T> = RemoteCall<{ registrationId: number; action: RegistrationAction }, T>;
 
 export interface IRegistrationApi {
     createStudentRegistration: RemoteCall<StudentRegistrationRequest, StudentRegistrationResponse>;
+    getStudentRegistrations: RemoteCall<RegistrationFilter, StudentRegistrationResponse[]>;
+    performStudentRegistrationAction: RegistrationActionCall<StudentRegistrationResponse>;
 
     createInstructorRegistration: RemoteCall<InstructorRegistrationRequest, InstructorRegistrationResponse>;
+    getInstructorRegistrations: RemoteCall<RegistrationFilter, InstructorRegistrationResponse[]>;
+    performInstructorRegistrationAction: RegistrationActionCall<InstructorRegistrationResponse>;
 }
 
 export interface ICoursesApi {
-    createCourse: RemoteCall<CourseRequest, CourseResponse>;
-    getCatalogue: RemoteCallNoArgs<CourseCatalogueGroup[]>;
-}
-
-export interface IAdminApi {
-    getStudentRegistrations: RemoteCall<RegistrationStatus, StudentRegistrationResponse[]>;
-    approveStudentRegistration: RemoteCall<number, StudentRegistrationResponse>;
-    rejectStudentRegistration: RemoteCall<number, StudentRegistrationResponse>;
-
-    getInstructorRegistrations: RemoteCall<RegistrationStatus, InstructorRegistrationResponse[]>;
-    approveInstructorRegistration: RemoteCall<number, InstructorRegistrationResponse>;
-    rejectInstructorRegistration: RemoteCall<number, InstructorRegistrationResponse>;
+    getCourses: RemoteCall<CourseFilter, Course[]>;
+    getCourse: RemoteCall<number, Course>;
+    createCourse: RemoteCall<CourseRequest, Course>;
 }
 
 export interface ISemestersApi {
     getSemesters: RemoteCallNoArgs<Semester[]>;
     getSemester: RemoteCall<number, Semester>;
     createSemester: RemoteCall<CreateSemesterRequest, Semester>;
-    transitionSemester: RemoteCall<SemesterTransitionRequest, void>;
+    performAction: RemoteCall<SemesterActionRequest, Semester>;
 }
 
 export interface IInstructorsApi {
-    getInstructors: RemoteCallNoArgs<Instructor[]>;
+    getInstructors: RemoteCall<InstructorFilter, Instructor[]>;
+}
+
+export interface IStudentsApi {
+    getStudents: RemoteCall<StudentFilter, Student[]>;
 }
 
 export interface IOfferingsApi {
     createOffering: RemoteCall<CreateCourseOfferingRequest, CourseOffering>;
-    getOfferings: RemoteCall<number, CourseOffering[]>;
+    getOfferings: RemoteCall<CourseOfferingFilter, CourseOffering[]>;
+    getMyOfferings: RemoteCall<MyCourseOfferingFilter, CourseOffering[]>;
     getOffering: RemoteCall<number, CourseOffering>;
-    getEnrollments: RemoteCall<OfferingEnrollmentsQuery, EnrollmentDetail[]>;
+    getEnrollments: RemoteCall<OfferingEnrollmentsQuery, Enrollment[]>;
     requestEnrollment: RemoteCall<number, Enrollment>;
 }
 
 export interface IEnrollmentsApi {
-    getMyEnrollments: RemoteCallNoArgs<EnrollmentDetail[]>;
-    approveEnrollment: RemoteCall<number, Enrollment>;
-    rejectEnrollment: RemoteCall<number, Enrollment>;
-    cancelEnrollment: RemoteCall<number, Enrollment>;
-    dropEnrollment: RemoteCall<number, Enrollment>;
+    getMyEnrollments: RemoteCall<EnrollmentFilter, Enrollment[]>;
+    performAction: RemoteCall<EnrollmentActionRequest, Enrollment>;
 }

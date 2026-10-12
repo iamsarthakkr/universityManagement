@@ -30,7 +30,7 @@ describe('CreateCourseForm', () => {
     });
 
     it('builds the code without doubling the prefix and submits the request', async () => {
-        const { requests } = mockFetch({ 'POST /courses': jsonOk({ courseId: 10 }) });
+        const { requests } = mockFetch({ 'POST /courses': jsonOk({ id: 10 }) });
         renderWithProviders(<CreateCourseForm />);
 
         await userEvent.selectOptions(screen.getByLabelText('Department'), 'Computer Science');
@@ -39,8 +39,8 @@ describe('CreateCourseForm', () => {
 
         await userEvent.type(screen.getByLabelText('Title'), 'Algorithms');
         await userEvent.type(screen.getByLabelText('Description'), 'Sorting and searching');
-        await userEvent.clear(screen.getByLabelText('Credits (1–10)'));
-        await userEvent.type(screen.getByLabelText('Credits (1–10)'), '4');
+        await userEvent.clear(screen.getByLabelText('Credits (1–9)'));
+        await userEvent.type(screen.getByLabelText('Credits (1–9)'), '4');
         await userEvent.click(screen.getByRole('button', { name: 'Create course' }));
 
         await waitFor(() => expect(requests).toHaveLength(1));

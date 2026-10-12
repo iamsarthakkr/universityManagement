@@ -1,3 +1,5 @@
+import { MoreHorizontalIcon } from 'lucide-react';
+
 import { Button } from '@/components/ui/base/button';
 import {
     DropdownMenu,
@@ -6,9 +8,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/base/dropdownMenu';
 import { StatusBadge, StatusTone } from '@/components/ui/StatusBadge';
-import { Callback1 } from '@/types/common';
-import { RegistrationStatus } from '@/types/registration';
-import { MoreHorizontalIcon } from 'lucide-react';
+import { RegistrationAction, RegistrationStatus } from '@/types/registration';
 
 const STATUS_TONE: Record<RegistrationStatus, StatusTone> = {
     PENDING: 'warning',
@@ -16,32 +16,37 @@ const STATUS_TONE: Record<RegistrationStatus, StatusTone> = {
     REJECTED: 'danger',
 };
 
-type ActionsProps = {
-    id: number;
-    disabled?: boolean;
-    onApprove: Callback1<number>;
-    onReject: Callback1<number>;
+const ACTION_LABEL: Record<RegistrationAction, string> = {
+    [RegistrationAction.APPROVE]: 'Approve',
+    [RegistrationAction.REJECT]: 'Reject',
 };
 
-export const AdminActions = (props: ActionsProps) => {
-    const { id, disabled = false, onApprove, onReject } = props;
+type ActionsProps = {
+    id: number;
+    actions: RegistrationAction[];
+    disabled?: boolean;
+    onAction: (id: number, action: RegistrationAction) => void;
+};
 
+export const AdminActions = ({ id, actions, disabled = false, onAction }: ActionsProps) => {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="size-8">
+                <Button variant="ghost" size="icon" className="size-8" disabled={disabled}>
                     <MoreHorizontalIcon className="size-4" />
                     <span className="sr-only">Open menu</span>
                 </Button>
             </DropdownMenuTrigger>
-
             <DropdownMenuContent align="end">
-                <DropdownMenuItem disabled={disabled} onClick={() => onApprove(id)}>
-                    Approve
-                </DropdownMenuItem>
-                <DropdownMenuItem disabled={disabled} onClick={() => onReject(id)} variant="destructive">
-                    Reject
-                </DropdownMenuItem>
+                {actions.map((action) => (
+                    <DropdownMenuItem
+                        key={action}
+                        variant={action === RegistrationAction.REJECT ? 'destructive' : 'default'}
+                        onClick={() => onAction(id, action)}
+                    >
+                        {ACTION_LABEL[action]}
+                    </DropdownMenuItem>
+                ))}
             </DropdownMenuContent>
         </DropdownMenu>
     );

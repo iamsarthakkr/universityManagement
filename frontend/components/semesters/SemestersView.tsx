@@ -22,14 +22,13 @@ import { unwrap } from '@/lib/query';
 import { queryKeys } from '@/lib/queryKeys';
 import { formatSemesterName } from '@/lib/semester';
 import { useApi } from '@/stores/apiStore';
-import { Semester, SemesterStatus, SemesterTransitionRequest } from '@/types/semester';
+import { Semester, SemesterAction, SemesterActionRequest } from '@/types/semester';
 import { SemestersTable } from './SemestersTable';
 
-const TRANSITION_SUCCESS: Record<SemesterStatus, string> = {
-    [SemesterStatus.PLANNED]: 'Semester moved to planned.',
-    [SemesterStatus.ACTIVE]: 'Semester activated.',
-    [SemesterStatus.COMPLETED]: 'Semester marked as completed.',
-    [SemesterStatus.CANCELLED]: 'Semester cancelled.',
+const ACTION_SUCCESS: Record<SemesterAction, string> = {
+    [SemesterAction.ACTIVATE]: 'Semester activated.',
+    [SemesterAction.COMPLETE]: 'Semester marked as completed.',
+    [SemesterAction.CANCEL]: 'Semester cancelled.',
 };
 
 function newestFirst(semesters: Semester[]) {
@@ -47,33 +46,38 @@ export function SemestersView() {
     });
     const semesters = semestersQuery.data ?? [];
 
-    const transition = useMutation({
-        mutationFn: (request: SemesterTransitionRequest) => unwrap(api.semesters.transitionSemester(request)),
-        onSuccess: (_, { status }) => {
-            toast.success(TRANSITION_SUCCESS[status]);
-            return queryClient.invalidateQueries({ queryKey: queryKeys.semesters.all });
+    const semesterAction = useMutation({
+        mutationFn: (request: SemesterActionRequest) => unwrap(api.semesters.performAction(request)),
+        onSuccess: (_, { action }) => {
+            toast.success(ACTION_SUCCESS[action]);
+            // Offerings and enrollments embed the semester's status, so they are stale too.
+            return Promise.all([
+                queryClient.invalidateQueries({ queryKey: queryKeys.semesters.all }),
+                queryClient.invalidateQueries({ queryKey: queryKeys.offerings.all }),
+                queryClient.invalidateQueries({ queryKey: queryKeys.enrollments.all }),
+            ]);
         },
         onError: (error) => {
             toast.error('Failed to update semester', { description: error.message });
         },
     });
 
-    // Cancelling can't be undone, so it waits for confirmation; other transitions run immediately.
+    // Cancelling can't be undone, so it waits for confirmation; other actions run immediately.
     const [confirmCancel, setConfirmCancel] = React.useState<Semester | null>(null);
 
-    const { mutate: runTransition } = transition;
-    const onTransition = React.useCallback(
-        (semester: Semester, status: SemesterStatus) => {
-            if (status === SemesterStatus.CANCELLED) {
+    const { mutate: runAction } = semesterAction;
+    const onAction = React.useCallback(
+        (semester: Semester, action: SemesterAction) => {
+            if (action === SemesterAction.CANCEL) {
                 setConfirmCancel(semester);
                 return;
             }
-            runTransition({ semesterId: semester.id, status });
+            runAction({ semesterId: semester.id, action });
         },
-        [runTransition],
+        [runAction],
     );
 
-    const pendingId = transition.isPending ? (transition.variables?.semesterId ?? null) : null;
+    const pendingId = semesterAction.isPending ? (semesterAction.variables?.semesterId ?? null) : null;
 
     return (
         <div className="space-y-6">
@@ -89,7 +93,7 @@ export function SemestersView() {
 
             <SectionCard className="overflow-hidden p-0">
                 <QueryState query={semestersQuery} isEmpty={semesters.length === 0} emptyMessage="No semesters yet.">
-                    <SemestersTable semesters={semesters} pendingId={pendingId} onTransition={onTransition} />
+                    <SemestersTable semesters={semesters} pendingId={pendingId} onAction={onAction} />
                 </QueryState>
             </SectionCard>
 
@@ -107,7 +111,7 @@ export function SemestersView() {
                             variant="destructive"
                             onClick={() => {
                                 if (confirmCancel) {
-                                    runTransition({ semesterId: confirmCancel.id, status: SemesterStatus.CANCELLED });
+                                    runAction({ semesterId: confirmCancel.id, action: SemesterAction.CANCEL });
                                 }
                             }}
                         >

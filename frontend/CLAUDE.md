@@ -51,14 +51,14 @@ No React Context is used for app state; stores live in `stores/`.
   - Read data with a selector: `useAppStore((state) => state.user)`. Select the narrowest value you need; never select a new object/array literal (Zustand v5 will re-render in a loop).
   - Call actions via `useAppActions()` — it never triggers re-renders.
   - `user === null` means logged out. Actions don't navigate: `AuthLayout`/`DashboardLayout` redirect with `<Navigate replace>` (authenticated → role home from `DASHBOARD_HOME`; logged out → `/login`).
-- Startup: `components/common/AppGate.tsx` (in `pages/RootLayout.tsx`) registers `expireSession` as the 401 handler and calls `init()` on mount. `init()` loads static data and restores the session (`/auth/me` if a token exists) in parallel: success → `READY`; a 401 just logs out; any other failure → `FAILED`.
+- Startup: `components/common/AppGate.tsx` (in `pages/RootLayout.tsx`) registers `expireSession` as the 401 handler and calls `init()` on mount. `init()` loads static data and restores the session (`/me` if a token exists) in parallel: success → `READY`; a 401 just logs out; any other failure → `FAILED`.
 - `AppGate` also renders a loading overlay while `LOADING`, an error overlay whose retry re-runs the whole `init()` while `FAILED`, and the app only when `READY`. So `staticData` is always loaded for components — never add loading flags for it. Add app-wide reference data to `StaticData` + `init()` only if it's needed without login, since it blocks the whole app.
 
 ### Server state (TanStack Query)
 
 Zustand holds **client** state (user, app state, theme, static data loaded at startup). Data fetched for a page and data changed by forms is **server** state and goes through React Query.
 
-- `lib/query.ts` — the shared `queryClient` (provided in `pages/RootLayout.tsx`), `ApiError`, and `unwrap()`. `http` never throws, so every `queryFn`/`mutationFn` wraps its call: `queryFn: () => unwrap(api.courses.getCatalogue())`. `unwrap` throws `ApiError` (`message`, `status`) when `isSuccess` is false.
+- `lib/query.ts` — the shared `queryClient` (provided in `pages/RootLayout.tsx`), `ApiError`, and `unwrap()`. `http` never throws, so every `queryFn`/`mutationFn` wraps its call: `queryFn: () => unwrap(api.courses.getCourses({}))`. `unwrap` throws `ApiError` (`message`, `status`) when `isSuccess` is false.
 - Retries: 4xx never retry; network errors and 5xx retry once.
 - `lib/queryKeys.ts` — every query key lives here; never write keys inline. Keys are hierarchical so a prefix invalidates a whole group (e.g. `queryKeys.registrations.byKind(kind)` refreshes all statuses after approve/reject).
 - Mutations invalidate what they change in `onSuccess` and return the invalidation promise, so `isPending` stays true until fresh data is in (used to keep rows/buttons disabled).

@@ -2,9 +2,9 @@ import React from 'react';
 import { ChevronDownIcon, ChevronUpIcon } from 'lucide-react';
 
 import { Button } from '@/components/ui/base/button';
-import { CourseResponse } from '@/types/course';
+import { Course } from '@/types/course';
 
-export function CourseCard({ course }: { course: CourseResponse }) {
+export function CourseCard({ course }: { course: Course }) {
     const [expanded, setExpanded] = React.useState(false);
 
     return (

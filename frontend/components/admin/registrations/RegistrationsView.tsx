@@ -10,31 +10,39 @@ import { queryKeys } from '@/lib/queryKeys';
 import { useApi } from '@/stores/apiStore';
 import { RemoteCall } from '@/types/common';
 import { IApi } from '@/types/IApi';
-import { RegistrationKind, RegistrationResponse, RegistrationStatus } from '@/types/registration';
+import {
+    RegistrationAction,
+    RegistrationFilter,
+    RegistrationKind,
+    RegistrationResponse,
+    RegistrationStatus,
+} from '@/types/registration';
 import { RegistrationsTable } from './RegistrationsTable';
 
 type RegistrationApi = {
-    list: RemoteCall<RegistrationStatus, RegistrationResponse[]>;
-    approve: RemoteCall<number, unknown>;
-    reject: RemoteCall<number, unknown>;
+    list: RemoteCall<RegistrationFilter, RegistrationResponse[]>;
+    performAction: RemoteCall<{ registrationId: number; action: RegistrationAction }, RegistrationResponse>;
 };
 
 function getRegistrationApi(api: IApi, kind: RegistrationKind): RegistrationApi {
     switch (kind) {
         case 'student':
             return {
-                list: api.admin.getStudentRegistrations,
-                approve: api.admin.approveStudentRegistration,
-                reject: api.admin.rejectStudentRegistration,
+                list: api.registration.getStudentRegistrations,
+                performAction: api.registration.performStudentRegistrationAction,
             };
         case 'instructor':
             return {
-                list: api.admin.getInstructorRegistrations,
-                approve: api.admin.approveInstructorRegistration,
-                reject: api.admin.rejectInstructorRegistration,
+                list: api.registration.getInstructorRegistrations,
+                performAction: api.registration.performInstructorRegistrationAction,
             };
     }
 }
+
+const ACTION_SUCCESS: Record<RegistrationAction, string> = {
+    [RegistrationAction.APPROVE]: 'Request approved successfully!',
+    [RegistrationAction.REJECT]: 'Request rejected successfully!',
+};
 
 const STATUS_LABEL: Record<RegistrationStatus, string> = {
     [RegistrationStatus.PENDING]: 'Pending',
@@ -63,27 +71,28 @@ export const RegistrationsView = ({ kind, status }: Props) => {
 
     const registrationsQuery = useQuery({
         queryKey: queryKeys.registrations.list(kind, status),
-        queryFn: () => unwrap(registrationApi.list(status)),
+        queryFn: () => unwrap(registrationApi.list({ status })),
     });
     const items = registrationsQuery.data ?? [];
 
     const registrationAction = useMutation({
-        mutationFn: ({ id, action }: { id: number; action: 'approve' | 'reject' }) =>
-            unwrap(action === 'approve' ? registrationApi.approve(id) : registrationApi.reject(id)),
+        mutationFn: ({ id, action }: { id: number; action: RegistrationAction }) =>
+            unwrap(registrationApi.performAction({ registrationId: id, action })),
         onSuccess: (_, { action }) => {
-            toast.success(action === 'approve' ? 'Request approved successfully!' : 'Request rejected successfully!');
+            toast.success(ACTION_SUCCESS[action]);
             return queryClient.invalidateQueries({ queryKey: queryKeys.registrations.byKind(kind) });
         },
         onError: (error, { action }) => {
-            toast.error(`Failed to ${action} request`, { description: error.message });
+            toast.error(`Failed to ${action.toLowerCase()} request`, { description: error.message });
         },
     });
 
     const pendingId = registrationAction.isPending ? (registrationAction.variables?.id ?? null) : null;
-
     const { mutate: runAction } = registrationAction;
-    const onApprove = React.useCallback((id: number) => runAction({ id, action: 'approve' }), [runAction]);
-    const onReject = React.useCallback((id: number) => runAction({ id, action: 'reject' }), [runAction]);
+    const onAction = React.useCallback(
+        (id: number, action: RegistrationAction) => runAction({ id, action }),
+        [runAction],
+    );
 
     return (
         <div className="space-y-6">
@@ -95,8 +104,7 @@ export const RegistrationsView = ({ kind, status }: Props) => {
                         kind={kind}
                         items={items}
                         pendingId={pendingId}
-                        onApprove={onApprove}
-                        onReject={onReject}
+                        onAction={onAction}
                     />
                 </QueryState>
             </SectionCard>

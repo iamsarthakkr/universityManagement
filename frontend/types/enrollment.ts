@@ -1,4 +1,5 @@
-import type { CourseOffering } from './offering';
+import type { CourseOfferingSummary } from './offering';
+import type { StudentSummary } from './student';
 
 export enum EnrollmentStatus {
     PENDING = 'PENDING',
@@ -8,29 +9,35 @@ export enum EnrollmentStatus {
     DROPPED = 'DROPPED',
 }
 
-export type EnrolledStudent = {
-    id: number;
-    name: string;
-};
+export enum EnrollmentAction {
+    APPROVE = 'APPROVE',
+    REJECT = 'REJECT',
+    CANCEL = 'CANCEL',
+    DROP = 'DROP',
+}
 
 export type Enrollment = {
     id: number;
-    studentId: number;
-    courseOfferingId: number;
-    enrollmentStatus: EnrollmentStatus;
+    status: EnrollmentStatus;
+    student: StudentSummary;
+    courseOffering: CourseOfferingSummary;
+    allowedActions: EnrollmentAction[];
+    createdAt: string;
+    updatedAt: string;
 };
 
-export type EnrollmentDetail = {
-    id: number;
-    enrollmentStatus: EnrollmentStatus;
-    // Statuses the server will accept next; the UI offers only these.
-    allowedTransitions: EnrollmentStatus[];
-    student: EnrolledStudent;
-    courseOffering: CourseOffering;
+export type EnrollmentFilter = {
+    semesterId?: number;
+    status?: EnrollmentStatus;
 };
 
 export type OfferingEnrollmentsQuery = {
     offeringId: number;
     // Omitted means every status.
     status?: EnrollmentStatus;
+};
+
+export type EnrollmentActionRequest = {
+    enrollmentId: number;
+    action: EnrollmentAction;
 };

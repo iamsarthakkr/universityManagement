@@ -1,12 +1,10 @@
 import { IEnrollmentsApi } from '@/types/IApi';
 import { http } from '../http';
+import { withQuery } from '../queryString';
 
 export const createEnrollmentsApi = (): IEnrollmentsApi => {
     return {
-        getMyEnrollments: () => http.get('/enrollments/me'),
-        approveEnrollment: (id) => http.post(`/enrollments/${id}/approve`),
-        rejectEnrollment: (id) => http.post(`/enrollments/${id}/reject`),
-        cancelEnrollment: (id) => http.post(`/enrollments/${id}/cancel`),
-        dropEnrollment: (id) => http.post(`/enrollments/${id}/drop`),
+        getMyEnrollments: (filter) => http.get(withQuery('/me/enrollments', filter)),
+        performAction: ({ enrollmentId, action }) => http.post(`/enrollments/${enrollmentId}/${action.toLowerCase()}`),
     };
 };

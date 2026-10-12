@@ -4,25 +4,21 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { getSidebarNav } from '@/config/navigation/sidebar';
 import { setToken } from '@/lib/session';
-import { AuthUser, Role } from '@/types/auth';
+import { Role } from '@/types/auth';
+import { me } from './fixtures';
 import { jsonOk, mockFetch } from './mockFetch';
 import { renderApp } from './render';
 
 const DEPARTMENTS = [{ id: 1, name: 'Computer Science', code: 'CS' }];
 
 function loggedInAs(role: Role) {
-    const user: AuthUser = { id: 1, username: 'sam', role };
     setToken('valid');
     return mockFetch({
         'GET /departments': jsonOk(DEPARTMENTS),
-        'GET /auth/me': jsonOk(user),
-        'GET /admin/student-registrations/PENDING': jsonOk([]),
-        'GET /admin/student-registrations/APPROVED': jsonOk([]),
-        'GET /admin/student-registrations/REJECTED': jsonOk([]),
-        'GET /admin/instructor-registrations/PENDING': jsonOk([]),
-        'GET /admin/instructor-registrations/APPROVED': jsonOk([]),
-        'GET /admin/instructor-registrations/REJECTED': jsonOk([]),
-        'GET /courses/catalogue': jsonOk([]),
+        'GET /me': jsonOk(me(role)),
+        'GET /student-registrations': jsonOk([]),
+        'GET /instructor-registrations': jsonOk([]),
+        'GET /courses': jsonOk([]),
         'GET /semesters': jsonOk([]),
     });
 }

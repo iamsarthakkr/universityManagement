@@ -145,13 +145,13 @@ export function CreateCourseForm() {
                         <FormSection label="Credits" description="Set the academic weight of this course.">
                             <FieldGroup>
                                 <Field>
-                                    <FieldLabel htmlFor="credits">Credits (1–10)</FieldLabel>
+                                    <FieldLabel htmlFor="credits">Credits (1–9)</FieldLabel>
                                     <Input
                                         id="credits"
                                         name="credits"
                                         type="number"
                                         min={1}
-                                        max={10}
+                                        max={9}
                                         required
                                         placeholder="e.g. 3"
                                         value={values.credits}

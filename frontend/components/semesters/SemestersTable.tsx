@@ -1,18 +1,18 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/base/table';
 import { formatIsoDateRange } from '@/lib/date';
 import { formatSemesterName } from '@/lib/semester';
-import { Semester, SemesterStatus } from '@/types/semester';
+import { Semester, SemesterAction } from '@/types/semester';
 import { SemesterActions } from './SemesterActions';
 import { SemesterStatusBadge } from './SemesterStatusBadge';
 
 type Props = {
     semesters: Semester[];
     pendingId: number | null;
-    onTransition: (semester: Semester, status: SemesterStatus) => void;
+    onAction: (semester: Semester, action: SemesterAction) => void;
 };
 
-export function SemestersTable({ semesters, pendingId, onTransition }: Props) {
-    const hasActions = semesters.some((semester) => semester.allowedTransitions.length > 0);
+export function SemestersTable({ semesters, pendingId, onAction }: Props) {
+    const hasActions = semesters.some((semester) => semester.allowedActions.length > 0);
 
     return (
         <Table>
@@ -41,11 +41,11 @@ export function SemestersTable({ semesters, pendingId, onTransition }: Props) {
                         </TableCell>
                         {hasActions && (
                             <TableCell className="text-center">
-                                {semester.allowedTransitions.length > 0 && (
+                                {semester.allowedActions.length > 0 && (
                                     <SemesterActions
                                         semester={semester}
                                         disabled={pendingId === semester.id}
-                                        onTransition={onTransition}
+                                        onAction={onAction}
                                     />
                                 )}
                             </TableCell>

@@ -1,4 +1,4 @@
-import { AuthUser } from './auth';
+import { Me } from './auth';
 import { Department } from './department';
 
 export enum AppState {
@@ -19,7 +19,7 @@ export type LoginResult = {
 export type AppStoreData = {
     appState: AppState;
     error: string | null;
-    user: AuthUser | null;
+    user: Me | null;
     staticData: StaticData;
 };
 

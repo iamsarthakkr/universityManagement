@@ -6,7 +6,17 @@ export enum RegistrationStatus {
     REJECTED = 'REJECTED',
 }
 
+export enum RegistrationAction {
+    APPROVE = 'APPROVE',
+    REJECT = 'REJECT',
+}
+
 export type RegistrationKind = 'student' | 'instructor';
+
+export type RegistrationFilter = {
+    status?: RegistrationStatus;
+    departmentId?: number;
+};
 
 export function parseRegistrationStatus(value: string | undefined): RegistrationStatus | null {
     const status = value?.toUpperCase();
@@ -18,10 +28,12 @@ type RegistrationResponseBase = {
     username: string;
     email: string;
     firstName: string;
-    lastName?: string;
+    lastName: string | null;
     status: RegistrationStatus;
-    submittedAt: string;
+    createdAt: string;
+    reviewedAt: string | null;
     department: Department;
+    allowedActions: RegistrationAction[];
 };
 
 export type StudentRegistrationRequest = {

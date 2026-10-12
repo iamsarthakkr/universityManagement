@@ -18,3 +18,16 @@ export function formatIsoDate(isoDate: string) {
 export function formatIsoDateRange(start: string, end: string) {
     return `${formatIsoDate(start)} – ${formatIsoDate(end)}`;
 }
+
+const DATE_TIME_FORMAT = new Intl.DateTimeFormat('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+});
+
+// Server timestamps are UTC instants; show them in the viewer's local time.
+export function formatDateTime(instant: string) {
+    return DATE_TIME_FORMAT.format(new Date(instant));
+}

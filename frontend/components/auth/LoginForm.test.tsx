@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 
 import { getToken } from '@/lib/session';
 import { useAppStore } from '@/stores/appStore';
+import { me } from '@/tests/fixtures';
 import { jsonError, jsonOk, mockFetch } from '@/tests/mockFetch';
 import { renderWithProviders } from '@/tests/render';
 import { LoginForm } from './LoginForm';
@@ -26,7 +27,7 @@ describe('LoginForm', () => {
     });
 
     it('logs the user in on success', async () => {
-        const user = { id: 1, username: 'sam', role: 'STUDENT' as const };
+        const user = me('STUDENT');
         mockFetch({ 'POST /auth/login': jsonOk({ accessToken: 'token', user }) });
         renderWithProviders(<LoginForm />);
 

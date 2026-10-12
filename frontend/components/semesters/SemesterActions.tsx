@@ -7,22 +7,21 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/base/dropdownMenu';
-import { Semester, SemesterStatus } from '@/types/semester';
+import { Semester, SemesterAction } from '@/types/semester';
 
-export const TRANSITION_LABEL: Record<SemesterStatus, string> = {
-    [SemesterStatus.PLANNED]: 'Move to planned',
-    [SemesterStatus.ACTIVE]: 'Activate',
-    [SemesterStatus.COMPLETED]: 'Mark as completed',
-    [SemesterStatus.CANCELLED]: 'Cancel semester',
+export const ACTION_LABEL: Record<SemesterAction, string> = {
+    [SemesterAction.ACTIVATE]: 'Activate',
+    [SemesterAction.COMPLETE]: 'Mark as completed',
+    [SemesterAction.CANCEL]: 'Cancel semester',
 };
 
 type Props = {
     semester: Semester;
     disabled: boolean;
-    onTransition: (semester: Semester, status: SemesterStatus) => void;
+    onAction: (semester: Semester, action: SemesterAction) => void;
 };
 
-export function SemesterActions({ semester, disabled, onTransition }: Props) {
+export function SemesterActions({ semester, disabled, onAction }: Props) {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -31,15 +30,14 @@ export function SemesterActions({ semester, disabled, onTransition }: Props) {
                     <span className="sr-only">Open menu</span>
                 </Button>
             </DropdownMenuTrigger>
-
             <DropdownMenuContent align="end">
-                {semester.allowedTransitions.map((status) => (
+                {semester.allowedActions.map((action) => (
                     <DropdownMenuItem
-                        key={status}
-                        variant={status === SemesterStatus.CANCELLED ? 'destructive' : 'default'}
-                        onClick={() => onTransition(semester, status)}
+                        key={action}
+                        variant={action === SemesterAction.CANCEL ? 'destructive' : 'default'}
+                        onClick={() => onAction(semester, action)}
                     >
-                        {TRANSITION_LABEL[status]}
+                        {ACTION_LABEL[action]}
                     </DropdownMenuItem>
                 ))}
             </DropdownMenuContent>

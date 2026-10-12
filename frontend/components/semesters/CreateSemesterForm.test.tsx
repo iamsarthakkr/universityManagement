@@ -4,13 +4,15 @@ import { describe, expect, it } from 'vitest';
 
 import { setToken } from '@/lib/session';
 import { jsonError, jsonOk, mockFetch } from '@/tests/mockFetch';
+import { me, semester } from '@/tests/fixtures';
 import { renderApp } from '@/tests/render';
+import { SemesterTerm } from '@/types/semester';
 
 function asAdmin(routes: Parameters<typeof mockFetch>[0]) {
     setToken('valid');
     return mockFetch({
         'GET /departments': jsonOk([]),
-        'GET /auth/me': jsonOk({ id: 1, username: 'admin', role: 'ADMIN' }),
+        'GET /me': jsonOk(me('ADMIN')),
         ...routes,
     });
 }
@@ -36,7 +38,7 @@ const REQUEST = {
 
 describe('CreateSemesterForm', () => {
     it('creates the semester and returns to the list', async () => {
-        const created = { id: 5, ...REQUEST, status: 'PLANNED', allowedTransitions: ['ACTIVE', 'CANCELLED'] };
+        const created = semester({ id: 5, ...REQUEST, term: SemesterTerm.SUMMER });
         const { requests } = asAdmin({
             'POST /semesters': jsonOk(created),
             'GET /semesters': jsonOk([created]),
