@@ -35,4 +35,24 @@ public class RegistrationActionPolicyTests {
     void shouldListAllowedActions(RegistrationStatus status, Role role, List<RegistrationAction> expected) {
         assertEquals(expected, RegistrationActionPolicy.allowedActions(status, role));
     }
+
+    static Stream<Arguments> canPerformCases() {
+        List<Arguments> cases = new ArrayList<>();
+        for(var role: Role.values()) {
+            for(var status: RegistrationStatus.values()) {
+                for(var action: RegistrationAction.values()) {
+                    var expected = role == Role.ADMIN && status == RegistrationStatus.PENDING;
+                    cases.add(Arguments.of(role, action, status, expected));
+                }
+            }
+        }
+        return cases.stream();
+    }
+
+    @ParameterizedTest(name = "{0} {1} on {2} -> {3}")
+    @MethodSource("canPerformCases")
+    void shouldDecideWhoMayPerformWhichAction(Role role, RegistrationAction action, RegistrationStatus status, boolean expected) {
+        assertEquals(expected, RegistrationActionPolicy.canPerform(action, status, role));
+        assertEquals(expected, RegistrationActionPolicy.allowedActions(status, role).contains(action));
+    }
 }

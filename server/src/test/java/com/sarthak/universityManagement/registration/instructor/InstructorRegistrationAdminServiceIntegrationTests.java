@@ -1,210 +1,278 @@
 package com.sarthak.universityManagement.registration.instructor;
 
-import java.util.List;
-import com.sarthak.universityManagement.registration.types.RegistrationAction;
 import com.sarthak.universityManagement.common.exceptions.ConflictException;
 import com.sarthak.universityManagement.common.exceptions.ResourceNotFoundException;
-import com.sarthak.universityManagement.registration.types.RegistrationStatus;
 import com.sarthak.universityManagement.common.types.Role;
 import com.sarthak.universityManagement.config.IntegrationTests;
+import com.sarthak.universityManagement.department.DepartmentEntity;
+import com.sarthak.universityManagement.registration.dto.RegistrationFilter;
+import com.sarthak.universityManagement.registration.instructor.dto.InstructorRegistrationResponse;
+import com.sarthak.universityManagement.registration.types.RegistrationAction;
+import com.sarthak.universityManagement.registration.types.RegistrationStatus;
 import com.sarthak.universityManagement.instructor.InstructorRepo;
-import com.sarthak.universityManagement.testUtils.security.TestAuthentication;
+import com.sarthak.universityManagement.testUtils.fixtures.InstructorRegistrationFixtures;
 import com.sarthak.universityManagement.testUtils.fixtures.UserFixtures;
+import com.sarthak.universityManagement.testUtils.security.TestAuthentication;
+import com.sarthak.universityManagement.testUtils.seeders.DepartmentSeeder;
 import com.sarthak.universityManagement.testUtils.seeders.InstructorRegistrationSeeder;
 import com.sarthak.universityManagement.testUtils.seeders.UserSeeder;
+import com.sarthak.universityManagement.user.UserEntity;
 import com.sarthak.universityManagement.user.UserRepo;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 
+import java.sql.Timestamp;
+import java.time.Clock;
 import java.time.Instant;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class InstructorRegistrationAdminServiceIntegrationTests extends IntegrationTests {
+    private static final RegistrationFilter NO_FILTER = new RegistrationFilter(null, null);
+
     @Autowired
     private InstructorRegistrationService service;
     @Autowired
-    private InstructorRegistrationRepo instructorRegistrationRepo;
+    private InstructorRegistrationRepo registrationRepo;
     @Autowired
     private InstructorRepo instructorRepo;
     @Autowired
     private UserRepo userRepo;
 
     @Autowired
-    private InstructorRegistrationSeeder instructorRegistrationSeeder;
+    private InstructorRegistrationSeeder registrationSeeder;
+    @Autowired
+    private DepartmentSeeder departmentSeeder;
     @Autowired
     private UserSeeder userSeeder;
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+    @Autowired
+    private Clock clock;
 
-    private final String adminUsername = "admin";
-    private final String adminEmail = "admin@gmail.com";
+    private UserEntity admin;
+    private DepartmentEntity department;
+    private int registrationCounter = 0;
 
     @BeforeEach
-    void beforeEach() {
-        var user = userSeeder.saveUser(
-                UserFixtures.user().username(adminUsername).email(adminEmail).role(Role.ADMIN).build()
-        );
-        TestAuthentication.asUser(user);
+    void setUp() {
+        // performAction records the reviewer, so the admin must be a real user row, not just a role
+        admin = userSeeder.saveUser(UserFixtures.user().username("admin").email("admin@gmail.com").role(Role.ADMIN).build());
+        TestAuthentication.asUser(admin);
+        department = departmentSeeder.saveDefault("dep-test");
     }
 
     @AfterEach
-    void afterEach() {
+    void tearDown() {
         TestAuthentication.clear();
     }
 
-    @Nested
-    class Registration {
-        @Test
-        void shouldApprovePendingInstructorRegistration() {
-            var saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("dep-test");
-            service.approveRegistration(saved.getId());
+    private InstructorRegistrationEntity saveRegistration(DepartmentEntity department, RegistrationStatus status) {
+        var n = ++registrationCounter;
+        return registrationSeeder.saveInstructorRegistration(
+            InstructorRegistrationFixtures.instructorRegistration()
+                .department(department)
+                .registrationStatus(status)
+                .username("registrant-" + n)
+                .email("registrant-" + n + "@test.com")
+                .build()
+        );
+    }
 
-            var updated = instructorRegistrationRepo.findById(saved.getId()).orElseThrow();
-            assertEquals(RegistrationStatus.APPROVED, updated.getRegistrationStatus());
-        }
-
+    private InstructorRegistrationEntity savePending() {
+        return saveRegistration(department, RegistrationStatus.PENDING);
     }
 
     @Nested
-    class ApproveInstructorRegistration {
+    class Approval {
 
         @Test
-        void shouldSetCorrectReviewerAndReviewedAtWhenApproved() {
-            var saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("dep-test");
-            service.approveRegistration(saved.getId());
+        void shouldMarkRegistrationAsApproved() {
+            var saved = savePending();
 
-            var updated = instructorRegistrationRepo.findById(saved.getId()).orElseThrow();
-            assertEquals(adminUsername, updated.getReviewedBy().getUsername());
-            assertEquals(adminEmail, updated.getReviewedBy().getEmail());
-            assertTrue(updated.getReviewedAt().isBefore(Instant.now()));
+            service.performAction(saved.getId(), RegistrationAction.APPROVE);
+
+            assertEquals(RegistrationStatus.APPROVED, registrationRepo.findById(saved.getId()).orElseThrow().getRegistrationStatus());
         }
 
         @Test
-        void shouldCreateUserWhenRegistrationApproved() {
-            var saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("dep-test");
-            service.approveRegistration(saved.getId());
+        void shouldCreateUserAndInstructorFromRegistrationDetails() {
+            var saved = savePending();
 
-            assertTrue(userRepo.existsByUsername(saved.getUsername()));
-            assertTrue(userRepo.existsByEmail(saved.getEmail()));
-        }
-
-        @Test
-        void shouldCreateInstructorWhenRegistrationApproved() {
-            var saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("dep-test");
-            service.approveRegistration(saved.getId());
+            service.performAction(saved.getId(), RegistrationAction.APPROVE);
 
             var user = userRepo.findByUsername(saved.getUsername()).orElseThrow();
-            assertTrue(instructorRepo.existsByUserId(user.getId()));
-        }
+            assertEquals(saved.getEmail(), user.getEmail());
+            assertEquals(Role.INSTRUCTOR, user.getRole());
 
-        @Test
-        void shouldCreateInstructorWithCorrectDepartmentWhenRegistrationApproved() {
-            var saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("dep-test");
-            service.approveRegistration(saved.getId());
-
-            var user = userRepo.findByUsername(saved.getUsername()).orElseThrow();
             var instructor = instructorRepo.findByUserId(user.getId()).orElseThrow();
+            assertEquals(saved.getFirstName(), instructor.getFirstName());
+            assertEquals(saved.getLastName(), instructor.getLastName());
+            assertEquals(department.getId(), instructor.getDepartment().getId());
+        }
 
-            assertTrue(instructorRepo.existsByUserId(user.getId()));
-            assertEquals(instructor.getDepartment().getCode(), saved.getDepartment().getCode());
+        @Test
+        void shouldRecordReviewerAndReviewTimeFromClock() {
+            var saved = savePending();
+
+            service.performAction(saved.getId(), RegistrationAction.APPROVE);
+
+            var updated = registrationRepo.findById(saved.getId()).orElseThrow();
+            assertEquals(admin.getId(), updated.getReviewedBy().getId());
+            assertEquals(Instant.now(clock), updated.getReviewedAt());
+        }
+
+        @Test
+        void shouldReturnReviewedRegistrationWithNoFurtherActions() {
+            var saved = savePending();
+
+            var resp = service.performAction(saved.getId(), RegistrationAction.APPROVE);
+
+            assertEquals(RegistrationStatus.APPROVED, resp.status());
+            assertEquals(List.of(), resp.allowedActions());
+            assertEquals(Instant.now(clock), resp.reviewedAt());
         }
     }
 
     @Nested
-    class RejectInstructorRegistration {
-        @Test
-        void shouldMarkRegistrationAsRejected() {
-            var saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("dep-test");
-            service.rejectRegistration(saved.getId());
+    class Rejection {
 
-            var updated = instructorRegistrationRepo.findById(saved.getId()).orElseThrow();
+        @Test
+        void shouldMarkRegistrationAsRejectedAndRecordReviewer() {
+            var saved = savePending();
+
+            service.performAction(saved.getId(), RegistrationAction.REJECT);
+
+            var updated = registrationRepo.findById(saved.getId()).orElseThrow();
             assertEquals(RegistrationStatus.REJECTED, updated.getRegistrationStatus());
+            assertEquals(admin.getId(), updated.getReviewedBy().getId());
+            assertEquals(Instant.now(clock), updated.getReviewedAt());
         }
 
         @Test
-        void shouldSetCorrectReviewerAndReviewedAtWhenRejected() {
-            var saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("dep-test");
-            service.rejectRegistration(saved.getId());
+        void shouldNotCreateUserOrInstructor() {
+            var saved = savePending();
+            var usersBefore = userRepo.count();
 
-            var updated = instructorRegistrationRepo.findById(saved.getId()).orElseThrow();
-            assertEquals(adminUsername, updated.getReviewedBy().getUsername());
-            assertEquals(adminEmail, updated.getReviewedBy().getEmail());
-            assertTrue(updated.getReviewedAt().isBefore(Instant.now()));
-        }
-
-        @Test
-        void shouldNotCreateUserWhenRegistrationRejected() {
-            var saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("dep-test");
-            service.rejectRegistration(saved.getId());
+            service.performAction(saved.getId(), RegistrationAction.REJECT);
 
             assertFalse(userRepo.existsByUsername(saved.getUsername()));
-            assertFalse(userRepo.existsByEmail(saved.getEmail()));
-            assertEquals(1, userRepo.count());
+            assertEquals(usersBefore, userRepo.count());
             assertEquals(0, instructorRepo.count());
         }
     }
 
     @Nested
-    class InvalidApprovals {
-        @Test
-        void shouldThrowWhenRegistrationNotFound() {
-            assertThrows(ResourceNotFoundException.class, () -> service.approveRegistration(Integer.MAX_VALUE));
-            assertThrows(ResourceNotFoundException.class, () -> service.rejectRegistration(Integer.MAX_VALUE));
+    class InvalidActions {
+
+        @ParameterizedTest
+        @EnumSource(RegistrationAction.class)
+        void shouldThrowWhenRegistrationNotFound(RegistrationAction action) {
+            assertThrows(ResourceNotFoundException.class, () -> service.performAction(Integer.MAX_VALUE, action));
         }
 
-        @Test
-        void shouldRejectApprovingApprovedRegistration() {
-            var saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("dep-test");
-            service.approveRegistration(saved.getId());
+        @ParameterizedTest(name = "{0} then {1}")
+        @CsvSource({
+            "APPROVE, APPROVE",
+            "APPROVE, REJECT",
+            "REJECT, APPROVE",
+            "REJECT, REJECT",
+        })
+        void shouldRejectActingOnReviewedRegistration(RegistrationAction first, RegistrationAction second) {
+            var saved = savePending();
+            service.performAction(saved.getId(), first);
+            var usersAfterFirst = userRepo.count();
 
-            assertThrows(ConflictException.class, () -> service.approveRegistration(saved.getId()));
-        }
+            assertThrows(ConflictException.class, () -> service.performAction(saved.getId(), second));
 
-        @Test
-        void shouldRejectApprovingRejectedRegistration() {
-            var saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("dep-test");
-            service.rejectRegistration(saved.getId());
-
-            assertThrows(ConflictException.class, () -> service.approveRegistration(saved.getId()));
-        }
-
-        @Test
-        void shouldRejectRejectingApprovedRegistration() {
-            var saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("dep-test");
-            service.approveRegistration(saved.getId());
-
-            assertThrows(ConflictException.class, () -> service.rejectRegistration(saved.getId()));
-        }
-
-        @Test
-        void shouldRejectRejectingRejectedRegistration() {
-            var saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("dep-test");
-            service.rejectRegistration(saved.getId());
-
-            assertThrows(ConflictException.class, () -> service.rejectRegistration(saved.getId()));
+            assertEquals(first.getTargetStatus(), registrationRepo.findById(saved.getId()).orElseThrow().getRegistrationStatus());
+            assertEquals(usersAfterFirst, userRepo.count());
         }
     }
 
-    @Test
-    void shouldOfferApproveAndRejectOnPendingRegistrations() {
-        var saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("dep-test");
+    @Nested
+    class Listing {
 
-        var pending = service.getRequests(RegistrationStatus.PENDING);
+        private Set<Integer> ids(List<InstructorRegistrationResponse> registrations) {
+            return registrations.stream().map(InstructorRegistrationResponse::id).collect(Collectors.toSet());
+        }
 
-        assertEquals(1, pending.size());
-        assertEquals(List.of(RegistrationAction.APPROVE, RegistrationAction.REJECT), pending.getFirst().allowedActions());
-    }
+        @Test
+        void shouldOfferApproveAndRejectOnPendingRegistrations() {
+            savePending();
 
-    @Test
-    void shouldReturnReviewedRegistrationWithNoFurtherActions() {
-        var saved = instructorRegistrationSeeder.saveDefaultInstructorRegistration("dep-test");
+            var pending = service.getRequests(new RegistrationFilter(null, RegistrationStatus.PENDING));
 
-        var resp = service.approveRegistration(saved.getId());
+            assertEquals(1, pending.size());
+            assertEquals(List.of(RegistrationAction.APPROVE, RegistrationAction.REJECT), pending.getFirst().allowedActions());
+        }
 
-        assertEquals(RegistrationStatus.APPROVED, resp.status());
-        assertEquals(List.of(), resp.allowedActions());
-        assertNotNull(resp.reviewedAt());
+        @Test
+        void shouldReturnEveryStatusWhenFilterIsEmpty() {
+            var pending = savePending();
+            var approved = saveRegistration(department, RegistrationStatus.APPROVED);
+            var rejected = saveRegistration(department, RegistrationStatus.REJECTED);
+
+            assertEquals(Set.of(pending.getId(), approved.getId(), rejected.getId()), ids(service.getRequests(NO_FILTER)));
+        }
+
+        @Test
+        void shouldFilterByStatus() {
+            var pending = savePending();
+            saveRegistration(department, RegistrationStatus.APPROVED);
+
+            assertEquals(Set.of(pending.getId()), ids(service.getRequests(new RegistrationFilter(null, RegistrationStatus.PENDING))));
+        }
+
+        @Test
+        void shouldFilterByDepartment() {
+            var own = savePending();
+            saveRegistration(departmentSeeder.saveDefault("other-dep"), RegistrationStatus.PENDING);
+
+            assertEquals(Set.of(own.getId()), ids(service.getRequests(new RegistrationFilter(department.getId(), null))));
+        }
+
+        @Test
+        void shouldCombineFiltersWithAnd() {
+            var match = savePending();
+            saveRegistration(department, RegistrationStatus.APPROVED);
+            saveRegistration(departmentSeeder.saveDefault("other-dep"), RegistrationStatus.PENDING);
+
+            var filter = new RegistrationFilter(department.getId(), RegistrationStatus.PENDING);
+
+            assertEquals(Set.of(match.getId()), ids(service.getRequests(filter)));
+        }
+
+        @Test
+        void shouldListOldestRequestFirst() {
+            var otherDepartment = departmentSeeder.saveDefault("other-dep");
+            var newest = savePending();
+            var oldest = saveRegistration(otherDepartment, RegistrationStatus.PENDING);
+            var middle = savePending();
+            setCreatedAt(newest, "2026-01-03T00:00:00Z");
+            setCreatedAt(oldest, "2026-01-01T00:00:00Z");
+            setCreatedAt(middle, "2026-01-02T00:00:00Z");
+
+            var ids = service.getRequests(NO_FILTER).stream().map(InstructorRegistrationResponse::id).toList();
+
+            assertEquals(List.of(oldest.getId(), middle.getId(), newest.getId()), ids);
+        }
+
+        private void setCreatedAt(InstructorRegistrationEntity registration, String instant) {
+            jdbcTemplate.update(
+                "UPDATE instructor_registration SET createdAt = ? WHERE id = ?",
+                Timestamp.from(Instant.parse(instant)), registration.getId()
+            );
+        }
     }
 }

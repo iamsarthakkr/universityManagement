@@ -7,6 +7,8 @@ import com.sarthak.universityManagement.instructor.InstructorService;
 import com.sarthak.universityManagement.registration.RegistrationActionPolicy;
 import com.sarthak.universityManagement.registration.instructor.dto.InstructorRegistrationRequest;
 import com.sarthak.universityManagement.registration.instructor.dto.InstructorRegistrationResponse;
+import com.sarthak.universityManagement.registration.dto.RegistrationFilter;
+import com.sarthak.universityManagement.registration.types.RegistrationAction;
 import com.sarthak.universityManagement.user.CurrentUserService;
 import com.sarthak.universityManagement.user.UserEntity;
 import com.sarthak.universityManagement.registration.types.RegistrationStatus;
@@ -14,7 +16,6 @@ import com.sarthak.universityManagement.common.exceptions.ConflictException;
 import com.sarthak.universityManagement.common.exceptions.ResourceNotFoundException;
 import com.sarthak.universityManagement.user.UserService;
 import com.sarthak.universityManagement.registration.validators.RegistrationValidator;
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -25,7 +26,6 @@ import java.time.Instant;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 public class InstructorRegistrationService {
     private final PasswordEncoder passwordEncoder;
     private final InstructorRegistrationRepo instructorRegistrationRepo;
@@ -35,7 +35,27 @@ public class InstructorRegistrationService {
     private final CurrentUserService currentUserService;
     private final DepartmentService departmentService;
     private final Clock clock;
-    
+
+    public InstructorRegistrationService(
+        PasswordEncoder passwordEncoder,
+        InstructorRegistrationRepo instructorRegistrationRepo,
+        RegistrationValidator registrationValidator,
+        UserService userService,
+        InstructorService instructorService,
+        CurrentUserService currentUserService,
+        DepartmentService departmentService,
+        Clock clock
+    ) {
+        this.passwordEncoder = passwordEncoder;
+        this.instructorRegistrationRepo = instructorRegistrationRepo;
+        this.registrationValidator = registrationValidator;
+        this.userService = userService;
+        this.instructorService = instructorService;
+        this.currentUserService = currentUserService;
+        this.departmentService = departmentService;
+        this.clock = clock;
+    }
+
     @Transactional
     public InstructorRegistrationResponse createRegistration(InstructorRegistrationRequest instructorRegistrationRequest) {
         registrationValidator.validateUserNameAvailable(instructorRegistrationRequest.username());
@@ -50,47 +70,62 @@ public class InstructorRegistrationService {
 
         return InstructorRegistrationMapper.toResponse(instructorRegistrationRepo.save(toSave), List.of());
     }
-    
+
     @Transactional(readOnly = true)
     @PreAuthorize(AuthorizationExpressions.ADMIN)
-    public List<InstructorRegistrationResponse> getRequests(RegistrationStatus status) {
+    public List<InstructorRegistrationResponse> getRequests(RegistrationFilter filter) {
         return instructorRegistrationRepo
-            .findByRegistrationStatus(status)
+            .search(filter)
             .stream()
             .map(this::toResponse)
             .toList();
     }
-    
+
     @Transactional
     @PreAuthorize(AuthorizationExpressions.ADMIN)
-    public InstructorRegistrationResponse approveRegistration(int registrationId) {
-        InstructorRegistrationEntity registration = getPendingRegistrationOrThrow(registrationId);
-        
+    public InstructorRegistrationResponse performAction(Integer registrationId, RegistrationAction action) {
+        var registration = getRegistrationForUpdateOrThrow(registrationId);
+        var currentUserRole = currentUserService.getCurrentUserRole();
+
+        if(!RegistrationActionPolicy.canPerform(action, registration.getRegistrationStatus(), currentUserRole)) {
+            throw new ConflictException(
+                "Invalid registration transition: "
+                    + registration.getRegistrationStatus()
+                    + " -> "
+                    + action.getTargetStatus()
+            );
+        }
+
+        return switch (action) {
+            case APPROVE -> approveRegistration(registration);
+            case REJECT -> rejectRegistration(registration);
+        };
+    }
+
+
+    /* ------------------------------------------------------ helpers ------------------------------------------------ */
+    private InstructorRegistrationEntity getRegistrationForUpdateOrThrow(int registrationId) {
+        return instructorRegistrationRepo
+            .findForUpdateById(registrationId)
+            .orElseThrow(() -> new ResourceNotFoundException("Instructor registration not found with id " + registrationId));
+    }
+
+    private InstructorRegistrationResponse approveRegistration(InstructorRegistrationEntity registration) {
         // create user
         UserEntity user = userService.createUserForRegistration(InstructorRegistrationMapper.toCreateUserCommand(registration));
-        
+
         // create associated instructor
         instructorService.createInstructorForUser(InstructorRegistrationMapper.toCreateInstructorCommand(registration), user);
-        
+
         // approve registration
         updateRegistration(registration, RegistrationStatus.APPROVED);
 
         return toResponse(registration);
     }
-    
-    @Transactional
-    @PreAuthorize(AuthorizationExpressions.ADMIN)
-    public InstructorRegistrationResponse rejectRegistration(int registrationId) {
-        InstructorRegistrationEntity registration = getPendingRegistrationOrThrow(registrationId);
+
+    private InstructorRegistrationResponse rejectRegistration(InstructorRegistrationEntity registration) {
         updateRegistration(registration, RegistrationStatus.REJECTED);
         return toResponse(registration);
-    }
-
-    /* ------------------------------------------------------ helpers ------------------------------------------------ */
-
-    private InstructorRegistrationResponse toResponse(InstructorRegistrationEntity registration) {
-        var actions = RegistrationActionPolicy.allowedActions(registration.getRegistrationStatus(), currentUserService.getCurrentUserRole());
-        return InstructorRegistrationMapper.toResponse(registration, actions);
     }
 
     private void updateRegistration(InstructorRegistrationEntity registration, RegistrationStatus status) {
@@ -98,17 +133,10 @@ public class InstructorRegistrationService {
         registration.setReviewedAt(Instant.now(clock));
         registration.setReviewedBy(currentUserService.getCurrentUser());
     }
-    
-    private InstructorRegistrationEntity getPendingRegistrationOrThrow(int registrationId) {
-        InstructorRegistrationEntity registration = instructorRegistrationRepo
-            .findById(registrationId)
-            .orElseThrow(() -> new ResourceNotFoundException("Instructor registration not found with id " + registrationId));
-        
-        RegistrationStatus currentStatus = registration.getRegistrationStatus();
-        if(registration.getRegistrationStatus() != RegistrationStatus.PENDING) {
-            throw new ConflictException("Registration already finalized with status " + currentStatus + " for given registration id " + registrationId);
-        }
-        return registration;
+
+    private InstructorRegistrationResponse toResponse(InstructorRegistrationEntity registration) {
+        var actions = RegistrationActionPolicy.allowedActions(registration.getRegistrationStatus(), currentUserService.getCurrentUserRole());
+        return InstructorRegistrationMapper.toResponse(registration, actions);
     }
 
 }
