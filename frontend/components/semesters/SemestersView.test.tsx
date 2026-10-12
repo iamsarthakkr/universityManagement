@@ -30,7 +30,7 @@ function asAdmin(routes: Parameters<typeof mockFetch>[0]) {
 
 async function openActions(semesterName: string) {
     const row = (await screen.findByText(semesterName)).closest('tr') as HTMLElement;
-    await userEvent.click(within(row).getByRole('button', { name: 'Open menu' }));
+    await userEvent.click(within(row).getByRole('button', { name: `Actions for ${semesterName}` }));
 }
 
 describe('SemestersView', () => {
@@ -59,7 +59,7 @@ describe('SemestersView', () => {
         const items = await screen.findAllByRole('menuitem');
         expect(items.map((item) => item.textContent)).toEqual(['Activate', 'Cancel semester']);
         const summerRow = screen.getByText('Summer 2026').closest('tr') as HTMLElement;
-        expect(within(summerRow).queryByRole('button', { name: 'Open menu' })).not.toBeInTheDocument();
+        expect(within(summerRow).queryByRole('button', { name: 'Actions for Summer 2026' })).not.toBeInTheDocument();
     });
 
     it('hides the actions column when nothing can change', async () => {

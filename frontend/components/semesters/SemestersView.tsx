@@ -7,20 +7,9 @@ import { toast } from 'sonner';
 import { PageHeader } from '@/components/common/PageHeader';
 import { QueryState } from '@/components/common/QueryState';
 import { SectionCard } from '@/components/common/SectionCard';
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from '@/components/ui/base/alertDialog';
 import { Button } from '@/components/ui/base/button';
 import { unwrap } from '@/lib/query';
 import { queryKeys } from '@/lib/queryKeys';
-import { formatSemesterName } from '@/lib/semester';
 import { useApi } from '@/stores/apiStore';
 import { Semester, SemesterAction, SemesterActionRequest } from '@/types/semester';
 import { SemestersTable } from './SemestersTable';
@@ -62,18 +51,9 @@ export function SemestersView() {
         },
     });
 
-    // Cancelling can't be undone, so it waits for confirmation; other actions run immediately.
-    const [confirmCancel, setConfirmCancel] = React.useState<Semester | null>(null);
-
     const { mutate: runAction } = semesterAction;
     const onAction = React.useCallback(
-        (semester: Semester, action: SemesterAction) => {
-            if (action === SemesterAction.CANCEL) {
-                setConfirmCancel(semester);
-                return;
-            }
-            runAction({ semesterId: semester.id, action });
-        },
+        (semester: Semester, action: SemesterAction) => runAction({ semesterId: semester.id, action }),
         [runAction],
     );
 
@@ -96,30 +76,6 @@ export function SemestersView() {
                     <SemestersTable semesters={semesters} pendingId={pendingId} onAction={onAction} />
                 </QueryState>
             </SectionCard>
-
-            <AlertDialog open={confirmCancel !== null} onOpenChange={(open) => !open && setConfirmCancel(null)}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>
-                            Cancel {confirmCancel ? formatSemesterName(confirmCancel) : 'semester'}?
-                        </AlertDialogTitle>
-                        <AlertDialogDescription>This can&apos;t be undone.</AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Keep semester</AlertDialogCancel>
-                        <AlertDialogAction
-                            variant="destructive"
-                            onClick={() => {
-                                if (confirmCancel) {
-                                    runAction({ semesterId: confirmCancel.id, action: SemesterAction.CANCEL });
-                                }
-                            }}
-                        >
-                            Cancel semester
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
         </div>
     );
 }

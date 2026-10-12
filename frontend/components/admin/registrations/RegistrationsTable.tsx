@@ -1,8 +1,9 @@
+import { ActionMenu } from '@/components/common/ActionMenu';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/base/table';
 import { formatDateTime, formatIsoDate } from '@/lib/date';
 import { fullName } from '@/lib/format';
 import { RegistrationAction, RegistrationKind, RegistrationResponse } from '@/types/registration';
-import { AdminActions, Status } from './common';
+import { REGISTRATION_ACTIONS, Status } from './common';
 
 interface Props {
     kind: RegistrationKind;
@@ -55,14 +56,13 @@ export const RegistrationsTable = (props: Props) => {
                         )}
                         {hasActions && (
                             <TableCell className="text-center">
-                                {item.allowedActions.length > 0 && (
-                                    <AdminActions
-                                        id={item.id}
-                                        actions={item.allowedActions}
-                                        disabled={pendingId === item.id}
-                                        onAction={onAction}
-                                    />
-                                )}
+                                <ActionMenu
+                                    actions={item.allowedActions}
+                                    config={REGISTRATION_ACTIONS}
+                                    subject={item.username}
+                                    disabled={pendingId === item.id}
+                                    onAction={(action) => onAction(item.id, action)}
+                                />
                             </TableCell>
                         )}
                     </TableRow>

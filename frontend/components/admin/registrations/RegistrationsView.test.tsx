@@ -17,7 +17,7 @@ function asAdmin(routes: Parameters<typeof mockFetch>[0]) {
 
 async function openActions(username: string) {
     const row = (await screen.findByText(username)).closest('tr') as HTMLElement;
-    await userEvent.click(within(row).getByRole('button', { name: 'Open menu' }));
+    await userEvent.click(within(row).getByRole('button', { name: `Actions for ${username}` }));
 }
 
 describe('RegistrationsView', () => {

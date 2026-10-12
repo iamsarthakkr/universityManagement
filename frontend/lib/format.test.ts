@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { fullName } from './format';
+import { offering } from '@/tests/fixtures';
+import { formatOffering, fullName } from './format';
 
 describe('fullName', () => {
     it.each([
@@ -10,5 +11,11 @@ describe('fullName', () => {
         [{ firstName: 'Ana' }, 'Ana'],
     ])('formats %j', (person, expected) => {
         expect(fullName(person)).toBe(expected);
+    });
+});
+
+describe('formatOffering', () => {
+    it('names the course, section and semester', () => {
+        expect(formatOffering(offering())).toBe('CS101 · Section A · Winter 2026');
     });
 });

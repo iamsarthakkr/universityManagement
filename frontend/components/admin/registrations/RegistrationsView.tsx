@@ -100,12 +100,7 @@ export const RegistrationsView = ({ kind, status }: Props) => {
 
             <SectionCard className="overflow-hidden p-0">
                 <QueryState query={registrationsQuery} isEmpty={items.length === 0} emptyMessage={emptyMessage}>
-                    <RegistrationsTable
-                        kind={kind}
-                        items={items}
-                        pendingId={pendingId}
-                        onAction={onAction}
-                    />
+                    <RegistrationsTable kind={kind} items={items} pendingId={pendingId} onAction={onAction} />
                 </QueryState>
             </SectionCard>
         </div>

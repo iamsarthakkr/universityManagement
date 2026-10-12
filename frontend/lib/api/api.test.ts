@@ -47,14 +47,18 @@ const CASES: Case[] = [
     {
         name: 'registration.getStudentRegistrations',
         route: 'GET /student-registrations',
-        call: (api) => api.registration.getStudentRegistrations({ status: RegistrationStatus.PENDING, departmentId: 2 }),
+        call: (api) =>
+            api.registration.getStudentRegistrations({ status: RegistrationStatus.PENDING, departmentId: 2 }),
         query: 'status=PENDING&departmentId=2',
     },
     {
         name: 'registration.performStudentRegistrationAction',
         route: 'POST /student-registrations/3/approve',
         call: (api) =>
-            api.registration.performStudentRegistrationAction({ registrationId: 3, action: RegistrationAction.APPROVE }),
+            api.registration.performStudentRegistrationAction({
+                registrationId: 3,
+                action: RegistrationAction.APPROVE,
+            }),
     },
     {
         name: 'registration.createInstructorRegistration',
@@ -72,7 +76,10 @@ const CASES: Case[] = [
         name: 'registration.performInstructorRegistrationAction',
         route: 'POST /instructor-registrations/3/reject',
         call: (api) =>
-            api.registration.performInstructorRegistrationAction({ registrationId: 3, action: RegistrationAction.REJECT }),
+            api.registration.performInstructorRegistrationAction({
+                registrationId: 3,
+                action: RegistrationAction.REJECT,
+            }),
     },
     {
         name: 'courses.getCourses',

@@ -1,8 +1,9 @@
+import { ActionMenu } from '@/components/common/ActionMenu';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/base/table';
 import { formatIsoDateRange } from '@/lib/date';
 import { formatSemesterName } from '@/lib/semester';
 import { Semester, SemesterAction } from '@/types/semester';
-import { SemesterActions } from './SemesterActions';
+import { SEMESTER_ACTIONS } from './semesterActions';
 import { SemesterStatusBadge } from './SemesterStatusBadge';
 
 type Props = {
@@ -41,13 +42,13 @@ export function SemestersTable({ semesters, pendingId, onAction }: Props) {
                         </TableCell>
                         {hasActions && (
                             <TableCell className="text-center">
-                                {semester.allowedActions.length > 0 && (
-                                    <SemesterActions
-                                        semester={semester}
-                                        disabled={pendingId === semester.id}
-                                        onAction={onAction}
-                                    />
-                                )}
+                                <ActionMenu
+                                    actions={semester.allowedActions}
+                                    config={SEMESTER_ACTIONS}
+                                    subject={formatSemesterName(semester)}
+                                    disabled={pendingId === semester.id}
+                                    onAction={(action) => onAction(semester, action)}
+                                />
                             </TableCell>
                         )}
                     </TableRow>
