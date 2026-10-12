@@ -22,11 +22,6 @@ public interface CourseOfferingRepo extends JpaRepository<CourseOfferingEntity, 
     })
     Optional<CourseOfferingEntity> findById(Integer id);
 
-    @EntityGraph(attributePaths = {
-        "course.department",
-        "instructor.department",
-        "semester"
-    })
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<CourseOfferingEntity> findForUpdateById(Integer id);
 
