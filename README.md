@@ -19,6 +19,7 @@ The project goes beyond basic CRUD by modelling real enrollment workflows includ
 - Database migrations with Flyway
 - Integration, repository and HTTP-level (MockMvc) testing
 - Concurrency-safe enrollment approval and registration review
+- Rate limiting: per IP for login and registration, per user once logged in, and per account for failed logins
 - Database-level duplicate enrollment protection
 - React dashboard for admins, instructors and students that renders only the actions the server allows (see `frontend/README.md`)
 
@@ -152,6 +153,22 @@ UNIQUE(student_id, course_offering_id)
 ```
 
 This provides a final consistency guarantee even if concurrent requests pass application-level validation simultaneously.
+
+## Rate Limiting
+
+Every request is counted against a token bucket before authentication runs, so a flood never reaches the database:
+
+| Requests | Counted per | Default |
+| --- | --- | --- |
+| `POST /auth/login` | IP | 20 per minute |
+| Failed logins | username, from any IP | 10 per 15 minutes |
+| `POST` registration requests | IP | 10 per hour |
+| Requests with a valid token | user | 120 per minute |
+| Everything else | IP | 60 per minute |
+
+Logged-in users are counted per user rather than per IP, because a whole campus can share one address. Only failed
+logins count against a username, so someone guessing at an account can't lock its owner out. Over a limit the API
+answers 429 with a `Retry-After` header. Health checks are never limited.
 
 ## Authorization
 

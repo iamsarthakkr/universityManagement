@@ -146,6 +146,16 @@ docker compose --env-file .env --env-file release.env ps
 
 The running versions are also visible at `GET /api/actuator/info` (API) and at the bottom of the user menu (frontend).
 
+### Rate limits
+
+The API limits requests per IP, per user and per failed-login username (defaults in `server/src/main/resources/application.yml`;
+see the README). It takes the client IP from Caddy's `X-Forwarded-For`, which is only trustworthy because the API port
+is bound to `127.0.0.1` and Caddy replaces any `X-Forwarded-For` a client sends. Keep both true: publishing the API
+port, or putting another proxy in front of Caddy without configuring its `trusted_proxies`, would let clients pick
+their own IP and dodge the limits. To change a limit in production, add its variable (e.g.
+`APP_RATE_LIMIT_LOGIN_REQUESTS: 30`) under the server's `environment` in `deploy/compose.yml`. Buckets are in memory,
+so a restart resets them.
+
 ### Demo data
 
 The API can seed demo data from a JSON file at startup and remove it again later. The format is
