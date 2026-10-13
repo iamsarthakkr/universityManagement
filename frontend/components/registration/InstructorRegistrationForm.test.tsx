@@ -20,7 +20,7 @@ async function fillForm() {
 describe('InstructorRegistrationForm', () => {
     it('submits the registration without a date of birth and clears the form', async () => {
         useAppStore.setState({ staticData: { departments: [{ id: 3, name: 'Physics', code: 'PH' }] } });
-        const { requests } = mockFetch({ 'POST /registration/instructor': jsonOk({ id: 1 }) });
+        const { requests } = mockFetch({ 'POST /instructor-registrations': jsonOk({ id: 1 }) });
         renderWithProviders(<InstructorRegistrationForm />);
 
         expect(screen.queryByLabelText('Date of birth')).not.toBeInTheDocument();
@@ -40,7 +40,7 @@ describe('InstructorRegistrationForm', () => {
 
     it('keeps the entered values when the server rejects the request', async () => {
         useAppStore.setState({ staticData: { departments: [{ id: 3, name: 'Physics', code: 'PH' }] } });
-        mockFetch({ 'POST /registration/instructor': jsonError(409, 'Username already taken') });
+        mockFetch({ 'POST /instructor-registrations': jsonError(409, 'Username or email is not available') });
         renderWithProviders(<InstructorRegistrationForm />);
 
         await fillForm();

@@ -2,7 +2,7 @@ import React from 'react';
 
 import { SectionCard } from '@/components/common/SectionCard';
 
-export function CourseFormLayout({ children }: { children: React.ReactNode }) {
+export function FormLayout({ children }: { children: React.ReactNode }) {
     return (
         <SectionCard>
             <div className="flex flex-col gap-8">{children}</div>
@@ -10,7 +10,7 @@ export function CourseFormLayout({ children }: { children: React.ReactNode }) {
     );
 }
 
-export function CourseFormSection({
+export function FormSection({
     label,
     description,
     children,

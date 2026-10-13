@@ -2,18 +2,30 @@
 
 Single-page dashboard UI (Vite + React Router) for the Spring Boot University Enrollment Management project.
 
-## Included
+## Screens
 
-- Login page
-- Student registration request page
-- Instructor registration request page
-- Admin dashboard
-- Pending student registration table
-- Pending instructor registration table
-- Dummy student dashboard pages
-- Dummy instructor dashboard pages
-- Shared dashboard shell, sidebar, buttons, inputs, stat cards, page headers
-- Tailwind CSS v4 styling
+**Everyone**: login, student and instructor registration requests, course catalogue (search and department filter), profile.
+
+**Admin**
+- Dashboard with pending requests, semesters open for registration and offerings scheduled
+- Student and instructor registrations: status tabs, department filter, approve/reject with confirmation
+- Semesters: list, create, detail with registration window, actions and the semester's offerings
+- Course offerings: list with semester/department/instructor filters, create (department narrows course and instructor)
+- Offering detail with its class list: approve or reject enrollment requests
+- Students and instructors by department; create course
+
+**Instructor**
+- Dashboard with offerings taught, students enrolled and offerings open for registration
+- My offerings grouped by semester, each opening its class list to approve or reject requests
+
+**Student**
+- Dashboard with a banner while registration is open, plus enrolled and pending counts
+- Enroll in courses: offerings open for registration (or all semesters), request a seat
+- Enrollments: every request with cancel and drop
+- My courses grouped by semester with credit totals
+
+Actions shown in the UI come from the server's `allowedActions`, so the UI never offers something the API would refuse.
+List filters are kept in the URL, so a filtered view survives refresh and can be shared.
 
 ## Run
 
@@ -38,16 +50,15 @@ Use Node 22 (`.nvmrc`). The frontend's Docker image is only used in production (
 The production image (`Dockerfile` + `nginx.conf`) and how it's deployed are described in the root
 [DEPLOY.md](../DEPLOY.md).
 
-## Suggested backend integration later
+## Known gaps (need server changes)
 
-- `POST /auth/login`
-- `POST /registration/student`
-- `POST /registration/instructor`
-- `GET /admin/student-registrations`
-- `GET /admin/instructor-registrations`
-- `POST /admin/student-registrations/{id}/approve`
-- `POST /admin/student-registrations/{id}/reject`
-- `POST /admin/instructor-registrations/{id}/approve`
-- `POST /admin/instructor-registrations/{id}/reject`
-
-Keep JWT handling in a small auth client/service first, then add middleware once API contracts are stable.
+- **Re-requesting an offering:** `ENROLL` ignores an existing request, so a card can show PENDING or REJECTED and still
+  offer "Request enrollment"; the server then answers `409`. Waiting on the decision about re-requests after a
+  cancelled, rejected or dropped enrollment.
+- **Where a course is offered:** `GET /course-offerings` has no `courseId` filter, so the catalogue can't list a
+  course's offerings.
+- **Pending requests per offering:** instructors can't see "3 requests waiting" on the dashboard without one roster
+  call per offering; a `pendingCount` on the offering response would cover it.
+- **Dashboard counts:** the admin dashboard loads the full pending-registration and offering lists to show their
+  lengths; a count or summary endpoint would avoid that as data grows.
+- **No pagination:** every list loads in full, which is fine at demo scale.
