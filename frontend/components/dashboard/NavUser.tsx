@@ -9,12 +9,14 @@ import {
 } from '@/components/ui/base/dropdownMenu';
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/base/sidebar';
 import { APP_VERSION } from '@/lib/appVersion';
-import { AuthUser } from '@/types/auth';
+import { fullName } from '@/lib/format';
+import { Me } from '@/types/auth';
 import { Callback } from '@/types/common';
-import { ChevronsUpDownIcon, LogOutIcon } from 'lucide-react';
+import { ChevronsUpDownIcon, LogOutIcon, UserIcon } from 'lucide-react';
+import { Link } from 'react-router';
 
 interface Props {
-    user: AuthUser;
+    user: Me;
     onLogout: Callback;
 }
 
@@ -28,7 +30,9 @@ function getInitials(username: string) {
 
 export function NavUser({ user, onLogout }: Props) {
     const { isMobile } = useSidebar();
-    const initials = getInitials(user.username);
+    // Admins have no profile, so they are shown by username.
+    const displayName = user.profile ? fullName(user.profile) : user.username;
+    const initials = getInitials(displayName);
 
     return (
         <SidebarMenu>
@@ -40,12 +44,12 @@ export function NavUser({ user, onLogout }: Props) {
                             className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                         >
                             <Avatar className="h-8 w-8 rounded-lg">
-                                <AvatarImage src={PROFILE_ICON} alt={user.username} />
+                                <AvatarImage src={PROFILE_ICON} alt={displayName} />
                                 <AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
                             </Avatar>
                             <div className="grid flex-1 text-left text-sm leading-tight">
-                                <span className="truncate font-medium">{user.username}</span>
-                                <span className="truncate text-xs">{user.email}</span>
+                                <span className="truncate font-medium">{displayName}</span>
+                                <span className="truncate text-xs capitalize">{user.role.toLowerCase()}</span>
                             </div>
                             <ChevronsUpDownIcon className="ml-auto size-4" />
                         </SidebarMenuButton>
@@ -59,18 +63,22 @@ export function NavUser({ user, onLogout }: Props) {
                         <DropdownMenuLabel className="p-0 font-normal">
                             <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                                 <Avatar className="h-8 w-8 rounded-lg">
-                                    <AvatarImage src={PROFILE_ICON} alt={user.username} />
+                                    <AvatarImage src={PROFILE_ICON} alt={displayName} />
                                     <AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
                                 </Avatar>
                                 <div className="grid flex-1 text-left text-sm leading-tight">
-                                    <span className="truncate font-medium">
-                                        {user.username} ({user.role.toLocaleLowerCase()})
-                                    </span>
-                                    <span className="truncate text-xs">{user.email}</span>
+                                    <span className="truncate font-medium">{displayName}</span>
+                                    <span className="truncate text-xs text-muted-foreground">{user.email}</span>
                                 </div>
                             </div>
                         </DropdownMenuLabel>
                         <DropdownMenuSeparator />
+                        <DropdownMenuItem asChild>
+                            <Link to="/dashboard/profile">
+                                <UserIcon />
+                                Profile
+                            </Link>
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={onLogout}>
                             <LogOutIcon />
                             Log out

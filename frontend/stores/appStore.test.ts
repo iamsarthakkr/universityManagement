@@ -3,13 +3,13 @@ import { describe, expect, it, vi } from 'vitest';
 import { setUnauthorizedHandler } from '@/lib/http';
 import { queryClient } from '@/lib/query';
 import { getToken, setToken } from '@/lib/session';
+import { me } from '@/tests/fixtures';
 import { jsonError, jsonOk, mockFetch } from '@/tests/mockFetch';
 import { AppState } from '@/types/app';
-import { AuthUser } from '@/types/auth';
 import { useAppStore } from './appStore';
 
 const DEPARTMENTS = [{ id: 1, name: 'Computer Science', code: 'CS' }];
-const USER: AuthUser = { id: '1', username: 'sam', email: 'sam@uni.edu', role: 'ADMIN' };
+const USER = me('STUDENT');
 
 const actions = () => useAppStore.getState().actions;
 
@@ -32,7 +32,7 @@ describe('appStore.init', () => {
 
     it('restores the session when a valid token is stored', async () => {
         setToken('valid');
-        mockFetch({ 'GET /departments': jsonOk(DEPARTMENTS), 'GET /auth/me': jsonOk(USER) });
+        mockFetch({ 'GET /departments': jsonOk(DEPARTMENTS), 'GET /me': jsonOk(USER) });
 
         await actions().init();
 
@@ -42,7 +42,7 @@ describe('appStore.init', () => {
     it('logs out and clears the token when the stored token is rejected', async () => {
         withUnauthorizedHandler();
         setToken('expired');
-        mockFetch({ 'GET /departments': jsonOk(DEPARTMENTS), 'GET /auth/me': jsonError(401, 'Invalid token') });
+        mockFetch({ 'GET /departments': jsonOk(DEPARTMENTS), 'GET /me': jsonError(401, 'Invalid token') });
 
         await actions().init();
 
@@ -52,7 +52,7 @@ describe('appStore.init', () => {
 
     it('fails without logging out when the session check hits a server error', async () => {
         setToken('valid');
-        mockFetch({ 'GET /departments': jsonOk(DEPARTMENTS), 'GET /auth/me': jsonError(500, 'Server error') });
+        mockFetch({ 'GET /departments': jsonOk(DEPARTMENTS), 'GET /me': jsonError(500, 'Server error') });
 
         await actions().init();
 
@@ -69,7 +69,7 @@ describe('appStore.init', () => {
         expect(useAppStore.getState().appState).toBe(AppState.FAILED);
         expect(getToken()).toBe('valid');
 
-        mockFetch({ 'GET /departments': jsonOk(DEPARTMENTS), 'GET /auth/me': jsonOk(USER) });
+        mockFetch({ 'GET /departments': jsonOk(DEPARTMENTS), 'GET /me': jsonOk(USER) });
         await actions().init();
 
         expect(useAppStore.getState()).toMatchObject({ appState: AppState.READY, user: USER, error: null });
@@ -141,7 +141,7 @@ describe('appStore auth actions', () => {
     it('expireSession clears the token, the user and the query cache', () => {
         setToken('valid');
         useAppStore.setState({ user: USER });
-        queryClient.setQueryData(['courses', 'catalogue'], []);
+        queryClient.setQueryData(['courses', 'list', {}], []);
 
         actions().expireSession();
 

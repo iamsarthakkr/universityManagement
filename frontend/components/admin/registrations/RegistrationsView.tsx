@@ -1,103 +1,143 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useMutationState, useQuery, useQueryClient } from '@tanstack/react-query';
 import React from 'react';
 import { toast } from 'sonner';
 
+import { DepartmentFilter } from '@/components/common/filters/DepartmentFilter';
+import { FilterBar } from '@/components/common/filters/FilterBar';
 import { PageHeader } from '@/components/common/PageHeader';
 import { QueryState } from '@/components/common/QueryState';
 import { SectionCard } from '@/components/common/SectionCard';
+import { StatusTab, StatusTabs } from '@/components/common/StatusTabs';
+import { enumParam, idParam, useFilterParams } from '@/hooks/useFilterParams';
 import { unwrap } from '@/lib/query';
 import { queryKeys } from '@/lib/queryKeys';
 import { useApi } from '@/stores/apiStore';
 import { RemoteCall } from '@/types/common';
 import { IApi } from '@/types/IApi';
-import { RegistrationKind, RegistrationResponse, RegistrationStatus } from '@/types/registration';
+import {
+    RegistrationAction,
+    RegistrationFilter,
+    RegistrationKind,
+    RegistrationResponse,
+    RegistrationStatus,
+} from '@/types/registration';
 import { RegistrationsTable } from './RegistrationsTable';
 
 type RegistrationApi = {
-    list: RemoteCall<RegistrationStatus, RegistrationResponse[]>;
-    approve: RemoteCall<number, unknown>;
-    reject: RemoteCall<number, unknown>;
+    list: RemoteCall<RegistrationFilter, RegistrationResponse[]>;
+    performAction: RemoteCall<{ registrationId: number; action: RegistrationAction }, RegistrationResponse>;
 };
 
 function getRegistrationApi(api: IApi, kind: RegistrationKind): RegistrationApi {
     switch (kind) {
         case 'student':
             return {
-                list: api.admin.getStudentRegistrations,
-                approve: api.admin.approveStudentRegistration,
-                reject: api.admin.rejectStudentRegistration,
+                list: api.registration.getStudentRegistrations,
+                performAction: api.registration.performStudentRegistrationAction,
             };
         case 'instructor':
             return {
-                list: api.admin.getInstructorRegistrations,
-                approve: api.admin.approveInstructorRegistration,
-                reject: api.admin.rejectInstructorRegistration,
+                list: api.registration.getInstructorRegistrations,
+                performAction: api.registration.performInstructorRegistrationAction,
             };
     }
 }
 
-const STATUS_LABEL: Record<RegistrationStatus, string> = {
-    [RegistrationStatus.PENDING]: 'Pending',
-    [RegistrationStatus.APPROVED]: 'Approved',
-    [RegistrationStatus.REJECTED]: 'Rejected',
+const ACTION_SUCCESS: Record<RegistrationAction, string> = {
+    [RegistrationAction.APPROVE]: 'Request approved successfully!',
+    [RegistrationAction.REJECT]: 'Request rejected successfully!',
 };
 
-type Props = {
-    kind: RegistrationKind;
-    status: RegistrationStatus;
+const FILTERS = {
+    status: enumParam(Object.values(RegistrationStatus)),
+    departmentId: idParam,
 };
 
-export const RegistrationsView = ({ kind, status }: Props) => {
+const STATUS_TABS: StatusTab<RegistrationStatus>[] = [
+    { value: RegistrationStatus.PENDING, label: 'Pending' },
+    { value: RegistrationStatus.APPROVED, label: 'Approved' },
+    { value: RegistrationStatus.REJECTED, label: 'Rejected' },
+];
+
+const KIND_LABEL: Record<RegistrationKind, string> = {
+    student: 'Student',
+    instructor: 'Instructor',
+};
+
+export const RegistrationsView = ({ kind }: { kind: RegistrationKind }) => {
     const api = useApi();
     const registrationApi = React.useMemo(() => getRegistrationApi(api, kind), [api, kind]);
-
-    const statusLabel = STATUS_LABEL[status];
-    const title = `${statusLabel} ${kind} registrations`;
-    const description =
-        status === RegistrationStatus.PENDING
-            ? `Review pending ${kind} registration requests.`
-            : `${statusLabel} ${kind} registration requests.`;
-    const emptyMessage = `No ${statusLabel.toLowerCase()} ${kind} registration requests.`;
-
     const queryClient = useQueryClient();
 
+    const [filters, setFilters] = useFilterParams(FILTERS);
+    const status = filters.status ?? RegistrationStatus.PENDING;
+    const filter = { status, departmentId: filters.departmentId };
+
     const registrationsQuery = useQuery({
-        queryKey: queryKeys.registrations.list(kind, status),
-        queryFn: () => unwrap(registrationApi.list(status)),
+        queryKey: queryKeys.registrations.list(kind, filter),
+        queryFn: () => unwrap(registrationApi.list(filter)),
     });
     const items = registrationsQuery.data ?? [];
 
+    const mutationKey = ['registrations', kind, 'action'];
     const registrationAction = useMutation({
-        mutationFn: ({ id, action }: { id: number; action: 'approve' | 'reject' }) =>
-            unwrap(action === 'approve' ? registrationApi.approve(id) : registrationApi.reject(id)),
+        mutationKey,
+        mutationFn: ({ id, action }: { id: number; action: RegistrationAction }) =>
+            unwrap(registrationApi.performAction({ registrationId: id, action })),
         onSuccess: (_, { action }) => {
-            toast.success(action === 'approve' ? 'Request approved successfully!' : 'Request rejected successfully!');
-            return queryClient.invalidateQueries({ queryKey: queryKeys.registrations.byKind(kind) });
+            toast.success(ACTION_SUCCESS[action]);
+            // Approving creates the account, so the people lists change too.
+            return Promise.all([
+                queryClient.invalidateQueries({ queryKey: queryKeys.registrations.byKind(kind) }),
+                queryClient.invalidateQueries({
+                    queryKey: kind === 'student' ? queryKeys.students.all : queryKeys.instructors.all,
+                }),
+            ]);
         },
         onError: (error, { action }) => {
-            toast.error(`Failed to ${action} request`, { description: error.message });
+            toast.error(`Failed to ${action.toLowerCase()} request`, { description: error.message });
         },
     });
 
-    const pendingId = registrationAction.isPending ? (registrationAction.variables?.id ?? null) : null;
-
+    const pendingIds = useMutationState({
+        filters: { mutationKey, status: 'pending' },
+        select: (mutation) => (mutation.state.variables as { id: number }).id,
+    });
     const { mutate: runAction } = registrationAction;
-    const onApprove = React.useCallback((id: number) => runAction({ id, action: 'approve' }), [runAction]);
-    const onReject = React.useCallback((id: number) => runAction({ id, action: 'reject' }), [runAction]);
+    const onAction = React.useCallback(
+        (id: number, action: RegistrationAction) => runAction({ id, action }),
+        [runAction],
+    );
+
+    const emptyMessage = filters.departmentId
+        ? `No ${status.toLowerCase()} ${kind} requests in this department.`
+        : `No ${status.toLowerCase()} ${kind} registration requests.`;
 
     return (
         <div className="space-y-6">
-            <PageHeader title={title} description={description} />
+            <PageHeader
+                title={`${KIND_LABEL[kind]} registrations`}
+                description={`Review ${kind} account requests. Approving one creates the account.`}
+            />
+
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                <StatusTabs
+                    label="Registration status"
+                    tabs={STATUS_TABS}
+                    value={status}
+                    onChange={(next) => setFilters({ status: next })}
+                />
+                <FilterBar>
+                    <DepartmentFilter
+                        value={filters.departmentId}
+                        onChange={(departmentId) => setFilters({ departmentId })}
+                    />
+                </FilterBar>
+            </div>
 
             <SectionCard className="overflow-hidden p-0">
                 <QueryState query={registrationsQuery} isEmpty={items.length === 0} emptyMessage={emptyMessage}>
-                    <RegistrationsTable
-                        kind={kind}
-                        items={items}
-                        pendingId={pendingId}
-                        onApprove={onApprove}
-                        onReject={onReject}
-                    />
+                    <RegistrationsTable kind={kind} items={items} pendingIds={pendingIds} onAction={onAction} />
                 </QueryState>
             </SectionCard>
         </div>

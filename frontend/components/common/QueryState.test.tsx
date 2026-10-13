@@ -24,7 +24,7 @@ function renderState(query: UseQueryResult<unknown, Error>, isEmpty = false) {
 }
 
 describe('QueryState', () => {
-    it('shows a spinner while loading', () => {
+    it('shows placeholders while loading', () => {
         renderState(queryResult({ isPending: true }));
 
         expect(screen.getByRole('status', { name: 'Loading' })).toBeInTheDocument();

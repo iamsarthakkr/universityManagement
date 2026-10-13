@@ -1,52 +1,31 @@
-import { Button } from '@/components/ui/base/button';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/base/dropdownMenu';
-import { cn } from '@/lib/cn';
-import { Callback1 } from '@/types/common';
-import { RegistrationStatus } from '@/types/registration';
-import { MoreHorizontalIcon } from 'lucide-react';
+import { ActionConfig } from '@/components/common/ActionMenu';
+import { StatusBadge, StatusTone } from '@/components/ui/StatusBadge';
+import { RegistrationAction, RegistrationStatus } from '@/types/registration';
 
-const statusStyles: Record<RegistrationStatus, string> = {
-    PENDING:
-        'bg-yellow-50 text-yellow-700 ring-yellow-600/20 dark:bg-yellow-400/10 dark:text-yellow-300 dark:ring-yellow-400/20',
-    APPROVED:
-        'bg-green-50 text-green-700 ring-green-600/20 dark:bg-green-400/10 dark:text-green-300 dark:ring-green-400/20',
-    REJECTED: 'bg-red-50 text-red-700 ring-red-600/20 dark:bg-red-400/10 dark:text-red-300 dark:ring-red-400/20',
+const STATUS_TONE: Record<RegistrationStatus, StatusTone> = {
+    PENDING: 'warning',
+    APPROVED: 'success',
+    REJECTED: 'danger',
 };
 
-type ActionsProps = {
-    id: number;
-    disabled?: boolean;
-    onApprove: Callback1<number>;
-    onReject: Callback1<number>;
-};
-
-export const AdminActions = (props: ActionsProps) => {
-    const { id, disabled = false, onApprove, onReject } = props;
-
-    return (
-        <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="size-8">
-                    <MoreHorizontalIcon className="size-4" />
-                    <span className="sr-only">Open menu</span>
-                </Button>
-            </DropdownMenuTrigger>
-
-            <DropdownMenuContent align="end">
-                <DropdownMenuItem disabled={disabled} onClick={() => onApprove(id)}>
-                    Approve
-                </DropdownMenuItem>
-                <DropdownMenuItem disabled={disabled} onClick={() => onReject(id)} variant="destructive">
-                    Reject
-                </DropdownMenuItem>
-            </DropdownMenuContent>
-        </DropdownMenu>
-    );
+export const REGISTRATION_ACTIONS: Record<RegistrationAction, ActionConfig> = {
+    [RegistrationAction.APPROVE]: {
+        label: 'Approve',
+        confirm: {
+            title: (username) => `Approve ${username}?`,
+            description: 'This creates their account and they can log in right away.',
+            cancelLabel: 'Not yet',
+        },
+    },
+    [RegistrationAction.REJECT]: {
+        label: 'Reject',
+        destructive: true,
+        confirm: {
+            title: (username) => `Reject ${username}?`,
+            description: 'They can submit a new request later with the same username and email.',
+            cancelLabel: 'Keep request',
+        },
+    },
 };
 
 type StatusProps = {
@@ -54,14 +33,5 @@ type StatusProps = {
 };
 
 export const Status = ({ status }: StatusProps) => {
-    return (
-        <span
-            className={cn(
-                'inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset',
-                statusStyles[status],
-            )}
-        >
-            {status}
-        </span>
-    );
+    return <StatusBadge tone={STATUS_TONE[status]}>{status}</StatusBadge>;
 };
