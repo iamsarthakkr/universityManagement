@@ -1,10 +1,11 @@
 package com.sarthak.universityManagement.course;
 
 import com.sarthak.universityManagement.auth.AuthorizationExpressions;
+import com.sarthak.universityManagement.common.exceptions.ConflictException;
 import com.sarthak.universityManagement.common.exceptions.ResourceNotFoundException;
-import com.sarthak.universityManagement.course.dto.CourseCatalogueResponse;
 import com.sarthak.universityManagement.course.dto.CourseRequest;
 import com.sarthak.universityManagement.course.dto.CourseResponse;
+import com.sarthak.universityManagement.course.dto.CourseFilter;
 import com.sarthak.universityManagement.department.DepartmentService;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +15,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-@Transactional
 public class CourseService {
     private final CourseRepo courseRepo;
     private final DepartmentService departmentService;
@@ -26,9 +26,18 @@ public class CourseService {
     }
 
     @Transactional(readOnly = true)
-    public List<CourseCatalogueResponse> getCoursesCatalogue() {
-        var courses = courseRepo.findAllByOrderByDepartmentNameAsc();
-        return CourseMapper.toCatalogue(courses);
+    public List<CourseResponse> getCourses(CourseFilter filter) {
+        return courseRepo
+            .search(filter)
+            .stream()
+            .map(CourseMapper::toResponse)
+            .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public CourseResponse getCourse(Integer id) {
+        var entity = getCourseEntity(id);
+        return CourseMapper.toResponse(entity);
     }
 
     @Transactional(readOnly = true)
@@ -38,8 +47,12 @@ public class CourseService {
             .orElseThrow(() -> new ResourceNotFoundException("Course with id: " + courseId + " not found!"));
     }
 
+    @Transactional
     @PreAuthorize(AuthorizationExpressions.ADMIN)
     public CourseResponse createCourse(CourseRequest courseRequest) {
+        if(courseRepo.existsByCode(courseRequest.code())) {
+            throw new ConflictException("Course with code " + courseRequest.code() + " already exists!");
+        }
         var departmentId = courseRequest.departmentId();
 
         var department = departmentService.getDepartmentById(departmentId);

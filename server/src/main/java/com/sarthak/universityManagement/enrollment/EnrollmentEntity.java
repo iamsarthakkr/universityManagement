@@ -22,6 +22,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+
 @Entity
 @Table(
     name = "enrollment",
@@ -53,11 +54,15 @@ public class EnrollmentEntity extends BaseEntity {
     private EnrollmentStatus status;
 
     public boolean canTransitionTo(EnrollmentStatus newStatus) {
-        return switch (newStatus) {
-            case PENDING -> false;
-            case ENROLLED, CANCELLED, REJECTED -> status == EnrollmentStatus.PENDING;
-            case DROPPED -> status == EnrollmentStatus.ENROLLED;
-        };
+        return status.canTransitionTo(newStatus);
+    }
+
+    public boolean isTaughtBy(Integer userId) {
+        return courseOffering.getInstructor().getUser().getId().equals(userId);
+    }
+
+    public boolean belongsToUser(Integer userId) {
+        return student.getUser().getId().equals(userId);
     }
 
 }

@@ -1,14 +1,9 @@
 package com.sarthak.universityManagement.course;
 
-import com.sarthak.universityManagement.course.dto.CourseCatalogueResponse;
 import com.sarthak.universityManagement.course.dto.CourseRequest;
 import com.sarthak.universityManagement.course.dto.CourseResponse;
+import com.sarthak.universityManagement.course.dto.CourseSummary;
 import com.sarthak.universityManagement.department.DepartmentMapper;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public class CourseMapper {
     public static CourseEntity toEntity(CourseRequest courseRequest) {
@@ -24,8 +19,8 @@ public class CourseMapper {
     public static CourseResponse toResponse(CourseEntity courseEntity) {
         return CourseResponse
             .builder()
-            .courseId(courseEntity.getId())
-            .departmentId(courseEntity.getDepartment().getId())
+            .id(courseEntity.getId())
+            .department(DepartmentMapper.toResponse(courseEntity.getDepartment()))
             .code(courseEntity.getCode())
             .title(courseEntity.getTitle())
             .description(courseEntity.getDescription())
@@ -33,22 +28,12 @@ public class CourseMapper {
             .build();
     }
 
-    public static List<CourseCatalogueResponse> toCatalogue(List<CourseEntity> courses) {
-        Map<Integer, List<CourseEntity>> coursesMap = new HashMap<>();
-        Map<Integer, String> departmentNameMap = new HashMap<>();
-        courses.forEach(course -> {
-            var department = course.getDepartment();
-            if(!coursesMap.containsKey(department.getId())) {
-                coursesMap.put(department.getId(), new ArrayList<>());
-                departmentNameMap.put(department.getId(), department.getName());
-            }
-            coursesMap.get(department.getId()).add(course);
-        });
-
-        List<CourseCatalogueResponse> ret = new ArrayList<>();
-        coursesMap.forEach((key, courseList) ->
-            ret.add(new CourseCatalogueResponse(key, departmentNameMap.get(key),  courseList.stream().map(CourseMapper::toResponse).toList()))
-        );
-        return ret;
+    public static CourseSummary toSummary(CourseEntity courseEntity) {
+        return CourseSummary.builder()
+            .id(courseEntity.getId())
+            .code(courseEntity.getCode())
+            .title(courseEntity.getTitle())
+            .credits(courseEntity.getCredits())
+            .build();
     }
 }

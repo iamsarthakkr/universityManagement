@@ -1,7 +1,7 @@
 package com.sarthak.universityManagement.registration.student;
 
 import com.sarthak.universityManagement.common.entity.BaseEntity;
-import com.sarthak.universityManagement.common.types.RegistrationStatus;
+import com.sarthak.universityManagement.registration.types.RegistrationStatus;
 import com.sarthak.universityManagement.department.DepartmentEntity;
 import com.sarthak.universityManagement.user.UserEntity;
 import jakarta.persistence.Column;
@@ -14,9 +14,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -29,11 +27,7 @@ import java.time.LocalDate;
 @Builder
 @Entity
 @Table(
-        name = "student_registration",
-        uniqueConstraints = {
-                @UniqueConstraint(name = "unique_student_registration_username", columnNames = { "username" }),
-                @UniqueConstraint(name = "unique_student_registration_email", columnNames = { "email" })
-        }
+        name = "student_registration"
 )
 @Getter
 @Setter

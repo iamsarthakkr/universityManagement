@@ -1,7 +1,16 @@
 api:
   - version: 0.0.1
     notes: Initial release
+  - version: 1.0.0
+    notes: >-
+      Redesigned API (plural resources, /me, shared filters, allowedActions), semester, offering, enrollment and
+      registration workflows with locking, demo data seeding with rollback, rate limiting, and CORS origins from
+      configuration
 
 frontend:
   - version: 0.0.1
     notes: Initial release
+  - version: 1.0.0
+    notes: >-
+      Dashboard for admins, instructors and students on the redesigned API: semesters, offerings, enrollments,
+      registration review, people pages and catalogue search

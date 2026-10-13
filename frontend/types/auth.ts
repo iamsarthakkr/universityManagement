@@ -1,3 +1,5 @@
+import type { Department } from './department';
+
 export type Role = 'ADMIN' | 'STUDENT' | 'INSTRUCTOR';
 
 export type LoginRequest = {
@@ -7,12 +9,21 @@ export type LoginRequest = {
 
 export type LoginResponse = {
     accessToken: string;
-    user: AuthUser;
+    user: Me;
 };
 
-export type AuthUser = {
-    id: string;
+export type Profile = {
+    id: number;
+    firstName: string;
+    lastName: string | null;
+    department: Department;
+};
+
+export type Me = {
+    id: number;
     username: string;
     email: string;
     role: Role;
+    // null for admins.
+    profile: Profile | null;
 };

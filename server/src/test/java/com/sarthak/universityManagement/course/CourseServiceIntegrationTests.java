@@ -1,17 +1,17 @@
 package com.sarthak.universityManagement.course;
 
+import com.sarthak.universityManagement.common.exceptions.ConflictException;
 import com.sarthak.universityManagement.common.exceptions.ResourceNotFoundException;
 import com.sarthak.universityManagement.config.IntegrationTests;
-import com.sarthak.universityManagement.course.dto.CourseCatalogueResponse;
 import com.sarthak.universityManagement.course.dto.CourseRequest;
 import com.sarthak.universityManagement.course.dto.CourseResponse;
-import com.sarthak.universityManagement.testUtils.TestSecurityUtils;
+import com.sarthak.universityManagement.course.dto.CourseFilter;
+import com.sarthak.universityManagement.testUtils.security.TestAuthentication;
 import com.sarthak.universityManagement.testUtils.fixtures.CourseFixtures;
 import com.sarthak.universityManagement.testUtils.fixtures.DepartmentFixtures;
 import com.sarthak.universityManagement.testUtils.fixtures.UserFixtures;
 import com.sarthak.universityManagement.testUtils.seeders.CourseSeeder;
 import com.sarthak.universityManagement.testUtils.seeders.DepartmentSeeder;
-import com.sarthak.universityManagement.testUtils.seeders.InstructorSeeder;
 import com.sarthak.universityManagement.testUtils.seeders.UserSeeder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,6 +20,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -32,8 +34,6 @@ public class CourseServiceIntegrationTests extends IntegrationTests {
     @Autowired
     private UserSeeder userSeeder;
     @Autowired
-    private InstructorSeeder instructorSeeder;
-    @Autowired
     private DepartmentSeeder departmentSeeder;
     @Autowired
     private CourseSeeder courseSeeder;
@@ -41,12 +41,12 @@ public class CourseServiceIntegrationTests extends IntegrationTests {
     @BeforeEach
     void setupAdmin() {
         var user = userSeeder.saveUser(UserFixtures.user().username("seed-user").email("seed@abc").build());
-        TestSecurityUtils.authenticateAs(user);
+        TestAuthentication.asUser(user);
     }
 
     @AfterEach
     void cleanup() {
-        TestSecurityUtils.clearAuthentication();
+        TestAuthentication.clear();
     }
 
     @Nested
@@ -63,7 +63,29 @@ public class CourseServiceIntegrationTests extends IntegrationTests {
             assertEquals(req.title(), resp.title());
             assertEquals(req.credits(), resp.credits());
 
-            assertNotNull(courseRepo.findById(resp.courseId()));
+            var saved = courseRepo.findById(resp.id()).orElseThrow();
+            assertEquals(req.code(), saved.getCode());
+            assertEquals(req.title(), saved.getTitle());
+            assertEquals(req.description(), saved.getDescription());
+            assertEquals(req.credits(), saved.getCredits());
+            assertEquals(department.getId(), saved.getDepartment().getId());
+        }
+
+        @Test
+        void shouldRejectDuplicateCode() {
+            var department = departmentSeeder.saveDefault("dep-test");
+            courseService.createCourse(CourseFixtures.courseRequest(department.getId()).code("CS101").build());
+
+            var duplicate = CourseFixtures.courseRequest(department.getId()).code("CS101").title("another title").build();
+            var ex = assertThrows(ConflictException.class, () -> courseService.createCourse(duplicate));
+
+            assertEquals("Course with code CS101 already exists!", ex.getMessage());
+            assertEquals(1, courseRepo.count());
+        }
+
+        @Test
+        void shouldThrowWhenCourseDoesNotExist() {
+            assertThrows(ResourceNotFoundException.class, () -> courseService.getCourse(Integer.MAX_VALUE));
         }
 
         @Test
@@ -76,40 +98,61 @@ public class CourseServiceIntegrationTests extends IntegrationTests {
     }
 
     @Nested
-    class CatalogueTests {
-        @Test
-        void shouldReturnEmptyCatalogueWhenNoCoursesExist() {
-            List<CourseCatalogueResponse> catalogue = courseService.getCoursesCatalogue();
+    class ListTests {
+        private static final CourseFilter NO_FILTER = new CourseFilter(null);
 
-            assertNotNull(catalogue);
-            assertTrue(catalogue.isEmpty());
+        @Test
+        void shouldReturnEmptyListWhenNoCoursesExist() {
+            assertTrue(courseService.getCourses(NO_FILTER).isEmpty());
         }
 
         @Test
-        void shouldReturnCatalogueGroupedByDepartment() {
-            var department1 = departmentSeeder.save(DepartmentFixtures.departmentWithCode("cse").name("Computer Science").build());
-            var department2 = departmentSeeder.save(DepartmentFixtures.departmentWithCode("maths").name("Mathematics").build());
+        void shouldReturnFlatListOrderedByDepartmentNameThenCode() {
+            var maths = departmentSeeder.save(DepartmentFixtures.departmentWithCode("maths").name("Mathematics").build());
+            var cs = departmentSeeder.save(DepartmentFixtures.departmentWithCode("cse").name("Computer Science").build());
 
-            courseSeeder.save(CourseFixtures.course(department1).code("CS100").build());
-            courseSeeder.save(CourseFixtures.course(department1).code("CS101").build());
-            courseSeeder.save(CourseFixtures.course(department2).code("MT101").build());
+            courseSeeder.save(CourseFixtures.course(maths).code("MT101").build());
+            courseSeeder.save(CourseFixtures.course(cs).code("CS101").build());
+            courseSeeder.save(CourseFixtures.course(cs).code("CS100").build());
 
-            List<CourseCatalogueResponse> catalogue = courseService.getCoursesCatalogue();
+            List<CourseResponse> courses = courseService.getCourses(NO_FILTER);
 
-            assertNotNull(catalogue);
-            assertEquals(2, catalogue.size());
+            assertEquals(List.of("CS100", "CS101", "MT101"), courses.stream().map(CourseResponse::code).toList());
+            // Each course carries its department, so clients can group without another request
+            assertEquals(List.of("Computer Science", "Computer Science", "Mathematics"),
+                courses.stream().map(c -> c.department().name()).toList());
+        }
 
-            CourseCatalogueResponse csDept = catalogue.stream()
-                    .filter(c -> c.departmentName().equals("Computer Science"))
-                    .findFirst()
-                    .orElseThrow();
-            assertEquals(2, csDept.courseList().size());
+        // A null filter value means "don't filter", not "match courses with no department"
+        @Test
+        void shouldReturnCoursesFromEveryDepartmentWhenFilterIsEmpty() {
+            var maths = departmentSeeder.saveDefault("maths");
+            var cs = departmentSeeder.saveDefault("cse");
 
-            CourseCatalogueResponse mathDept = catalogue.stream()
-                    .filter(c -> c.departmentName().equals("Mathematics"))
-                    .findFirst()
-                    .orElseThrow();
-            assertEquals(1, mathDept.courseList().size());
+            courseSeeder.save(CourseFixtures.course(maths).code("MT101").build());
+            courseSeeder.save(CourseFixtures.course(cs).code("CS101").build());
+
+            List<CourseResponse> courses = courseService.getCourses(NO_FILTER);
+
+            assertEquals(2, courses.size());
+            assertEquals(
+                Set.of(maths.getId(), cs.getId()),
+                courses.stream().map(c -> c.department().id()).collect(Collectors.toSet())
+            );
+        }
+
+        @Test
+        void shouldReturnOnlyCoursesOfFilteredDepartment() {
+            var maths = departmentSeeder.saveDefault("maths");
+            var cs = departmentSeeder.saveDefault("cse");
+
+            courseSeeder.save(CourseFixtures.course(maths).code("MT101").build());
+            courseSeeder.save(CourseFixtures.course(cs).code("CS101").build());
+
+            List<CourseResponse> courses = courseService.getCourses(new CourseFilter(cs.getId()));
+
+            assertEquals(List.of("CS101"), courses.stream().map(CourseResponse::code).toList());
+            assertEquals(cs.getId(), courses.getFirst().department().id());
         }
     }
 

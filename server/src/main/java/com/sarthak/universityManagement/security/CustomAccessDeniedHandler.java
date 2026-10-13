@@ -28,12 +28,12 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
         HttpServletResponse response,
         AccessDeniedException accessDeniedException
     ) throws IOException, ServletException {
-        LOG.error(accessDeniedException.getMessage(), accessDeniedException);
+        LOG.warn("Access denied: {}", accessDeniedException.getMessage());
         
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         ApiErrorResponse<Void> error = ApiErrorResponse.errorMessage(
-            "Access denied"
+            "You do not have permission to perform this action"
         );
         objectMapper.writeValue(response.getWriter(), error);
     }

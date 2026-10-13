@@ -1,7 +1,11 @@
 package com.sarthak.universityManagement.registration.instructor;
 
+import java.util.List;
+import com.sarthak.universityManagement.testUtils.security.TestAuthentication;
+import com.sarthak.universityManagement.testUtils.security.RoleActor;
+import org.junit.jupiter.api.AfterEach;
 import com.sarthak.universityManagement.common.exceptions.ConflictException;
-import com.sarthak.universityManagement.common.types.RegistrationStatus;
+import com.sarthak.universityManagement.registration.types.RegistrationStatus;
 import com.sarthak.universityManagement.common.types.Role;
 import com.sarthak.universityManagement.config.IntegrationTests;
 import com.sarthak.universityManagement.registration.instructor.dto.InstructorRegistrationRequest;
@@ -44,6 +48,12 @@ public class InstructorRegistrationServiceIntegrationTests extends IntegrationTe
                 .studentRegistration()
                 .department(savedDepartment);
     }
+
+    @AfterEach
+    void clearAuthentication() {
+        TestAuthentication.clear();
+    }
+
 
     @Test
     void shouldCreateInstructorRegistrationSuccessfully() {
@@ -133,5 +143,53 @@ public class InstructorRegistrationServiceIntegrationTests extends IntegrationTe
         var entity = instructorRegistrationRepo.findById(resp.id());
         assertTrue(entity.isPresent());
         assertEquals("instructor7", entity.get().getUsername());
+    }
+
+    @Test
+    void shouldCreateRegistrationForAnonymousVisitor() {
+        RoleActor.ANONYMOUS.authenticate();
+        var req = instructorRegistrationRequestBuilder.username("anonymous1").email("anonymous1@example.com").build();
+
+        var resp = service.createRegistration(req);
+
+        assertEquals(RegistrationStatus.PENDING, resp.status());
+        assertEquals(List.of(), resp.allowedActions());
+        assertNotNull(resp.createdAt());
+        assertNull(resp.reviewedAt());
+    }
+
+    @Test
+    void shouldUseOneGenericMessageWhetherAnAccountOrAPendingRequestHoldsTheValue() {
+        userSeeder.saveUser(UserFixtures.user().username("taken").email("taken@abc").build());
+        service.createRegistration(instructorRegistrationRequestBuilder.username("pending").email("pending@abc").build());
+
+        var byAccount = assertThrows(ConflictException.class,
+            () -> service.createRegistration(instructorRegistrationRequestBuilder.username("taken").email("free@abc").build()));
+        var byPendingRequest = assertThrows(ConflictException.class,
+            () -> service.createRegistration(instructorRegistrationRequestBuilder.username("free").email("pending@abc").build()));
+
+        assertEquals("Username or email is not available", byAccount.getMessage());
+        assertEquals(byAccount.getMessage(), byPendingRequest.getMessage());
+    }
+
+    @Test
+    void shouldAllowNewRequestAfterRejection() {
+        var first = service.createRegistration(instructorRegistrationRequestBuilder.username("again").email("again@abc").build());
+        instructorRegistrationRepo.findById(first.id()).orElseThrow().setRegistrationStatus(RegistrationStatus.REJECTED);
+        instructorRegistrationRepo.flush();
+
+        var second = service.createRegistration(instructorRegistrationRequestBuilder.username("again").email("again@abc").build());
+
+        assertNotEquals(first.id(), second.id());
+        assertEquals(RegistrationStatus.PENDING, second.status());
+    }
+
+    @Test
+    void shouldNotBeBlockedByRejectedStudentRequest() {
+        studentRegistrationSeeder.saveStudentRegistration(
+            studentRegistrationEntityBuilder.username("shared").email("shared@abc").registrationStatus(RegistrationStatus.REJECTED).build()
+        );
+
+        assertDoesNotThrow(() -> service.createRegistration(instructorRegistrationRequestBuilder.username("shared").email("shared@abc").build()));
     }
 }

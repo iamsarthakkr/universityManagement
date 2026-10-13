@@ -1,28 +1,30 @@
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
 import { getSidebarNav } from '@/config/navigation/sidebar';
 import { setToken } from '@/lib/session';
-import { AuthUser, Role } from '@/types/auth';
+import { Role } from '@/types/auth';
+import { me } from './fixtures';
 import { jsonOk, mockFetch } from './mockFetch';
 import { renderApp } from './render';
 
 const DEPARTMENTS = [{ id: 1, name: 'Computer Science', code: 'CS' }];
 
 function loggedInAs(role: Role) {
-    const user: AuthUser = { id: '1', username: 'sam', email: 'sam@uni.edu', role };
     setToken('valid');
     return mockFetch({
         'GET /departments': jsonOk(DEPARTMENTS),
-        'GET /auth/me': jsonOk(user),
-        'GET /admin/student-registrations/PENDING': jsonOk([]),
-        'GET /admin/student-registrations/APPROVED': jsonOk([]),
-        'GET /admin/student-registrations/REJECTED': jsonOk([]),
-        'GET /admin/instructor-registrations/PENDING': jsonOk([]),
-        'GET /admin/instructor-registrations/APPROVED': jsonOk([]),
-        'GET /admin/instructor-registrations/REJECTED': jsonOk([]),
-        'GET /courses/catalogue': jsonOk([]),
+        'GET /me': jsonOk(me(role)),
+        'GET /student-registrations': jsonOk([]),
+        'GET /instructor-registrations': jsonOk([]),
+        'GET /courses': jsonOk([]),
+        'GET /course-offerings': jsonOk([]),
+        'GET /instructors': jsonOk([]),
+        'GET /students': jsonOk([]),
+        'GET /me/course-offerings': jsonOk([]),
+        'GET /me/enrollments': jsonOk([]),
+        'GET /semesters': jsonOk([]),
     });
 }
 
@@ -77,7 +79,7 @@ describe('routing and guards', () => {
 
     it('keeps students out of admin pages', async () => {
         loggedInAs('STUDENT');
-        const router = renderApp('/dashboard/admin/student-registrations/pending');
+        const router = renderApp('/dashboard/admin/student-registrations');
 
         expect(await screen.findByRole('heading', { name: 'Student dashboard' })).toBeInTheDocument();
         expect(router.state.location.pathname).toBe('/dashboard/student');
@@ -91,12 +93,32 @@ describe('routing and guards', () => {
         expect(router.state.location.pathname).toBe('/dashboard/instructor');
     });
 
-    it('redirects an unknown registration status to pending', async () => {
+    it.each([
+        [
+            '/dashboard/admin/student-registrations/approved',
+            '/dashboard/admin/student-registrations',
+            '?status=APPROVED',
+        ],
+        [
+            '/dashboard/admin/instructor-registrations/rejected',
+            '/dashboard/admin/instructor-registrations',
+            '?status=REJECTED',
+        ],
+        ['/dashboard/admin/student-registrations/foo', '/dashboard/admin/student-registrations', ''],
+    ])('redirects the old registration link %s', async (from, pathname, search) => {
         loggedInAs('ADMIN');
-        const router = renderApp('/dashboard/admin/student-registrations/foo');
+        const router = renderApp(from);
 
-        expect(await screen.findByRole('heading', { name: 'Pending student registrations' })).toBeInTheDocument();
-        expect(router.state.location.pathname).toBe('/dashboard/admin/student-registrations/pending');
+        await waitFor(() => expect(router.state.location.pathname).toBe(pathname));
+        expect(router.state.location.search).toBe(search);
+    });
+
+    it('shows pending registrations for an unknown status', async () => {
+        loggedInAs('ADMIN');
+        renderApp('/dashboard/admin/student-registrations?status=foo');
+
+        expect(await screen.findByRole('heading', { name: 'Student registrations' })).toBeInTheDocument();
+        expect(screen.getByRole('tab', { name: 'Pending' })).toHaveAttribute('aria-selected', 'true');
     });
 
     it('shows the error overlay when the backend is down and recovers on retry', async () => {

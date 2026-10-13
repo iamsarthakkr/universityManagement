@@ -17,7 +17,7 @@ public class WithMockCustomUserSecurityContextFactory
             .username(annotation.username())
             .role(annotation.role())
             .password("test-password")
-            .userId(1)
+            .id(1)
             .enabled(true)
             .build();
 
