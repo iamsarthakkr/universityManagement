@@ -133,6 +133,7 @@ class Generator:
     rng: random.Random
     password_for: callable
     usernames: set = field(default_factory=set)
+    phones_given: int = 0
     output: dict = field(default_factory=dict)
 
     def generate(self):
@@ -195,7 +196,7 @@ class Generator:
             result.append({
                 "username": username, "email": email(username), "password": self.password_for(username),
                 "department": department, "firstName": first_name, "lastName": last_name,
-                "phoneNumber": phone(self.rng),
+                "phoneNumber": self.next_phone(),
                 "registration": {"requestedAt": offset(requested), "reviewedAt": offset(requested + self.rng.randint(1, 4))},
             })
         return result
@@ -223,7 +224,7 @@ class Generator:
                     "username": username, "email": email(username), "password": self.password_for(username),
                     "department": department, "firstName": first_name, "lastName": last_name,
                     "dateOfBirth": f"{self.rng.randint(2001, 2006)}-{self.rng.randint(1, 12):02d}-{self.rng.randint(1, 28):02d}",
-                    "phoneNumber": phone(self.rng),
+                    "phoneNumber": self.next_phone(),
                     "address": f"{self.rng.choice(HOSTELS)}, Room {self.rng.randint(1, 240)}",
                     "fatherName": f"{self.rng.choice(FIRST_NAMES_M)} {last_name}",
                     "motherName": f"{self.rng.choice(FIRST_NAMES_F)} {last_name}",
@@ -361,6 +362,11 @@ class Generator:
         first = self.rng.choice(FIRST_NAMES_F if self.rng.random() < 0.5 else FIRST_NAMES_M)
         return first, self.rng.choice(LAST_NAMES)
 
+    # 000000xxxx can't be dialled anywhere, so a seeded number never reaches a real person
+    def next_phone(self):
+        self.phones_given += 1
+        return f"{self.phones_given:010d}"
+
     def claim(self, first_name, last_name):
         base = claim_name(first_name, last_name)
         username, suffix = base, 2
@@ -384,10 +390,6 @@ def offset(days):
 
 def email(username):
     return f"{username}@example.com"
-
-
-def phone(rng):
-    return "9" + "".join(str(rng.randint(0, 9)) for _ in range(9))
 
 
 def render(data):
