@@ -143,11 +143,13 @@ The annotations answer "is this user involved with this resource at all?" using 
 
 **`/me` lists take their scope from the principal** under a plain role check (`@PreAuthorize(STUDENT)` / `INSTRUCTOR`), not from a `#studentId` parameter, so there is nothing for the client to forge.
 
+**Rate limiting** (`ratelimit/`, limits under `app.rate-limit` in `application.yml`). `RateLimitFilter` runs before `JwtAuthenticationFilter`, so a rejected request costs no database query. It takes one request from a Bucket4j bucket: login and registration `POST`s per IP, requests with a valid token per user id (read from the signature-checked token, no query; per user because a campus shares one NAT IP), everything else per IP. Health and info are never limited. `SecurityConfig` creates the filter with `new`; making it a bean would also register it as a servlet filter. The IP is `getRemoteAddr()`, which is safe only because the API is reachable through Caddy alone, and Caddy overwrites `X-Forwarded-For`. `AuthService.login` adds a per-username limit on **failed** logins (lower-cased, since MySQL matches usernames case-insensitively), so a correct password still works while someone else is guessing. Over a limit: 429 with `Retry-After`. Buckets live in memory (a bounded Caffeine cache) and read the app `Clock`, so tests advance `MutableTestClock`; several API instances would need a shared store. The `test` profile disables limiting; `RateLimitWebTests` enables it with small limits.
+
 `CurrentUserService` reads the current `UserPrincipal` from the security context (id and role need no extra query) and throws `AuthenticationCredentialsNotFoundException` when there is none, including for anonymous requests on public routes. `getCurrentStudent()` / `getCurrentInstructor()` check the role from the principal (403 for the wrong role) and then load the profile row.
 
 ### Error handling
 
-Throw the domain exceptions from `common/exceptions`: `ResourceNotFoundException` (404), `BadRequestException` (400), `ForbiddenException` (403), `ConflictException` (409). `GlobalExceptionHandler` turns them, and Spring's own exceptions (validation, type mismatch, unreadable body, unknown route, wrong method, auth failures), into `ApiErrorResponse` with a message the UI shows as-is. So write messages for end users, and never let Java type or package names through: a bad path variable and a bad filter value (which arrives as a binding failure inside `MethodArgumentNotValidException`, not as `MethodArgumentTypeMismatchException`) both become `"Invalid value 'foo' for 'status'. Allowed values: ..."`. Client errors are logged at `WARN` without a stack trace; unexpected errors at `ERROR` with one.
+Throw the domain exceptions from `common/exceptions`: `ResourceNotFoundException` (404), `BadRequestException` (400), `ForbiddenException` (403), `ConflictException` (409), `TooManyRequestsException` (429, with `Retry-After`). `GlobalExceptionHandler` turns them, and Spring's own exceptions (validation, type mismatch, unreadable body, unknown route, wrong method, auth failures), into `ApiErrorResponse` with a message the UI shows as-is. So write messages for end users, and never let Java type or package names through: a bad path variable and a bad filter value (which arrives as a binding failure inside `MethodArgumentNotValidException`, not as `MethodArgumentTypeMismatchException`) both become `"Invalid value 'foo' for 'status'. Allowed values: ..."`. Client errors are logged at `WARN` without a stack trace; unexpected errors at `ERROR` with one.
 
 ### API response pattern
 
@@ -189,6 +191,7 @@ enrollment/      — EnrollmentEntity, EnrollmentStatus/Action/Denial, Enrollmen
 security/        — SecurityConfig, jwt/, UserPrincipal, AuthorizationService, annotation/
 config/          — JpaConfig, AppSecurityBeansConfig, PublicEndpointConfig, TimeConfig
 common/          — rest (Res, ApiResponse, ErrorCode, SuccessCode), exceptions, entity (BaseEntity), types
+ratelimit/       — RateLimitFilter, RateLimiter (Bucket4j + Caffeine), RateLimitProperties
 seed/            — demo data: DemoDataSeeder (startup runner), SeedApplier, SeedRollback, SeedTracking (JDBC), dto/SeedFile
 ```
 

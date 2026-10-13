@@ -1,6 +1,9 @@
 package com.sarthak.universityManagement.security;
 
+import com.sarthak.universityManagement.ratelimit.RateLimitFilter;
+import com.sarthak.universityManagement.ratelimit.RateLimiter;
 import com.sarthak.universityManagement.security.jwt.JwtAuthenticationFilter;
+import com.sarthak.universityManagement.security.jwt.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,6 +27,7 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 
@@ -36,6 +40,9 @@ public class SecurityConfig {
     private final AuthenticationEntryPoint authenticationEntryPoint;
     private final AccessDeniedHandler accessDeniedHandler;
     private final RequestMatcher publicEndpoints;
+    private final RateLimiter rateLimiter;
+    private final JwtService jwtService;
+    private final ObjectMapper objectMapper;
     
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) {
@@ -54,6 +61,7 @@ public class SecurityConfig {
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+            .addFilterBefore(new RateLimitFilter(rateLimiter, jwtService, objectMapper), JwtAuthenticationFilter.class)
             .formLogin(AbstractHttpConfigurer::disable)
             .csrf(AbstractHttpConfigurer::disable)
             .httpBasic(AbstractHttpConfigurer::disable)

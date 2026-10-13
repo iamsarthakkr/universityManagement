@@ -8,6 +8,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.AccountStatusException;
@@ -58,6 +59,15 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiErrorResponse<Void>> handleForbidden(ForbiddenException ex) {
         LOG.warn("Forbidden: {}", ex.getMessage());
         return Res.error(ErrorCode.FORBIDDEN, ex.getMessage());
+    }
+
+    @ExceptionHandler(TooManyRequestsException.class)
+    public ResponseEntity<ApiErrorResponse<Void>> handleTooManyRequests(TooManyRequestsException ex) {
+        LOG.warn("Rate limited: {}", ex.getMessage());
+        var response = Res.error(ErrorCode.TOO_MANY_REQUESTS, ex.getMessage());
+        return ResponseEntity.status(response.getStatusCode())
+            .header(HttpHeaders.RETRY_AFTER, String.valueOf(ex.getRetryAfterSeconds()))
+            .body(response.getBody());
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)

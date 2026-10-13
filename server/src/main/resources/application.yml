@@ -38,3 +38,22 @@ info:
     name: University Enrollment Management
     description: Backend API for university enrollment workflows
     version: '@project.version@'
+# In production an override such as APP_RATE_LIMIT_LOGIN_REQUESTS must also be listed in deploy/compose.yml
+app:
+  rate-limit:
+    enabled: true
+    login:
+      requests: 20
+      period: 1m
+    login-failures:
+      requests: 10
+      period: 15m
+    registration:
+      requests: 10
+      period: 1h
+    authenticated:
+      requests: 120
+      period: 1m
+    anonymous:
+      requests: 60
+      period: 1m
