@@ -27,7 +27,7 @@ Spring Boot 4.x (Java 21), Spring Security (JWT, stateless), Spring Data JPA, My
 
 ## Configuration
 
-`application.yml` contains the shared base config, including `server.forward-headers-strategy: framework` — in production the API runs behind Caddy over plain HTTP, and Spring must honour `X-Forwarded-Proto/Host` so same-origin browser requests aren't rejected as cross-origin by CORS (covered by `ReverseProxyCorsTests`).
+`application.yml` contains the shared base config, including `server.forward-headers-strategy: framework` — in production the API runs behind Caddy over plain HTTP, and Spring must honour `X-Forwarded-Proto/Host` so same-origin browser requests aren't rejected as cross-origin by CORS (covered by `ReverseProxyCorsTests`). Cross-origin callers are allowed only from `app.cors.allowed-origins` (comma-separated, empty by default); the dev profile sets it to the Vite dev server, `http://localhost:3000` (`CORS_ALLOWED_ORIGINS`). Production needs none, because Caddy serves the UI and the API on one origin.
 
 The `dev` profile (`application-dev.yml`) is committed and works out of the box against the dev MySQL from the repo root's `compose.dev.yml` (`localhost:3306/universityManagementDev`, `university/university`); every value is an env placeholder with a dev default (`DB_URL`, `JWT_SECRET`, `ADMIN_USERNAME`, ...), and the dev admin is `admin/admin123`. Never put real secrets in it. The `prod` profile (`application-prod.yml`) reads everything from environment variables, supplied by `deploy/compose.yml` from the VPS `.env`. Activate a profile with `-Dspring-boot.run.profiles=...` or `SPRING_PROFILES_ACTIVE`.
 

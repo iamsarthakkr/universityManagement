@@ -5,6 +5,7 @@ import com.sarthak.universityManagement.ratelimit.RateLimiter;
 import com.sarthak.universityManagement.security.jwt.JwtAuthenticationFilter;
 import com.sarthak.universityManagement.security.jwt.JwtService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -84,12 +85,10 @@ public class SecurityConfig {
     }
     
     @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
+    public CorsConfigurationSource corsConfigurationSource(@Value("${app.cors.allowed-origins:}") List<String> allowedOrigins) {
         CorsConfiguration configuration = new CorsConfiguration();
         
-        configuration.setAllowedOrigins(List.of(
-            "http://localhost:3000"
-        ));
+        configuration.setAllowedOrigins(allowedOrigins);
         
         configuration.setAllowedMethods(List.of(
             "GET",

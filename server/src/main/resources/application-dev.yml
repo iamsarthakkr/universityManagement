@@ -12,6 +12,8 @@ spring:
     password: ${DB_PASSWORD:university}
 
 app:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
   jwt:
     secret: ${JWT_SECRET:dev-only-jwt-secret-not-for-production-use}
     expiration-ms: ${JWT_EXPIRATION_MS:1800000}
