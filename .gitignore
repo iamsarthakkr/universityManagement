@@ -24,3 +24,7 @@ frontend/build/
 
 # Deploy target on your machine (see deploy/vps.env.example)
 deploy/vps.env
+
+# Real seed data (example lives in server/src/main/resources/seed/seed.example.json)
+seed.json
+deploy/seed/

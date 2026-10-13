@@ -12,3 +12,7 @@ app:
     username: ${ADMIN_USERNAME}
     password: ${ADMIN_PASSWORD}
     email: ${ADMIN_EMAIL}
+  # Off unless SEED_MODE is set (apply, rollback-dry-run, rollback); see the seed section of the README
+  seed:
+    mode: ${SEED_MODE:}
+    file: ${SEED_FILE:}
