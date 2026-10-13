@@ -146,6 +146,60 @@ docker compose --env-file .env --env-file release.env ps
 
 The running versions are also visible at `GET /api/actuator/info` (API) and at the bottom of the user menu (frontend).
 
+### Demo data
+
+The API can seed demo data from a JSON file at startup and remove it again later. The format is
+[`seed.example.json`](server/src/main/resources/seed/seed.example.json), which the `dev` profile seeds automatically
+(every password there is `password`). The real file holds working logins, so it stays out of git: `seed.json` and
+`deploy/seed/` are ignored.
+
+Both files come from [`server/seed-tools/generate_seed.py`](server/seed-tools/generate_seed.py) (Python 3, no
+dependencies). It produces the same people, courses and enrollments on every run: completed semesters with their
+history, a running one with enrolled and pending requests (one offering full), a planned one, approved registrations
+behind every account, and some pending and rejected requests. `dev` is a small sample (2 departments); `prod` has
+4 departments, 12-18 students and 3-4 instructors each, and a random password per account, written into the file.
+That file is where to look a password up, or change one before applying it:
+
+```bash
+cd server
+python3 seed-tools/generate_seed.py --size dev  --out src/main/resources/seed/seed.example.json
+python3 seed-tools/generate_seed.py --size prod --out ../deploy/seed/seed.json   # new passwords on every run
+```
+
+`SEED_MODE` in the VPS `.env` picks what happens on the next start. Each mode does nothing when there is nothing to
+do, so leaving it set is harmless:
+
+| `SEED_MODE` | Effect |
+| --- | --- |
+| *(blank)* | nothing |
+| `apply` | seed `SEED_FILE`, unless a seed is already applied |
+| `rollback-dry-run` | log what a rollback would delete, change nothing |
+| `rollback` | delete the seeded rows **and every row that depends on them** (e.g. enrollments made with a seeded student); unrelated data stays |
+
+To seed:
+
+```bash
+# on your machine: generate deploy/seed/seed.json (above) and keep it, it holds the passwords
+ssh <user>@<host> mkdir -p /srv/apps/university-management/seed
+scp deploy/seed/seed.json <user>@<host>:/srv/apps/university-management/seed/seed.json
+
+# on the VPS: the container's non-root user must be able to read it
+chmod 644 seed/seed.json
+# in .env: SEED_MODE=apply and SEED_FILE=/seed/seed.json, then recreate the API container
+docker compose --env-file .env --env-file release.env up -d server
+docker compose --env-file .env --env-file release.env logs server | grep -i seed
+rm seed/seed.json   # the database keeps only password hashes; your local copy has the passwords
+```
+
+Dates in the file (semester dates, and when each registration and enrollment was requested or reviewed) are offsets
+from the day it is applied (`"-15d"`, `"+120d"`), and the semester year is taken from its start date. Registrations
+are reviewed by the admin account. The data therefore ages: a month later the current semester's registration window has
+closed. To refresh it, set `SEED_MODE=rollback`, restart, then `apply` again with the file. To change the data or
+adapt it to a new model, do the same: a changed file is not applied while an older seed is active. A file whose
+`formatVersion` doesn't match the build is rejected; schema migrations update seeded rows like any other rows.
+
+Outside the `dev` profile, a file that uses the example password `password` is refused.
+
 ## One-time setup
 
 1. **Database** — on the shared MySQL, create the app's database and a user limited to it. The user name and password
